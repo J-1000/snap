@@ -108,121 +108,58 @@ After an area selection is confirmed, two toolbars appear adjacent to the select
 
 ---
 
-### 4.3 Saving and File Formats
+### 3.3 Saving and Output
 
-#### 4.3.1 Local Save
+#### 3.3.1 Local Save
 
-The save dialog defaults to the user-configured default save directory (see Section 4.7). Supported formats are PNG (default), JPEG (with quality slider 50–100), and WebP. The file name is auto-generated using a configurable pattern (default: `Snap_YYYY-MM-DD_HH-mm-ss`). This addresses Lightshot's Mac limitation of PNG-only saves and no configurable save directory.
+Pressing ⌘S saves the annotated screenshot to the default save directory (`~/Desktop` by default, configurable in preferences). Pressing ⌘⇧S opens a save-as dialog for choosing a different location or format. Supported formats are PNG (default) and JPEG (with configurable quality). The file name is auto-generated using the pattern `Snap_YYYY-MM-DD_HH-mm-ss`.
 
-#### 4.3.2 Clipboard Copy
+#### 3.3.2 Clipboard Copy
 
-Copies the annotated image to the macOS pasteboard in PNG format. A quick-copy shortcut is supported: holding ⌘ before beginning a drag selection copies the capture to clipboard immediately upon mouse release, bypassing all toolbars.
-
----
-
-### 4.4 Cloud Upload and Link Sharing
-
-#### 4.4.1 Upload Mechanism
-
-Screenshots are uploaded to a self-hosted storage backend (or a configured S3-compatible bucket). On success, a short URL is generated and automatically copied to the clipboard. A macOS notification confirms the upload with the URL.
-
-#### 4.4.2 Upload Reliability
-
-The upload module implements automatic retry with exponential backoff (3 attempts, 1s/2s/4s delays). A progress indicator appears during upload. If all retries fail, the user is shown a clear error notification with a "Retry" button. This directly addresses the ~50% upload failure rate reported by Lightshot Mac users.
-
-#### 4.4.3 Link Privacy
-
-Uploaded images are accessible only via their unique URL, which uses a 128-bit random token (not a sequential ID). An optional setting enables automatic link expiration after a configurable period (1 hour, 24 hours, 7 days, 30 days, or never).
+Pressing ⌘C copies the annotated image to the macOS pasteboard in PNG format.
 
 ---
 
-### 4.5 Social Sharing and Email
+### 3.4 Reverse Image Search
 
-The action toolbar includes a share sub-menu that opens the appropriate web share URL in the default browser for Facebook, Twitter/X, and Pinterest. An email option attaches the screenshot to a new message in the default mail client. These match Lightshot's sharing targets.
-
----
-
-### 4.6 Reverse Image Search
-
-Two reverse image search integrations are provided. The Google Images option uploads the capture to Google's reverse image search endpoint and opens the results page in the default browser. The TinEye option does the same via the TinEye API. Both match Lightshot's functionality.
+Pressing ⌘G uploads the capture to Google's reverse image search endpoint and opens the results page in the default browser.
 
 ---
 
-### 4.7 Settings and Preferences
+### 3.5 Print
 
-The preferences window is accessible from the menu bar icon's context menu or via ⌘, (comma) when the app is focused. It is organized into the following tabs:
-
-#### 4.7.1 General Tab
-
-- Auto-copy shareable link to clipboard after upload (toggle, default: on).
-- Show macOS notification after save/copy/upload (toggle, default: on).
-- Remember last selection area position and size (toggle, default: off).
-- Include mouse cursor in captures (toggle, default: off).
-- Launch at login (toggle, default: on).
-- Default save directory (folder picker, default: `~/Desktop`).
-- Filename pattern (text field with token reference).
-- Language selector (24+ languages, matching Lightshot).
-
-#### 4.7.2 Hotkeys Tab
-
-- Activation hotkey (default: ⌘⇧⌥4).
-- Instant full-screen save hotkey.
-- Instant full-screen upload hotkey.
-- Hotkey fields support combinations of Fn, Control, Shift, Option, and Command.
-
-#### 4.7.3 Output Tab
-
-- Default save format: PNG, JPEG, or WebP.
-- JPEG quality slider (50–100).
-- Upload format: PNG or JPEG (with quality slider).
-- Retina downscaling toggle: when enabled, captures on Retina displays are saved at 1x resolution for smaller file sizes.
-
-#### 4.7.4 Cloud Tab
-
-- Cloud storage backend URL (self-hosted endpoint or S3 bucket).
-- API key / authentication token.
-- Automatic link expiration period.
-
-#### 4.7.5 Proxy Tab
-
-- No proxy (default), system proxy, or manual HTTP/HTTPS proxy with address and port fields.
+The print action (⌘P) opens the macOS system print dialog with the current annotated screenshot pre-loaded.
 
 ---
 
-### 4.8 Online Editor Integration
+### 3.6 Preferences
 
-Pressing ⌘E opens the captured image in a web-based image editor (Pixlr or equivalent) in the default browser. The online editor provides advanced capabilities beyond the in-app toolbar: cropping, layers, brushes, blur, filters, effects, and text with full font and size control. The user can save the edited image from the web editor in JPG, BMP, or PNG format. This matches the Lightshot online editor workflow.
+The preferences window is accessible from the menu bar icon's context menu. It is a single flat pane with the following settings:
 
----
-
-### 4.9 Print
-
-The print action (⌘P) opens the macOS system print dialog with the current annotated screenshot pre-loaded. No intermediate save-to-file step is required.
-
----
-
-### 4.10 Screenshot Gallery
-
-A local SQLite database stores metadata (thumbnail, timestamp, file path or cloud URL, annotations applied) for every screenshot captured through the app. A gallery view is accessible from the menu bar icon and displays a scrollable grid of recent captures with search, filter by date, and one-click re-upload or re-share. This replaces Lightshot's web-based prntscr.com gallery with a fully local, private alternative.
+- **Activation hotkey** (default: ⌘⇧⌥4). Supports Fn/Ctrl/Shift/Option/⌘ combos.
+- **Full-screen capture hotkey** (configurable).
+- **Default save directory** (folder picker, default: `~/Desktop`).
+- **Default save format**: PNG or JPEG. JPEG quality slider (50–100).
+- **Retina downscaling toggle**: when enabled, saves at 1x resolution for smaller files.
+- **Include mouse cursor** in captures (toggle, default: off).
+- **Show notification** after save/copy (toggle, default: on).
+- **Launch at login** (toggle, default: on).
 
 ---
 
-## 5. Keyboard Shortcuts Reference
+## 4. Keyboard Shortcuts Reference
 
 | Action | Default Shortcut |
 |--------|------------------|
 | Activate / start capture | ⌘⇧⌥4 (configurable) |
 | Instant full-screen save | Configurable |
-| Instant full-screen upload | Configurable |
 | Copy to clipboard | ⌘C |
-| Save as file | ⌘S |
-| Upload to cloud | ⌘D |
-| Open online editor | ⌘E |
-| Select entire screen | ⌘A |
+| Save to default directory | ⌘S |
+| Save as (choose location) | ⌘⇧S |
 | Google reverse image search | ⌘G |
-| TinEye reverse image search | ⌘T |
 | Print | ⌘P |
 | Undo annotation | ⌘Z |
+| Redo annotation | ⌘⇧Z |
 | Cancel / close capture | Esc |
 
 ---
