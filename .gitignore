@@ -23,6 +23,10 @@ Package.resolved
 .LSOverride
 ._*
 
+# Claude
+.claude/
+PROGRESS.md
+
 # Misc
 *.swp
 *.swo
