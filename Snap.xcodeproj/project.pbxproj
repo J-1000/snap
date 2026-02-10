@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0BB1787C393BB8913E4E25CC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14193A4FC394A707FD29428A /* main.swift */; };
 		0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F617C359D78D4A086EA747A6 /* AppDelegate.swift */; };
+		2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */; };
 		A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */; };
 		C840A4009F19E0EC3590EEB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4506329C6000E69CDAA97BEA /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -18,6 +19,7 @@
 		14193A4FC394A707FD29428A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		3BC5BC322A05E4F0343BA8C9 /* Snap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Snap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4506329C6000E69CDAA97BEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		ED4E98B92A77910BDCCB6E94 /* Snap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Snap.entitlements; sourceTree = "<group>"; };
 		F617C359D78D4A086EA747A6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -38,6 +40,14 @@
 				E185436592635B1DD59E4225 /* Snap */,
 				22F4CBFDE4552B74F35AC155 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		486DC26DC426B3A46EBE47A7 /* HotKey */ = {
+			isa = PBXGroup;
+			children = (
+				8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */,
+			);
+			path = HotKey;
 			sourceTree = "<group>";
 		};
 		9D10E89CFC619C67D7148258 /* Resources */ = {
@@ -64,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				D193A10665FEFE3F2425093F /* App */,
+				486DC26DC426B3A46EBE47A7 /* HotKey */,
 				9D10E89CFC619C67D7148258 /* Resources */,
 			);
 			path = Snap;
@@ -135,6 +146,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */,
+				2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */,
 				A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */,
 				0BB1787C393BB8913E4E25CC /* main.swift in Sources */,
 			);
