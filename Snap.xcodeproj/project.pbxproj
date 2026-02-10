@@ -10,6 +10,7 @@
 		0A809E6166375EB83F7B98C6 /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */; };
 		0BB1787C393BB8913E4E25CC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14193A4FC394A707FD29428A /* main.swift */; };
 		0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F617C359D78D4A086EA747A6 /* AppDelegate.swift */; };
+		20E61F4A59ACE5D917AACCD1 /* OutputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0BBCDCF2FCA03D97E67B169 /* OutputManager.swift */; };
 		2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */; };
 		4A89EA0CA17438CE88FCD616 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E021339765D1FD4DB66EE5 /* OverlayView.swift */; };
 		6C891CBF52E2844317A0D174 /* ScreenCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE59A51072F022580B112D23 /* ScreenCapture.swift */; };
@@ -27,6 +28,7 @@
 		573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
 		8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		C0BBCDCF2FCA03D97E67B169 /* OutputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputManager.swift; sourceTree = "<group>"; };
 		CE59A51072F022580B112D23 /* ScreenCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCapture.swift; sourceTree = "<group>"; };
 		ED4E98B92A77910BDCCB6E94 /* Snap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Snap.entitlements; sourceTree = "<group>"; };
 		F0E021339765D1FD4DB66EE5 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
@@ -95,9 +97,18 @@
 				D193A10665FEFE3F2425093F /* App */,
 				503147DFF63DD93E498E4B8C /* Capture */,
 				486DC26DC426B3A46EBE47A7 /* HotKey */,
+				F1E3483F46A163C80BFCE556 /* Output */,
 				9D10E89CFC619C67D7148258 /* Resources */,
 			);
 			path = Snap;
+			sourceTree = "<group>";
+		};
+		F1E3483F46A163C80BFCE556 /* Output */ = {
+			isa = PBXGroup;
+			children = (
+				C0BBCDCF2FCA03D97E67B169 /* OutputManager.swift */,
+			);
+			path = Output;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -168,6 +179,7 @@
 				0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */,
 				8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */,
 				2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */,
+				20E61F4A59ACE5D917AACCD1 /* OutputManager.swift in Sources */,
 				4A89EA0CA17438CE88FCD616 /* OverlayView.swift in Sources */,
 				0A809E6166375EB83F7B98C6 /* OverlayWindow.swift in Sources */,
 				6C891CBF52E2844317A0D174 /* ScreenCapture.swift in Sources */,
