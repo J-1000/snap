@@ -32,19 +32,25 @@ final class ScreenCapture: NSObject, SCStreamOutput {
         return try await captureRegion(screen.frame, screen: screen)
     }
 
+    /// Find the SCDisplay matching an NSScreen by CGDirectDisplayID
+    static func findDisplay(for screen: NSScreen, in displays: [SCDisplay]) -> SCDisplay? {
+        let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
+        guard let displayID = screenNumber else { return nil }
+        return displays.first { $0.displayID == displayID }
+    }
+
     private func capture(rect: NSRect, screen: NSScreen) async throws -> CGImage {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
 
-        let screenFrame = screen.frame
-        guard let display = content.displays.first(where: { display in
-            CGFloat(display.width) == screenFrame.width && CGFloat(display.height) == screenFrame.height
-        }) else {
+        guard let display = ScreenCapture.findDisplay(for: screen, in: content.displays) else {
             throw CaptureError.noDisplayFound
         }
 
+        let screenFrame = screen.frame
         let scaleFactor = screen.backingScaleFactor
 
-        // Convert from view coordinates (origin bottom-left) to screen capture coords
+        // Convert from AppKit coordinates (origin bottom-left of primary) to
+        // display-local Core Graphics coordinates (origin top-left of this display)
         let sourceRect = CGRect(
             x: rect.origin.x - screenFrame.origin.x,
             y: screenFrame.height - (rect.origin.y - screenFrame.origin.y) - rect.height,
