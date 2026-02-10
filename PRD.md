@@ -22,7 +22,7 @@
 5. [Technical Architecture](#5-technical-architecture)
 6. [Non-Functional Requirements](#6-non-functional-requirements)
 7. [Development Milestones](#7-development-milestones)
-8. [Open Questions and Future Considerations](#8-open-questions-and-future-considerations)
+8. [Future Considerations](#8-future-considerations-post-v10)
 
 ---
 
