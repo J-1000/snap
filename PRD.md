@@ -164,74 +164,65 @@ The preferences window is accessible from the menu bar icon's context menu. It i
 
 ---
 
-## 6. Technical Architecture
+## 5. Technical Architecture
 
-### 6.1 Technology Stack
+### 5.1 Technology Stack
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
 | Language | Swift 5.9+ | Native performance, first-class macOS API access |
 | UI framework | AppKit (NSWindow, NSView) | Full control over overlay windows and screen capture |
 | Screen capture | ScreenCaptureKit (macOS 13+) | Apple's modern, permission-aware capture API |
-| Image processing | Core Image / Core Graphics | Hardware-accelerated annotation rendering |
-| Networking | URLSession + async/await | Native HTTP with retry logic |
-| Storage | SQLite via GRDB.swift | Lightweight local gallery database |
-| Cloud storage | S3-compatible API | Self-hosted or cloud bucket for uploads |
+| Image processing | Core Image / Core Graphics | Hardware-accelerated annotation and blur rendering |
+| Persistence | UserDefaults | Sufficient for the small number of preferences |
 | Packaging | Native .app bundle | No Electron, no runtime dependencies |
 
-### 6.2 Application Architecture
+### 5.2 Application Architecture
 
-The application follows a modular architecture with five core subsystems:
+The application follows a modular architecture with three core subsystems:
 
 - **CaptureEngine:** Manages screen dimming overlay, user selection interaction, and pixel capture via ScreenCaptureKit. Handles multi-monitor geometry and Retina scaling.
-- **AnnotationEngine:** Renders annotation tools (line, arrow, freehand, rectangle, text) as lightweight CALayer overlays on the captured image. Maintains an undo stack of annotation operations.
-- **OutputManager:** Handles save-to-file (with format conversion), clipboard copy, print dispatch, and cloud upload (with retry). Generates filenames from the configurable pattern.
-- **CloudService:** Abstracts the upload target (S3 bucket or custom endpoint). Generates short URLs, manages authentication, and handles link expiration metadata.
-- **GalleryStore:** SQLite-backed storage for screenshot metadata, thumbnails, and gallery UI data source.
+- **AnnotationEngine:** Renders annotation tools (line, arrow, freehand, rectangle, ellipse, text, blur) as lightweight CALayer overlays on the captured image. Maintains a full undo/redo stack.
+- **OutputManager:** Handles save-to-file (PNG/JPEG conversion), clipboard copy, print dispatch, and reverse image search. Generates filenames from the timestamp pattern.
 
-### 6.3 macOS Permissions
+### 5.3 macOS Permissions
 
-The app requires Screen Recording permission (Privacy & Security → Screen Recording). On first launch, the app programmatically requests this entitlement. If denied, the app displays a clear instructional dialog explaining how to grant the permission. The app handles the macOS Sonoma/Sequoia periodic re-authorization prompts gracefully by detecting capture failures and re-prompting the user with guidance.
+The app requires Screen Recording permission (Privacy & Security → Screen Recording). On first launch, the app requests this entitlement. If denied, a clear instructional dialog explains how to grant the permission. The app handles macOS Sonoma/Sequoia periodic re-authorization prompts gracefully by detecting capture failures and re-prompting with guidance.
 
-### 6.4 System Requirements
+### 5.4 System Requirements
 
 - macOS 13 Ventura or later (for ScreenCaptureKit v2).
 - 64-bit Intel or Apple Silicon (M1/M2/M3/M4) processor.
-- Approximately 25 MB disk space for the application bundle.
-- 512 MB RAM minimum.
-- Internet connection required only for cloud upload and reverse image search features.
+- Approximately 15 MB disk space for the application bundle.
+- Internet connection required only for Google reverse image search.
 
 ---
 
-## 7. Non-Functional Requirements
+## 6. Non-Functional Requirements
 
-### 7.1 Performance
+### 6.1 Performance
 
 - Activation-to-overlay latency: < 150 ms from hotkey press to screen dimming.
 - Annotation rendering: 60 fps during freehand drawing on Retina displays.
 - Save-to-file: < 500 ms for a 4K resolution PNG.
-- Cloud upload: < 3 seconds for a typical 1080p screenshot on a 10 Mbps connection.
-- Idle memory footprint: < 30 MB when running as a background process.
+- Idle memory footprint: < 20 MB when running as a background process.
 - CPU usage while idle: < 0.1%.
 
-### 7.2 Reliability
+### 6.2 Reliability
 
-- Cloud uploads must succeed on ≥ 99% of attempts (with retry logic), compared to Lightshot's reported ~50% Mac failure rate.
 - The app must never crash during capture, even if the target window is closed mid-selection.
 - All user preferences must persist across app restarts and macOS updates.
 
-### 7.3 Privacy and Security
+### 6.3 Privacy
 
 - No telemetry, analytics, or usage tracking of any kind.
-- All uploaded screenshots use 128-bit random URL tokens (not sequential IDs).
-- Local gallery database is stored in the app's sandboxed container.
-- No data is transmitted except explicit user-initiated uploads.
+- No data is transmitted except explicit user-initiated actions (reverse image search).
+- All data stays local on disk.
 
-### 7.4 Accessibility
+### 6.4 macOS Integration
 
-- All toolbar buttons include accessibility labels for VoiceOver.
-- Keyboard-only operation is supported for all core workflows.
-- Respects macOS system appearance (light/dark mode) and accent colour.
+- Respects system appearance (light/dark mode) and accent color.
+- Menu bar icon with context menu for preferences and quit.
 
 ---
 
