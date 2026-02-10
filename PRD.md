@@ -226,78 +226,22 @@ The app requires Screen Recording permission (Privacy & Security → Screen Reco
 
 ---
 
-## 8. Lightshot Feature Parity Checklist
-
-The following table maps every documented Lightshot for Mac feature to its Snap equivalent, noting where the implementation matches, improves upon, or intentionally departs from the reference.
-
-| Lightshot Feature | Snap Status | Notes |
-|-------------------|------------------|-------|
-| Area selection capture | ✅ Match | Identical drag-to-select with dimension readout |
-| Full-screen capture | ✅ Match | Configurable hotkey |
-| Multi-monitor capture | ✅ Match | Spans all displays; stitch option for full-screen |
-| Cursor capture toggle | ✅ Match | In General settings |
-| Line tool | ✅ Match | Color selectable |
-| Arrow tool | ✅ Match | Color selectable |
-| Freehand / marker | ✅ Match | Yellow default for highlighter mode |
-| Rectangle tool | ✅ Match | Color selectable |
-| Text tool | ⬆️ Improved | Adjustable font size (8–72 pt) vs. fixed size |
-| Color picker (RGB/HSL) | ✅ Match | Presets + custom color dialog |
-| Undo (multiple) | ✅ Match | ⌘Z stack |
-| Close / discard | ✅ Match | Esc or X button |
-| Save to file (PNG) | ⬆️ Improved | PNG + JPEG + WebP; configurable save directory |
-| Copy to clipboard | ✅ Match | Plus quick-copy via ⌘+drag |
-| Cloud upload + short URL | ⬆️ Improved | Self-hosted; retry logic; link expiration |
-| Share to Facebook | ✅ Match | Opens browser |
-| Share to Twitter/X | ✅ Match | Opens browser |
-| Share to Pinterest | ✅ Match | Opens browser |
-| Share to VKontakte | ✅ Match | Opens browser |
-| Share via email | ✅ Match | Attaches to default mail client |
-| Google reverse image search | ✅ Match | Opens browser with results |
-| TinEye reverse image search | ✅ Match | Opens browser with results |
-| Print | ✅ Match | macOS system print dialog |
-| Online editor (Pixlr) | ✅ Match | Opens in default browser |
-| Configurable hotkeys | ✅ Match | Fn/Ctrl/Shift/Option/⌘ combos |
-| Upload format selection | ✅ Match | PNG or JPEG with quality slider |
-| Retina downscaling | ✅ Match | Toggle in Output settings |
-| Proxy settings | ✅ Match | None / system / manual |
-| Language selector (24+) | ✅ Match | In General settings |
-| Auto-copy link after upload | ✅ Match | Toggle in General settings |
-| Menu bar + Dock icon | ✅ Match | Native macOS integration |
-| Screenshot gallery | ⬆️ Improved | Local SQLite vs. web-only prntscr.com |
-| Dark mode support | ✅ Match | System appearance respected |
-| Launch at login | ⬆️ Improved | Native toggle in settings |
-| Default save directory | 🆕 Added | Not available in Lightshot Mac |
-| JPEG/WebP local save | 🆕 Added | Lightshot Mac is PNG-only for local saves |
-| Link expiration | 🆕 Added | Not available in Lightshot |
-| Upload retry logic | 🆕 Added | Fixes Lightshot's ~50% Mac upload failures |
-
----
-
-## 9. Development Milestones
+## 7. Development Milestones
 
 | Milestone | Scope | Target |
 |-----------|-------|--------|
-| **M1 – Core Capture** | Area selection, full-screen capture, multi-monitor, clipboard copy, basic save-to-PNG. Menu bar icon with activation hotkey. | Week 1–3 |
-| **M2 – Annotation** | All 7 annotation tools (line, arrow, freehand, rectangle, text with size slider, color picker, undo). Print. | Week 4–6 |
-| **M3 – Cloud + Sharing** | Cloud upload with retry, short URL generation, social sharing (Facebook, Twitter/X, Pinterest, VK, email), reverse image search (Google + TinEye), online editor integration. | Week 7–9 |
-| **M4 – Polish + Gallery** | Full settings panel (all 5 tabs), local screenshot gallery with search, JPEG/WebP save support, filename patterns, dark mode, accessibility, launch-at-login, final testing. | Week 10–12 |
+| **M1 – Core Capture** | Area selection, full-screen capture, multi-monitor support, clipboard copy, save-to-PNG. Menu bar icon with activation hotkey. Preferences pane. | Week 1–2 |
+| **M2 – Annotation** | All annotation tools: line, arrow, freehand, rectangle, ellipse, text (with size), blur/pixelate, color picker, undo/redo. | Week 3–4 |
+| **M3 – Polish** | JPEG save support, print, Google reverse image search, Retina downscaling, dark mode, launch-at-login, final testing and bug fixes. | Week 5–6 |
 
 ---
 
-## 10. Open Questions and Future Considerations
-
-### 10.1 Open Questions
-
-1. Should the cloud backend be a self-hosted server (e.g. a simple Cloudflare Worker + R2 bucket) or a full third-party service? A self-hosted approach maximizes privacy but requires maintenance.
-2. Should the app be distributed via the Mac App Store (sandboxed, with review delays) or as a direct download (more flexibility, requires notarization only)?
-3. Is VKontakte sharing still relevant for personal use, or should it be replaced with a more useful target (e.g. Slack webhook, Discord webhook)?
-
-### 10.2 Future Considerations (Post v1.0)
+## 8. Future Considerations (Post v1.0)
 
 - Window-snap capture: automatically detect window boundaries on hover.
 - Scrolling capture: capture content beyond the visible viewport.
 - Timed / delayed capture with countdown overlay.
 - OCR text extraction from captured regions.
 - Video / GIF recording of a selected screen region.
-- Blur / pixelate annotation tool for redacting sensitive information.
 - Numbered step annotations for tutorial-style screenshots.
+- Cloud upload to S3-compatible bucket with shareable links (if clipboard-paste workflow proves insufficient).
