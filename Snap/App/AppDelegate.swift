@@ -35,7 +35,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func startFullScreenCapture() {
-        // Will be wired in Step 9
+        guard let screen = NSScreen.main else { return }
+        captureEngine.captureFullScreen(screen)
     }
 
     @objc func saveScreenshot() {
