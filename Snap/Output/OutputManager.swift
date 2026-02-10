@@ -1,6 +1,13 @@
 import AppKit
+import UniformTypeIdentifiers
 
 final class OutputManager {
+
+    private(set) static var lastCapturedImage: CGImage?
+
+    static func saveImage(_ image: CGImage) {
+        lastCapturedImage = image
+    }
 
     static func copyToClipboard(_ image: CGImage) -> Bool {
         let pasteboard = NSPasteboard.general
@@ -8,6 +15,31 @@ final class OutputManager {
 
         let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
         return pasteboard.writeObjects([nsImage])
+    }
+
+    @discardableResult
+    static func saveToFile(_ image: CGImage, url: URL? = nil) -> Bool {
+        let saveURL = url ?? FileNaming.defaultSaveURL()
+        guard let destination = CGImageDestinationCreateWithURL(saveURL as CFURL, kUTTypePNG, 1, nil) else {
+            return false
+        }
+        CGImageDestinationAddImage(destination, image, nil)
+        return CGImageDestinationFinalize(destination)
+    }
+
+    static func saveWithDialog(_ image: CGImage) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = FileNaming.defaultFilename()
+        panel.allowedContentTypes = [.png, .jpeg]
+        panel.canCreateDirectories = true
+
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                if OutputManager.saveToFile(image, url: url) {
+                    OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+                }
+            }
+        }
     }
 
     static func showNotification(title: String, text: String) {

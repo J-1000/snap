@@ -9,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController = StatusBarController()
 
         captureEngine.onImageCaptured = { image in
+            OutputManager.saveImage(image)
             if OutputManager.copyToClipboard(image) {
                 OutputManager.showNotification(title: "Snap", text: "Screenshot copied to clipboard")
             }
@@ -35,5 +36,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func startFullScreenCapture() {
         // Will be wired in Step 9
+    }
+
+    @objc func saveScreenshot() {
+        guard let image = OutputManager.lastCapturedImage else { return }
+        if OutputManager.saveToFile(image) {
+            OutputManager.showNotification(title: "Snap", text: "Saved to Desktop")
+        }
+    }
+
+    @objc func saveScreenshotAs() {
+        guard let image = OutputManager.lastCapturedImage else { return }
+        OutputManager.saveWithDialog(image)
     }
 }

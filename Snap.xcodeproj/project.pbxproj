@@ -15,6 +15,7 @@
 		4A89EA0CA17438CE88FCD616 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E021339765D1FD4DB66EE5 /* OverlayView.swift */; };
 		6C891CBF52E2844317A0D174 /* ScreenCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE59A51072F022580B112D23 /* ScreenCapture.swift */; };
 		8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */; };
+		A0F63E161BF9B0FC3C0647D2 /* FileNaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20279F02CD3A925CD0488D9C /* FileNaming.swift */; };
 		A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */; };
 		C840A4009F19E0EC3590EEB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4506329C6000E69CDAA97BEA /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -23,6 +24,7 @@
 		0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
 		103F1BDAA255029735555ADA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		14193A4FC394A707FD29428A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		20279F02CD3A925CD0488D9C /* FileNaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileNaming.swift; sourceTree = "<group>"; };
 		3BC5BC322A05E4F0343BA8C9 /* Snap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Snap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4506329C6000E69CDAA97BEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 		F1E3483F46A163C80BFCE556 /* Output */ = {
 			isa = PBXGroup;
 			children = (
+				20279F02CD3A925CD0488D9C /* FileNaming.swift */,
 				C0BBCDCF2FCA03D97E67B169 /* OutputManager.swift */,
 			);
 			path = Output;
@@ -178,6 +181,7 @@
 			files = (
 				0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */,
 				8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */,
+				A0F63E161BF9B0FC3C0647D2 /* FileNaming.swift in Sources */,
 				2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */,
 				20E61F4A59ACE5D917AACCD1 /* OutputManager.swift in Sources */,
 				4A89EA0CA17438CE88FCD616 /* OverlayView.swift in Sources */,
