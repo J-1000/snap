@@ -1,13 +1,12 @@
 # Product Requirements Document: Snap
 
-**A Lightshot-Class Screenshot Tool for macOS**
+**A Fast, Personal Screenshot Tool for macOS**
 
 | Field | Detail |
 |-------|--------|
 | Document | Product Requirements Document (PRD) |
 | Product name | Snap |
 | Version | 1.0 |
-| Author | (Your Name) |
 | Date | February 2026 |
 | Status | Draft |
 | Platform | macOS 13 Ventura and later (Intel + Apple Silicon) |
@@ -18,22 +17,22 @@
 
 1. [Executive Summary](#1-executive-summary)
 2. [Goals and Non-Goals](#2-goals-and-non-goals)
-3. [User Persona](#3-user-persona)
-4. [Feature Requirements](#4-feature-requirements)
-5. [Keyboard Shortcuts Reference](#5-keyboard-shortcuts-reference)
-6. [Technical Architecture](#6-technical-architecture)
-7. [Non-Functional Requirements](#7-non-functional-requirements)
-8. [Lightshot Feature Parity Checklist](#8-lightshot-feature-parity-checklist)
-9. [Development Milestones](#9-development-milestones)
-10. [Open Questions and Future Considerations](#10-open-questions-and-future-considerations)
+3. [Feature Requirements](#3-feature-requirements)
+4. [Keyboard Shortcuts Reference](#4-keyboard-shortcuts-reference)
+5. [Technical Architecture](#5-technical-architecture)
+6. [Non-Functional Requirements](#6-non-functional-requirements)
+7. [Development Milestones](#7-development-milestones)
+8. [Open Questions and Future Considerations](#8-open-questions-and-future-considerations)
 
 ---
 
 ## 1. Executive Summary
 
-Snap is a personal-use macOS screenshot utility that replicates every feature found in Lightshot for Mac, while correcting its most commonly reported shortcomings. The application provides instant area-selection and full-screen capture, an in-place annotation toolbar, one-click cloud upload with shareable links, reverse image search, and a configurable settings panel. It is built as a native Swift/AppKit application targeting macOS 13 Ventura and later, supporting both Intel and Apple Silicon processors.
+Snap is a personal-use macOS screenshot utility built for a single power-user workflow: rapid capture, light annotation, and instant save or clipboard copy — used dozens of times per day across coding, design review, bug reporting, and casual communication.
 
-The key improvements over the Lightshot reference implementation include: support for multiple local save formats (PNG, JPEG, WebP), a configurable default save directory, adjustable font sizes in the text annotation tool, reliable cloud uploads, and a first-class macOS experience that respects modern permission models without recurring authorization prompts.
+The application provides instant area-selection and full-screen capture, an in-place annotation toolbar with essential drawing and redaction tools, and fast local save or clipboard copy. It is built as a native Swift/AppKit application targeting macOS 13 Ventura and later, supporting both Intel and Apple Silicon processors.
+
+The design philosophy is opinionated minimalism: only the features that get used daily, executed flawlessly, with zero configuration overhead.
 
 ---
 
@@ -41,25 +40,23 @@ The key improvements over the Lightshot reference implementation include: suppor
 
 ### 2.1 Goals
 
-- Achieve feature parity with every capability documented in Lightshot for Mac v2.22.
-- Deliver a native macOS experience with smooth Retina rendering, dark mode support, and minimal resource consumption.
-- Fix Lightshot's Mac-specific pain points: PNG-only saves, immovable save directory, single font size for text, unreliable uploads.
-- Ship a single self-contained application with no external runtime dependencies.
-- Keep the UI as minimal and fast as Lightshot — activation-to-share in under 3 seconds.
+- Deliver a native macOS screenshot tool optimized for a single power-user's daily workflow.
+- Activation-to-save in under 2 seconds for the common case (capture → clipboard).
+- Smooth Retina rendering, dark mode support, and minimal resource consumption.
+- Support PNG and JPEG local saves with a configurable default save directory.
+- Provide essential annotation tools including blur/pixelate for redacting sensitive content.
+- Ship a single self-contained .app bundle with no external runtime dependencies.
 
 ### 2.2 Non-Goals
 
-- Video or screen recording — out of scope for v1.0.
-- Scrolling/long-page capture — deferred to a future release.
-- Automatic window-snap detection — deferred to a future release.
+- Video or screen recording.
+- Scrolling/long-page capture.
+- Automatic window-snap detection.
 - iOS or cross-platform support.
 - Monetization, analytics, or telemetry of any kind.
-
----
-
-## 3. User Persona
-
-Because this is a personal-use application, the sole user persona is the developer/owner. The app must optimise for a single power-user workflow: rapid capture, light annotation, and instant sharing or local save, used dozens of times per day across coding, design review, bug reporting, and casual communication.
+- Social media sharing integrations.
+- Multi-language / i18n support (English only).
+- Built-in cloud upload service (use clipboard + paste into Slack/Discord/etc instead).
 
 ---
 
