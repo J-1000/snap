@@ -4,13 +4,29 @@ final class CaptureEngine {
     private var overlayWindows: [OverlayWindow] = []
     private(set) var isActive = false
 
-    var onCaptureComplete: ((NSRect, NSScreen) -> Void)?
+    var onImageCaptured: ((CGImage) -> Void)?
     var onCancel: (() -> Void)?
+    var onError: ((Error) -> Void)?
 
     func startAreaSelection() {
         guard !isActive else { return }
         isActive = true
         showOverlays()
+    }
+
+    func captureFullScreen(_ screen: NSScreen) {
+        Task {
+            do {
+                let image = try await ScreenCapture.captureFullScreen(screen)
+                await MainActor.run {
+                    self.onImageCaptured?(image)
+                }
+            } catch {
+                await MainActor.run {
+                    self.onError?(error)
+                }
+            }
+        }
     }
 
     func cancel() {
@@ -47,6 +63,17 @@ final class CaptureEngine {
 
     private func handleSelectionComplete(rect: NSRect, screen: NSScreen) {
         dismissOverlays()
-        onCaptureComplete?(rect, screen)
+        Task {
+            do {
+                let image = try await ScreenCapture.captureRegion(rect, screen: screen)
+                await MainActor.run {
+                    self.onImageCaptured?(image)
+                }
+            } catch {
+                await MainActor.run {
+                    self.onError?(error)
+                }
+            }
+        }
     }
 }
