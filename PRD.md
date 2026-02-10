@@ -60,57 +60,51 @@ The design philosophy is opinionated minimalism: only the features that get used
 
 ---
 
-## 4. Feature Requirements
+## 3. Feature Requirements
 
-### 4.1 Screen Capture
+### 3.1 Screen Capture
 
-#### 4.1.1 Area Selection Capture
+#### 3.1.1 Area Selection Capture
 
 When the user presses the activation hotkey, the entire screen dims with a semi-transparent dark overlay. The user clicks and drags to define a rectangular selection. The selected region brightens to preview the capture. A pixel-dimension label (e.g. "1280 × 720") appears at the top-left corner of the selection. The selection handles allow resizing and repositioning before the user commits.
 
-#### 4.1.2 Full-Screen Capture
+#### 3.1.2 Full-Screen Capture
 
-A separate configurable hotkey triggers an instant full-screen capture. The image is either saved directly to the default save location or opened in the annotation toolbar, depending on a user preference toggle.
+A separate configurable hotkey triggers an instant full-screen capture. The image is saved directly to the default save location.
 
-#### 4.1.3 Multi-Monitor Support
+#### 3.1.3 Multi-Monitor Support
 
-On activation, all connected displays dim simultaneously. The user can drag a selection that spans multiple monitors. Full-screen capture captures the primary display by default; a preference allows capturing all displays as a single stitched image.
-
-#### 4.1.4 Cursor Capture Toggle
-
-A setting controls whether the mouse cursor is included in captures. Default is excluded.
+On activation, all connected displays dim simultaneously. The user can drag a selection that spans multiple monitors. Full-screen capture captures the primary display by default.
 
 ---
 
-### 4.2 Annotation Toolbar
+### 3.2 Annotation Toolbar
 
 After an area selection is confirmed, two toolbars appear adjacent to the selection rectangle.
 
-#### 4.2.1 Vertical Editing Toolbar (Right Side)
+#### 3.2.1 Editing Toolbar (Right Side)
 
-| # | Tool | Description | Parity Note |
-|---|------|-------------|-------------|
-| 1 | Line | Draws straight lines. Single thickness. Color selectable. | Matches Lightshot |
-| 2 | Arrow | Draws directional arrows. Color selectable. | Matches Lightshot |
-| 3 | Freehand / Marker | Freeform drawing. Defaults to yellow when used as highlighter. | Matches Lightshot |
-| 4 | Rectangle | Draws outlined rectangles. Color selectable. | Matches Lightshot |
-| 5 | Text | Adds typed text annotations. Color selectable. Font size adjustable via slider (8–72 pt). | **Improves on Lightshot** (fixed size) |
-| 6 | Color Picker | Preset swatches, custom RGB/HSL selector. | Matches Lightshot |
-| 7 | Undo | Reverses the most recent annotation. Supports multiple undos. | Matches Lightshot |
-| 8 | Close (X) | Discards the capture and returns to normal desktop. | Matches Lightshot |
+| # | Tool | Description |
+|---|------|-------------|
+| 1 | Line | Draws straight lines. Color selectable. Thickness adjustable (1–5 px). |
+| 2 | Arrow | Draws directional arrows. Color selectable. Thickness adjustable. |
+| 3 | Freehand / Marker | Freeform drawing. Defaults to yellow when used as highlighter. |
+| 4 | Rectangle | Draws outlined rectangles. Color selectable. |
+| 5 | Ellipse | Draws outlined ellipses. Color selectable. |
+| 6 | Text | Adds typed text annotations. Color selectable. Font size adjustable (8–72 pt). |
+| 7 | Blur / Pixelate | Applies a pixelation or Gaussian blur to a selected rectangular region. Essential for redacting passwords, tokens, emails, and PII in screenshots. |
+| 8 | Color Picker | Preset swatches plus a custom color dialog. |
+| 9 | Undo / Redo | ⌘Z undoes the most recent annotation. ⌘⇧Z redoes. Supports full undo/redo stack. |
+| 10 | Close (X) | Discards the capture and returns to normal desktop. |
 
-#### 4.2.2 Horizontal Action Toolbar (Bottom)
+#### 3.2.2 Action Toolbar (Bottom)
 
 | # | Action | Shortcut | Description |
 |---|--------|----------|-------------|
 | 1 | Copy to Clipboard | ⌘C | Copies the annotated screenshot to the system clipboard. |
-| 2 | Save to File | ⌘S | Opens a save dialog (or saves to default directory per settings). |
-| 3 | Upload to Cloud | ⌘D | Uploads and generates a shareable short URL. |
-| 4 | Open in Online Editor | ⌘E | Opens the image in an external web-based editor (Pixlr). |
-| 5 | Google Image Search | ⌘G | Performs a reverse image search via Google Images. |
-| 6 | TinEye Search | ⌘T | Performs a reverse image search via TinEye. |
-| 7 | Print | ⌘P | Opens the macOS system print dialog. |
-| 8 | Share to Social | — | Sub-menu: Facebook, Twitter/X, Pinterest, email. |
+| 2 | Save to File | ⌘S | Saves to the default directory (or opens a save dialog with ⌘⇧S). |
+| 3 | Google Image Search | ⌘G | Performs a reverse image search via Google Images. |
+| 4 | Print | ⌘P | Opens the macOS system print dialog. |
 
 ---
 
