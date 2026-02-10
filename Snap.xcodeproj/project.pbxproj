@@ -7,21 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A809E6166375EB83F7B98C6 /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */; };
 		0BB1787C393BB8913E4E25CC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14193A4FC394A707FD29428A /* main.swift */; };
 		0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F617C359D78D4A086EA747A6 /* AppDelegate.swift */; };
 		2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */; };
+		4A89EA0CA17438CE88FCD616 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E021339765D1FD4DB66EE5 /* OverlayView.swift */; };
+		8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */; };
 		A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */; };
 		C840A4009F19E0EC3590EEB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4506329C6000E69CDAA97BEA /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
 		103F1BDAA255029735555ADA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		14193A4FC394A707FD29428A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		3BC5BC322A05E4F0343BA8C9 /* Snap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Snap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4506329C6000E69CDAA97BEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
 		8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		ED4E98B92A77910BDCCB6E94 /* Snap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Snap.entitlements; sourceTree = "<group>"; };
+		F0E021339765D1FD4DB66EE5 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		F617C359D78D4A086EA747A6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -50,6 +56,16 @@
 			path = HotKey;
 			sourceTree = "<group>";
 		};
+		503147DFF63DD93E498E4B8C /* Capture */ = {
+			isa = PBXGroup;
+			children = (
+				0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */,
+				F0E021339765D1FD4DB66EE5 /* OverlayView.swift */,
+				573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */,
+			);
+			path = Capture;
+			sourceTree = "<group>";
+		};
 		9D10E89CFC619C67D7148258 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -74,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				D193A10665FEFE3F2425093F /* App */,
+				503147DFF63DD93E498E4B8C /* Capture */,
 				486DC26DC426B3A46EBE47A7 /* HotKey */,
 				9D10E89CFC619C67D7148258 /* Resources */,
 			);
@@ -146,7 +163,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */,
+				8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */,
 				2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */,
+				4A89EA0CA17438CE88FCD616 /* OverlayView.swift in Sources */,
+				0A809E6166375EB83F7B98C6 /* OverlayWindow.swift in Sources */,
 				A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */,
 				0BB1787C393BB8913E4E25CC /* main.swift in Sources */,
 			);

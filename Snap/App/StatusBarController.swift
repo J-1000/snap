@@ -32,11 +32,13 @@ final class StatusBarController {
     }
 
     @objc private func captureArea() {
-        // Will be wired up in Step 4
+        guard let delegate = NSApp.delegate as? AppDelegate else { return }
+        delegate.startAreaCapture()
     }
 
     @objc private func captureFullScreen() {
-        // Will be wired up in Step 9
+        guard let delegate = NSApp.delegate as? AppDelegate else { return }
+        delegate.startFullScreenCapture()
     }
 
     @objc private func openPreferences() {

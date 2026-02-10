@@ -3,6 +3,7 @@ import AppKit
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private let hotKeyManager = HotKeyManager()
+    let captureEngine = CaptureEngine()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusBarController = StatusBarController()
@@ -17,7 +18,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func startAreaCapture() {
-        // Will be wired in Step 4
+        guard !captureEngine.isActive else { return }
+        captureEngine.startAreaSelection()
     }
 
     func startFullScreenCapture() {
