@@ -2,6 +2,7 @@ import AppKit
 
 final class StatusBarController {
     private var statusItem: NSStatusItem
+    private var preferencesWindow: PreferencesWindow?
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -62,7 +63,11 @@ final class StatusBarController {
     }
 
     @objc private func openPreferences() {
-        // Will be wired up in Step 10
+        if preferencesWindow == nil {
+            preferencesWindow = PreferencesWindow()
+        }
+        preferencesWindow?.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func openAbout() {

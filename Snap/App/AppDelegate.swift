@@ -9,9 +9,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController = StatusBarController()
 
         captureEngine.onImageCaptured = { image in
+            let prefs = PreferencesManager.shared
             OutputManager.saveImage(image)
-            if OutputManager.copyToClipboard(image) {
-                OutputManager.showNotification(title: "Snap", text: "Screenshot copied to clipboard")
+
+            var messages: [String] = []
+
+            if prefs.copyToClipboardAfterCapture {
+                if OutputManager.copyToClipboard(image) {
+                    messages.append("Copied to clipboard")
+                }
+            }
+
+            if prefs.autoSaveAfterCapture {
+                let url = prefs.saveDirectory.appendingPathComponent(
+                    FileNaming.defaultFilename(extension: prefs.imageFormat))
+                if OutputManager.saveToFile(image, url: url) {
+                    messages.append("Saved to \(url.lastPathComponent)")
+                }
+            }
+
+            if !messages.isEmpty {
+                OutputManager.showNotification(title: "Snap", text: messages.joined(separator: " · "))
             }
         }
 
