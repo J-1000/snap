@@ -23,6 +23,7 @@
 		C840A4009F19E0EC3590EEB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4506329C6000E69CDAA97BEA /* Assets.xcassets */; };
 		D848F4034772AC921006EED7 /* PreferencesWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A572F31244CA8AC57FF14A86 /* PreferencesWindow.swift */; };
 		E6C00C5D1566C87E3E9E447E /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F8B89C3756D75AD6C326A3 /* PreferencesManager.swift */; };
+		EE3521E319A6CBC91F1A385A /* EditingToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD54607D33E8138377000CB0 /* EditingToolbar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 		A572F31244CA8AC57FF14A86 /* PreferencesWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindow.swift; sourceTree = "<group>"; };
 		B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		C0BBCDCF2FCA03D97E67B169 /* OutputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputManager.swift; sourceTree = "<group>"; };
+		CD54607D33E8138377000CB0 /* EditingToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingToolbar.swift; sourceTree = "<group>"; };
 		CE59A51072F022580B112D23 /* ScreenCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCapture.swift; sourceTree = "<group>"; };
 		E4F8B89C3756D75AD6C326A3 /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
 		ED4E98B92A77910BDCCB6E94 /* Snap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Snap.entitlements; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 				9310F95D52EF3E2DFF4267C7 /* ActionToolbar.swift */,
 				3241EF0FB1D6AB98FA3966CE /* AnnotationView.swift */,
 				0C3B81D5973A4B25F14E9740 /* AnnotationWindow.swift */,
+				CD54607D33E8138377000CB0 /* EditingToolbar.swift */,
 			);
 			path = Annotation;
 			sourceTree = "<group>";
@@ -215,6 +218,7 @@
 				6D61F4F987D76EE18B27E684 /* AnnotationWindow.swift in Sources */,
 				0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */,
 				8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */,
+				EE3521E319A6CBC91F1A385A /* EditingToolbar.swift in Sources */,
 				A0F63E161BF9B0FC3C0647D2 /* FileNaming.swift in Sources */,
 				2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */,
 				20E61F4A59ACE5D917AACCD1 /* OutputManager.swift in Sources */,

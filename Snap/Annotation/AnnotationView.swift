@@ -2,6 +2,8 @@ import AppKit
 
 final class AnnotationView: NSView {
     private let image: CGImage
+    var currentTool: AnnotationTool?
+    var currentColor: NSColor = .systemRed
 
     init(image: CGImage) {
         self.image = image
