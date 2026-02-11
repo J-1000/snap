@@ -46,9 +46,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let screenRect = NSRect(origin: NSPoint(x: x, y: y), size: imageSize)
 
         let window = AnnotationWindow(image: image, screenRect: screenRect)
+
+        window.onCopy = { [weak self] in
+            OutputManager.copyToClipboard(image)
+            OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
+            self?.dismissAnnotationWindow()
+        }
+        window.onSave = { [weak self] in
+            let prefs = PreferencesManager.shared
+            let url = prefs.saveDirectory.appendingPathComponent(
+                FileNaming.defaultFilename(extension: prefs.imageFormat))
+            if OutputManager.saveToFile(image, url: url) {
+                OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+            }
+            self?.dismissAnnotationWindow()
+        }
+        window.onSaveAs = {
+            OutputManager.saveWithDialog(image)
+        }
+        window.onClose = { [weak self] in
+            self?.dismissAnnotationWindow()
+        }
+
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         annotationWindow = window
+    }
+
+    private func dismissAnnotationWindow() {
+        annotationWindow?.orderOut(nil)
+        annotationWindow = nil
     }
 
     @objc func saveScreenshot() {
