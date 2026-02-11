@@ -14,6 +14,8 @@
 		2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */; };
 		4A89EA0CA17438CE88FCD616 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E021339765D1FD4DB66EE5 /* OverlayView.swift */; };
 		6C891CBF52E2844317A0D174 /* ScreenCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE59A51072F022580B112D23 /* ScreenCapture.swift */; };
+		6D61F4F987D76EE18B27E684 /* AnnotationWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3B81D5973A4B25F14E9740 /* AnnotationWindow.swift */; };
+		86A2398FAC8115AEB79ED89D /* AnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3241EF0FB1D6AB98FA3966CE /* AnnotationView.swift */; };
 		8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */; };
 		A0F63E161BF9B0FC3C0647D2 /* FileNaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20279F02CD3A925CD0488D9C /* FileNaming.swift */; };
 		A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */; };
@@ -23,10 +25,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0C3B81D5973A4B25F14E9740 /* AnnotationWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationWindow.swift; sourceTree = "<group>"; };
 		0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
 		103F1BDAA255029735555ADA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		14193A4FC394A707FD29428A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		20279F02CD3A925CD0488D9C /* FileNaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileNaming.swift; sourceTree = "<group>"; };
+		3241EF0FB1D6AB98FA3966CE /* AnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationView.swift; sourceTree = "<group>"; };
 		3BC5BC322A05E4F0343BA8C9 /* Snap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Snap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4506329C6000E69CDAA97BEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
@@ -96,6 +100,15 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		B554D50974B7F6434DD43E69 /* Annotation */ = {
+			isa = PBXGroup;
+			children = (
+				3241EF0FB1D6AB98FA3966CE /* AnnotationView.swift */,
+				0C3B81D5973A4B25F14E9740 /* AnnotationWindow.swift */,
+			);
+			path = Annotation;
+			sourceTree = "<group>";
+		};
 		D193A10665FEFE3F2425093F /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -109,6 +122,7 @@
 		E185436592635B1DD59E4225 /* Snap */ = {
 			isa = PBXGroup;
 			children = (
+				B554D50974B7F6434DD43E69 /* Annotation */,
 				D193A10665FEFE3F2425093F /* App */,
 				503147DFF63DD93E498E4B8C /* Capture */,
 				486DC26DC426B3A46EBE47A7 /* HotKey */,
@@ -193,6 +207,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86A2398FAC8115AEB79ED89D /* AnnotationView.swift in Sources */,
+				6D61F4F987D76EE18B27E684 /* AnnotationWindow.swift in Sources */,
 				0F43C6414D50B75FD450EBC8 /* AppDelegate.swift in Sources */,
 				8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */,
 				A0F63E161BF9B0FC3C0647D2 /* FileNaming.swift in Sources */,

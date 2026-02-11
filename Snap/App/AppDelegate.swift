@@ -4,33 +4,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private let hotKeyManager = HotKeyManager()
     let captureEngine = CaptureEngine()
+    private var annotationWindow: AnnotationWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusBarController = StatusBarController()
 
-        captureEngine.onImageCaptured = { image in
-            let prefs = PreferencesManager.shared
-            OutputManager.saveImage(image)
-
-            var messages: [String] = []
-
-            if prefs.copyToClipboardAfterCapture {
-                if OutputManager.copyToClipboard(image) {
-                    messages.append("Copied to clipboard")
-                }
-            }
-
-            if prefs.autoSaveAfterCapture {
-                let url = prefs.saveDirectory.appendingPathComponent(
-                    FileNaming.defaultFilename(extension: prefs.imageFormat))
-                if OutputManager.saveToFile(image, url: url) {
-                    messages.append("Saved to \(url.lastPathComponent)")
-                }
-            }
-
-            if !messages.isEmpty {
-                OutputManager.showNotification(title: "Snap", text: messages.joined(separator: " · "))
-            }
+        captureEngine.onImageCaptured = { [weak self] image in
+            self?.showAnnotationWindow(image: image)
         }
 
         captureEngine.onError = { error in
@@ -55,6 +35,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func startFullScreenCapture() {
         guard let screen = NSScreen.main else { return }
         captureEngine.captureFullScreen(screen)
+    }
+
+    private func showAnnotationWindow(image: CGImage) {
+        // Position at center of main screen
+        let screen = NSScreen.main ?? NSScreen.screens[0]
+        let imageSize = NSSize(width: CGFloat(image.width), height: CGFloat(image.height))
+        let x = screen.frame.midX - imageSize.width / 2
+        let y = screen.frame.midY - imageSize.height / 2
+        let screenRect = NSRect(origin: NSPoint(x: x, y: y), size: imageSize)
+
+        let window = AnnotationWindow(image: image, screenRect: screenRect)
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        annotationWindow = window
     }
 
     @objc func saveScreenshot() {
