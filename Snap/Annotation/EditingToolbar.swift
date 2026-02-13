@@ -1,6 +1,7 @@
 import AppKit
 
 enum AnnotationTool: String, CaseIterable {
+    case line
     case rectangle
 }
 
@@ -41,6 +42,14 @@ final class EditingToolbar: NSView {
         stack.translatesAutoresizingMaskIntoConstraints = false
 
         // Tool buttons
+        let lineButton = makeToolButton(
+            tool: .line,
+            symbol: "line.diagonal",
+            tooltip: "Line"
+        )
+        toolButtons[.line] = lineButton
+        stack.addArrangedSubview(lineButton)
+
         let rectButton = makeToolButton(
             tool: .rectangle,
             symbol: "rectangle",
