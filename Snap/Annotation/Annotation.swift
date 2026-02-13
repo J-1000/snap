@@ -3,6 +3,7 @@ import Foundation
 
 enum AnnotationType {
     case rectangle
+    case line
 }
 
 struct Annotation {

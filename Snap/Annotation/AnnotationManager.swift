@@ -43,6 +43,14 @@ final class AnnotationManager {
             context.setStrokeColor(annotation.color.cgColor)
             context.setLineWidth(annotation.lineWidth)
             context.stroke(annotation.rect)
+        case .line:
+            guard let start = annotation.startPoint, let end = annotation.endPoint else { return }
+            context.setStrokeColor(annotation.color.cgColor)
+            context.setLineWidth(annotation.lineWidth)
+            context.beginPath()
+            context.move(to: start)
+            context.addLine(to: end)
+            context.strokePath()
         }
     }
 
