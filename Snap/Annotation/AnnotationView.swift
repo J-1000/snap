@@ -8,6 +8,7 @@ final class AnnotationView: NSView {
 
     private var dragOrigin: NSPoint?
     private var dragRect: NSRect?
+    private var dragEndPoint: NSPoint?
 
     init(image: CGImage) {
         self.image = image
@@ -45,7 +46,18 @@ final class AnnotationView: NSView {
         context.restoreGState()
 
         // Draw live preview of current drag
-        if let rect = dragRect {
+        if currentTool == .line, let start = dragOrigin, let end = dragEndPoint {
+            context.saveGState()
+            context.translateBy(x: 0, y: bounds.height)
+            context.scaleBy(x: 1, y: -1)
+            context.setStrokeColor(currentColor.cgColor)
+            context.setLineWidth(2.0)
+            context.beginPath()
+            context.move(to: start)
+            context.addLine(to: end)
+            context.strokePath()
+            context.restoreGState()
+        } else if let rect = dragRect {
             context.saveGState()
             context.translateBy(x: 0, y: bounds.height)
             context.scaleBy(x: 1, y: -1)
@@ -72,6 +84,8 @@ final class AnnotationView: NSView {
         let point = convert(event.locationInWindow, from: nil)
         let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
 
+        dragEndPoint = imagePoint
+
         let x = min(origin.x, imagePoint.x)
         let y = min(origin.y, imagePoint.y)
         let w = abs(imagePoint.x - origin.x)
@@ -81,18 +95,49 @@ final class AnnotationView: NSView {
     }
 
     override func mouseUp(with event: NSEvent) {
-        guard let rect = dragRect, let tool = currentTool,
-              rect.width > 1, rect.height > 1 else {
+        guard let tool = currentTool else {
             dragOrigin = nil
             dragRect = nil
+            dragEndPoint = nil
             needsDisplay = true
             return
         }
 
-        let annotation = Annotation(type: annotationTypeFor(tool), rect: rect, color: currentColor)
-        annotationManager.add(annotation)
+        let annotationType = annotationTypeFor(tool)
+
+        if annotationType == .line {
+            guard let start = dragOrigin, let end = dragEndPoint else {
+                dragOrigin = nil
+                dragRect = nil
+                dragEndPoint = nil
+                needsDisplay = true
+                return
+            }
+            let dist = hypot(end.x - start.x, end.y - start.y)
+            guard dist > 1 else {
+                dragOrigin = nil
+                dragRect = nil
+                dragEndPoint = nil
+                needsDisplay = true
+                return
+            }
+            let annotation = Annotation(type: annotationType, start: start, end: end, color: currentColor)
+            annotationManager.add(annotation)
+        } else {
+            guard let rect = dragRect, rect.width > 1, rect.height > 1 else {
+                dragOrigin = nil
+                dragRect = nil
+                dragEndPoint = nil
+                needsDisplay = true
+                return
+            }
+            let annotation = Annotation(type: annotationType, rect: rect, color: currentColor)
+            annotationManager.add(annotation)
+        }
+
         dragOrigin = nil
         dragRect = nil
+        dragEndPoint = nil
     }
 
     // MARK: - Key handling
