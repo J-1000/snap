@@ -163,6 +163,7 @@ final class AnnotationView: NSView {
         switch tool {
         case .line: return .line
         case .rectangle: return .rectangle
+        case .ellipse: return .ellipse
         }
     }
 }

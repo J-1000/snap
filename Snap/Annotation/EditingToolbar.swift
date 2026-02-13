@@ -3,6 +3,7 @@ import AppKit
 enum AnnotationTool: String, CaseIterable {
     case line
     case rectangle
+    case ellipse
 }
 
 final class EditingToolbar: NSView {
@@ -57,6 +58,14 @@ final class EditingToolbar: NSView {
         )
         toolButtons[.rectangle] = rectButton
         stack.addArrangedSubview(rectButton)
+
+        let ellipseButton = makeToolButton(
+            tool: .ellipse,
+            symbol: "oval",
+            tooltip: "Ellipse"
+        )
+        toolButtons[.ellipse] = ellipseButton
+        stack.addArrangedSubview(ellipseButton)
 
         // Divider
         let divider = NSBox()
