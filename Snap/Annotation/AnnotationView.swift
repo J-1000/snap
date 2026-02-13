@@ -170,6 +170,7 @@ final class AnnotationView: NSView {
     private func annotationTypeFor(_ tool: AnnotationTool) -> AnnotationType {
         switch tool {
         case .line: return .line
+        case .arrow: return .arrow
         case .rectangle: return .rectangle
         case .ellipse: return .ellipse
         }

@@ -2,6 +2,7 @@ import AppKit
 
 enum AnnotationTool: String, CaseIterable {
     case line
+    case arrow
     case rectangle
     case ellipse
 }
@@ -50,6 +51,14 @@ final class EditingToolbar: NSView {
         )
         toolButtons[.line] = lineButton
         stack.addArrangedSubview(lineButton)
+
+        let arrowButton = makeToolButton(
+            tool: .arrow,
+            symbol: "arrow.up.right",
+            tooltip: "Arrow"
+        )
+        toolButtons[.arrow] = arrowButton
+        stack.addArrangedSubview(arrowButton)
 
         let rectButton = makeToolButton(
             tool: .rectangle,
