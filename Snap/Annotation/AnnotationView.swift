@@ -57,6 +57,14 @@ final class AnnotationView: NSView {
             context.addLine(to: end)
             context.strokePath()
             context.restoreGState()
+        } else if currentTool == .ellipse, let rect = dragRect {
+            context.saveGState()
+            context.translateBy(x: 0, y: bounds.height)
+            context.scaleBy(x: 1, y: -1)
+            context.setStrokeColor(currentColor.cgColor)
+            context.setLineWidth(2.0)
+            context.strokeEllipse(in: rect)
+            context.restoreGState()
         } else if let rect = dragRect {
             context.saveGState()
             context.translateBy(x: 0, y: bounds.height)
