@@ -55,7 +55,38 @@ final class AnnotationManager {
             context.move(to: start)
             context.addLine(to: end)
             context.strokePath()
+        case .arrow:
+            guard let start = annotation.startPoint, let end = annotation.endPoint else { return }
+            context.setStrokeColor(annotation.color.cgColor)
+            context.setFillColor(annotation.color.cgColor)
+            context.setLineWidth(annotation.lineWidth)
+            context.beginPath()
+            context.move(to: start)
+            context.addLine(to: end)
+            context.strokePath()
+            drawArrowhead(in: context, from: start, to: end, size: max(10, annotation.lineWidth * 5))
         }
+    }
+
+    private func drawArrowhead(in context: CGContext, from start: CGPoint, to end: CGPoint, size: CGFloat) {
+        let angle = atan2(end.y - start.y, end.x - start.x)
+        let spreadAngle: CGFloat = .pi / 6  // 30 degrees
+
+        let left = CGPoint(
+            x: end.x - size * cos(angle - spreadAngle),
+            y: end.y - size * sin(angle - spreadAngle)
+        )
+        let right = CGPoint(
+            x: end.x - size * cos(angle + spreadAngle),
+            y: end.y - size * sin(angle + spreadAngle)
+        )
+
+        context.beginPath()
+        context.move(to: end)
+        context.addLine(to: left)
+        context.addLine(to: right)
+        context.closePath()
+        context.fillPath()
     }
 
     /// Composites annotations onto a CGImage, returning a new image.

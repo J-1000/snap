@@ -5,6 +5,7 @@ enum AnnotationType {
     case rectangle
     case ellipse
     case line
+    case arrow
 }
 
 struct Annotation {
