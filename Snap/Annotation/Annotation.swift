@@ -3,6 +3,7 @@ import Foundation
 
 enum AnnotationType {
     case rectangle
+    case ellipse
     case line
 }
 

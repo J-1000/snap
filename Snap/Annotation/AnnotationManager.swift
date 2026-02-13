@@ -43,6 +43,10 @@ final class AnnotationManager {
             context.setStrokeColor(annotation.color.cgColor)
             context.setLineWidth(annotation.lineWidth)
             context.stroke(annotation.rect)
+        case .ellipse:
+            context.setStrokeColor(annotation.color.cgColor)
+            context.setLineWidth(annotation.lineWidth)
+            context.strokeEllipse(in: annotation.rect)
         case .line:
             guard let start = annotation.startPoint, let end = annotation.endPoint else { return }
             context.setStrokeColor(annotation.color.cgColor)
