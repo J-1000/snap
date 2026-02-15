@@ -9,6 +9,7 @@ final class AnnotationView: NSView {
     private var dragOrigin: NSPoint?
     private var dragRect: NSRect?
     private var dragEndPoint: NSPoint?
+    private var dragPoints: [NSPoint] = []
 
     init(image: CGImage) {
         self.image = image
@@ -105,8 +106,12 @@ final class AnnotationView: NSView {
         guard currentTool != nil else { return }
         let point = convert(event.locationInWindow, from: nil)
         // Convert from AppKit (bottom-left origin) to image coords (top-left origin)
-        dragOrigin = NSPoint(x: point.x, y: bounds.height - point.y)
-        dragRect = NSRect(origin: dragOrigin!, size: .zero)
+        let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+        dragOrigin = imagePoint
+        dragRect = NSRect(origin: imagePoint, size: .zero)
+        if currentTool == .freehand {
+            dragPoints = [imagePoint]
+        }
         needsDisplay = true
     }
 
@@ -116,6 +121,10 @@ final class AnnotationView: NSView {
         let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
 
         dragEndPoint = imagePoint
+
+        if currentTool == .freehand {
+            dragPoints.append(imagePoint)
+        }
 
         let x = min(origin.x, imagePoint.x)
         let y = min(origin.y, imagePoint.y)
@@ -136,7 +145,18 @@ final class AnnotationView: NSView {
 
         let annotationType = annotationTypeFor(tool)
 
-        if annotationType == .line || annotationType == .arrow {
+        if annotationType == .freehand {
+            guard dragPoints.count >= 2 else {
+                dragOrigin = nil
+                dragRect = nil
+                dragEndPoint = nil
+                dragPoints = []
+                needsDisplay = true
+                return
+            }
+            let annotation = Annotation(type: .freehand, points: dragPoints, color: currentColor)
+            annotationManager.add(annotation)
+        } else if annotationType == .line || annotationType == .arrow {
             guard let start = dragOrigin, let end = dragEndPoint else {
                 dragOrigin = nil
                 dragRect = nil
@@ -169,6 +189,7 @@ final class AnnotationView: NSView {
         dragOrigin = nil
         dragRect = nil
         dragEndPoint = nil
+        dragPoints = []
     }
 
     // MARK: - Key handling
