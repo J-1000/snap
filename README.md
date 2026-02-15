@@ -74,6 +74,15 @@ Snap/
 
 See [PROGRESS.md](PROGRESS.md) for detailed implementation notes.
 
+## Testing
+
+```bash
+xcodegen generate
+xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=macOS'
+```
+
+59 unit tests covering the Annotation data model, AnnotationManager (undo/redo, rendering, compositing), FileNaming, and OutputManager.
+
 ## Tech Stack
 
 Swift 5.9+, AppKit, ScreenCaptureKit, Core Image/Core Graphics. Single `.app` bundle with no external dependencies.
