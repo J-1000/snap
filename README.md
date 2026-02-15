@@ -14,6 +14,7 @@ A fast, native macOS screenshot tool built for power users. Area selection, full
 - **Ellipse** — outlined stroke, color selectable
 - **Line** — straight lines with adjustable thickness
 - **Arrow** — directional arrows with filled arrowhead
+- **Freehand / Marker** — freeform drawing with smooth strokes
 - **Color picker** — preset swatches plus custom color dialog
 - **Undo / Redo** — full undo/redo stack (⌘Z / ⌘⇧Z)
 
@@ -68,7 +69,7 @@ Snap/
 | Milestone | Status |
 |-----------|--------|
 | **M1 — Core Capture** | Complete |
-| **M2 — Annotation** | In progress — rectangle, ellipse, line, arrow done; freehand, text, blur remaining |
+| **M2 — Annotation** | In progress — rectangle, ellipse, line, arrow, freehand done; text, blur remaining |
 | **M3 — Polish** | Not started — JPEG output, print, reverse image search, dark mode polish |
 
 See [PROGRESS.md](PROGRESS.md) for detailed implementation notes.
