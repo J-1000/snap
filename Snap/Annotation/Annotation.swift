@@ -6,6 +6,7 @@ enum AnnotationType {
     case ellipse
     case line
     case arrow
+    case freehand
 }
 
 struct Annotation {
@@ -14,6 +15,7 @@ struct Annotation {
     var rect: NSRect
     var startPoint: NSPoint?
     var endPoint: NSPoint?
+    var points: [NSPoint]?
     var color: NSColor
     var lineWidth: CGFloat
 
@@ -36,6 +38,22 @@ struct Annotation {
             width: abs(end.x - start.x),
             height: abs(end.y - start.y)
         )
+        self.color = color
+        self.lineWidth = lineWidth
+    }
+
+    init(type: AnnotationType, points: [NSPoint], color: NSColor, lineWidth: CGFloat = 2.0) {
+        self.id = UUID()
+        self.type = type
+        self.points = points
+        // Compute bounding rect from points
+        let xs = points.map { $0.x }
+        let ys = points.map { $0.y }
+        let minX = xs.min() ?? 0
+        let minY = ys.min() ?? 0
+        let maxX = xs.max() ?? 0
+        let maxY = ys.max() ?? 0
+        self.rect = NSRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
         self.color = color
         self.lineWidth = lineWidth
     }

@@ -65,6 +65,8 @@ final class AnnotationManager {
             context.addLine(to: end)
             context.strokePath()
             drawArrowhead(in: context, from: start, to: end, size: max(10, annotation.lineWidth * 5))
+        case .freehand:
+            break
         }
     }
 
