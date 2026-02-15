@@ -78,7 +78,18 @@ final class AnnotationManager {
             }
             context.strokePath()
         case .text:
-            break // Rendering implemented in next step
+            guard let text = annotation.text, let fontSize = annotation.fontSize else { return }
+            let font = NSFont.systemFont(ofSize: fontSize)
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: font,
+                .foregroundColor: annotation.color,
+            ]
+            let attrString = NSAttributedString(string: text, attributes: attrs)
+            let nsContext = NSGraphicsContext(cgContext: context, flipped: true)
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = nsContext
+            attrString.draw(at: annotation.rect.origin)
+            NSGraphicsContext.restoreGraphicsState()
         }
     }
 
