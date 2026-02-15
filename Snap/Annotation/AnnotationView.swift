@@ -194,6 +194,7 @@ final class AnnotationView: NSView {
         switch tool {
         case .line: return .line
         case .arrow: return .arrow
+        case .freehand: return .freehand
         case .rectangle: return .rectangle
         case .ellipse: return .ellipse
         }
