@@ -95,6 +95,11 @@ xcodebuild -scheme Snap -configuration Debug build
 16. `a50bb19` add freehand tool button to editing toolbar
 17. `3fdf7b8` wire freehand drawing interaction with point collection
 18. `d706be7` add freehand live preview during drag
+19. `ccc3e36` add text annotation type to data model
+20. `169ed24` add text annotation rendering in AnnotationManager
+21. `659e002` add text tool button to editing toolbar
+22. `3863752` add text input interaction to AnnotationView
+23. `ca8d080` add unit tests for text annotation
 
 ### What's Implemented
 
@@ -111,6 +116,7 @@ xcodebuild -scheme Snap -configuration Debug build
 | Line tool | Done | Point-based drag with start/end, live preview |
 | Arrow tool | Done | Line + filled triangular arrowhead (30° spread, atan2) |
 | Freehand tool | Done | Point-based drag, round caps/joins, live preview |
+| Text tool | Done | Click to place inline text field, Enter to commit, Esc to cancel |
 
 ### Annotation File Structure
 ```
@@ -129,10 +135,11 @@ Snap/Annotation/
 - **Coordinate system**: View coordinates (top-left origin) throughout annotation layer; CGContext flipped when compositing onto bottom-left origin CGImage.
 - **Arrowhead rendering**: Filled triangle using atan2 for angle, 30° spread, size scales with lineWidth.
 - **Freehand rendering**: Array of CGPoints with `addLine(to:)`, round line caps and joins for smooth appearance.
+- **Text rendering**: Uses NSAttributedString drawn via NSGraphicsContext pushed from CGContext (flipped). Inline NSTextField for input with Enter to commit, Escape to cancel.
 
 ### Remaining for M2
 - [x] Freehand / marker tool (array of points, round caps/joins)
-- [ ] Text tool (text input field, font size adjustment)
+- [x] Text tool (inline text field, system font, click to place, Enter to commit)
 - [ ] Blur / pixelate tool (Core Image filter on selected region)
 
 ## Unit Tests
@@ -143,13 +150,14 @@ Snap/Annotation/
 3. `c2ecc4d` add unit tests for AnnotationManager undo/redo and rendering
 4. `fa138c3` add unit tests for FileNaming utility
 5. `56ae4bc` add unit tests for OutputManager file saving
+6. `ca8d080` add unit tests for text annotation
 
 ### Test Coverage
 
 | Test File | Tests | What's Covered |
 |---|---|---|
-| `AnnotationTests` | 13 | All 3 initializers (rect, point, freehand), bounding rect computation, unique IDs, default/custom lineWidth, edge cases |
-| `AnnotationManagerTests` | 31 | Add, undo, redo, canUndo/canRedo, onChanged callback, rendering all 5 shape types, compositing onto CGImage |
+| `AnnotationTests` | 18 | All 4 initializers (rect, point, freehand, text), bounding rect computation, unique IDs, default/custom lineWidth, field isolation, edge cases |
+| `AnnotationManagerTests` | 33 | Add, undo, redo, canUndo/canRedo, onChanged callback, rendering all 6 annotation types, compositing onto CGImage |
 | `FileNamingTests` | 9 | Filename format/regex, default/custom extension, URL points to Desktop |
 | `OutputManagerTests` | 6 | Image caching, save to file, PNG round-trip validation, invalid path handling |
 
