@@ -1,6 +1,6 @@
 import AppKit
 
-final class AnnotationView: NSView {
+final class AnnotationView: NSView, NSTextFieldDelegate {
     private let image: CGImage
     let annotationManager = AnnotationManager()
     var currentTool: AnnotationTool?
@@ -10,6 +10,10 @@ final class AnnotationView: NSView {
     private var dragRect: NSRect?
     private var dragEndPoint: NSPoint?
     private var dragPoints: [NSPoint] = []
+
+    private var activeTextField: NSTextField?
+    private var textInsertionPoint: NSPoint? // image coords (top-left origin)
+    private let textFontSize: CGFloat = 16
 
     init(image: CGImage) {
         self.image = image
@@ -118,10 +122,21 @@ final class AnnotationView: NSView {
     // MARK: - Mouse handling
 
     override func mouseDown(with event: NSEvent) {
+        // Commit any active text input first
+        if activeTextField != nil {
+            commitActiveText()
+        }
+
         guard currentTool != nil else { return }
         let point = convert(event.locationInWindow, from: nil)
         // Convert from AppKit (bottom-left origin) to image coords (top-left origin)
         let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+
+        if currentTool == .text {
+            showTextField(at: point, imagePoint: imagePoint)
+            return
+        }
+
         dragOrigin = imagePoint
         dragRect = NSRect(origin: imagePoint, size: .zero)
         if currentTool == .freehand {
@@ -224,6 +239,63 @@ final class AnnotationView: NSView {
             }
         }
         super.keyDown(with: event)
+    }
+
+    // MARK: - Text input
+
+    private func showTextField(at viewPoint: NSPoint, imagePoint: NSPoint) {
+        textInsertionPoint = imagePoint
+        let textField = NSTextField()
+        textField.font = NSFont.systemFont(ofSize: textFontSize)
+        textField.textColor = currentColor
+        textField.backgroundColor = NSColor.white.withAlphaComponent(0.8)
+        textField.drawsBackground = true
+        textField.isBordered = false
+        textField.focusRingType = .none
+        textField.isEditable = true
+        textField.cell?.wraps = false
+        textField.cell?.isScrollable = true
+        let fieldHeight = textFontSize + 8
+        textField.frame = NSRect(x: viewPoint.x, y: viewPoint.y - fieldHeight, width: 200, height: fieldHeight)
+        textField.delegate = self
+        addSubview(textField)
+        window?.makeFirstResponder(textField)
+        activeTextField = textField
+    }
+
+    private func commitActiveText() {
+        guard let textField = activeTextField, let insertionPoint = textInsertionPoint else { return }
+        let text = textField.stringValue
+        if !text.isEmpty {
+            let annotation = Annotation(
+                type: .text,
+                text: text,
+                position: insertionPoint,
+                fontSize: textFontSize,
+                color: currentColor
+            )
+            annotationManager.add(annotation)
+        }
+        textField.removeFromSuperview()
+        activeTextField = nil
+        textInsertionPoint = nil
+        window?.makeFirstResponder(self)
+    }
+
+    func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+        if commandSelector == #selector(insertNewline(_:)) {
+            commitActiveText()
+            return true
+        }
+        if commandSelector == #selector(cancelOperation(_:)) {
+            // Escape cancels without committing
+            activeTextField?.removeFromSuperview()
+            activeTextField = nil
+            textInsertionPoint = nil
+            window?.makeFirstResponder(self)
+            return true
+        }
+        return false
     }
 
     private func annotationTypeFor(_ tool: AnnotationTool) -> AnnotationType {
