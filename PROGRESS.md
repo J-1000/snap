@@ -135,6 +135,39 @@ Snap/Annotation/
 - [ ] Text tool (text input field, font size adjustment)
 - [ ] Blur / pixelate tool (Core Image filter on selected region)
 
+## Unit Tests
+
+### Commits (oldest → newest)
+1. `1d225bb` add SnapTests unit test target to project configuration
+2. `3d8692e` add unit tests for Annotation data model
+3. `c2ecc4d` add unit tests for AnnotationManager undo/redo and rendering
+4. `fa138c3` add unit tests for FileNaming utility
+5. `56ae4bc` add unit tests for OutputManager file saving
+
+### Test Coverage
+
+| Test File | Tests | What's Covered |
+|---|---|---|
+| `AnnotationTests` | 13 | All 3 initializers (rect, point, freehand), bounding rect computation, unique IDs, default/custom lineWidth, edge cases |
+| `AnnotationManagerTests` | 31 | Add, undo, redo, canUndo/canRedo, onChanged callback, rendering all 5 shape types, compositing onto CGImage |
+| `FileNamingTests` | 9 | Filename format/regex, default/custom extension, URL points to Desktop |
+| `OutputManagerTests` | 6 | Image caching, save to file, PNG round-trip validation, invalid path handling |
+
+### Test File Structure
+```
+SnapTests/
+├── AnnotationTests.swift
+├── AnnotationManagerTests.swift
+├── FileNamingTests.swift
+└── OutputManagerTests.swift
+```
+
+### Running Tests
+```bash
+xcodegen generate
+xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=macOS'
+```
+
 ### Not Yet Implemented (M3: Polish)
 - [ ] JPEG save support (prefs exist, output needs format switching)
 - [ ] Print (⌘P)
