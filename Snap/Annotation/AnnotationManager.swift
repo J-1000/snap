@@ -77,6 +77,8 @@ final class AnnotationManager {
                 context.addLine(to: points[i])
             }
             context.strokePath()
+        case .text:
+            break // Rendering implemented in next step
         }
     }
 

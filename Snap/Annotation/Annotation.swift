@@ -7,6 +7,7 @@ enum AnnotationType {
     case line
     case arrow
     case freehand
+    case text
 }
 
 struct Annotation {
@@ -16,6 +17,8 @@ struct Annotation {
     var startPoint: NSPoint?
     var endPoint: NSPoint?
     var points: [NSPoint]?
+    var text: String?
+    var fontSize: CGFloat?
     var color: NSColor
     var lineWidth: CGFloat
 
@@ -56,5 +59,18 @@ struct Annotation {
         self.rect = NSRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
         self.color = color
         self.lineWidth = lineWidth
+    }
+
+    init(type: AnnotationType, text: String, position: NSPoint, fontSize: CGFloat, color: NSColor) {
+        self.id = UUID()
+        self.type = type
+        self.text = text
+        self.fontSize = fontSize
+        self.color = color
+        self.lineWidth = 1.0
+        let font = NSFont.systemFont(ofSize: fontSize)
+        let attrs: [NSAttributedString.Key: Any] = [.font: font]
+        let size = (text as NSString).size(withAttributes: attrs)
+        self.rect = NSRect(origin: position, size: size)
     }
 }
