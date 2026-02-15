@@ -47,7 +47,22 @@ final class AnnotationView: NSView {
         context.restoreGState()
 
         // Draw live preview of current drag
-        if currentTool == .line, let start = dragOrigin, let end = dragEndPoint {
+        if currentTool == .freehand, dragPoints.count >= 2 {
+            context.saveGState()
+            context.translateBy(x: 0, y: bounds.height)
+            context.scaleBy(x: 1, y: -1)
+            context.setStrokeColor(currentColor.cgColor)
+            context.setLineWidth(2.0)
+            context.setLineCap(.round)
+            context.setLineJoin(.round)
+            context.beginPath()
+            context.move(to: dragPoints[0])
+            for i in 1..<dragPoints.count {
+                context.addLine(to: dragPoints[i])
+            }
+            context.strokePath()
+            context.restoreGState()
+        } else if currentTool == .line, let start = dragOrigin, let end = dragEndPoint {
             context.saveGState()
             context.translateBy(x: 0, y: bounds.height)
             context.scaleBy(x: 1, y: -1)
