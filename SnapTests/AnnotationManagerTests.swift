@@ -260,6 +260,30 @@ final class AnnotationManagerTests: XCTestCase {
         manager.render(in: context, size: NSSize(width: 100, height: 100))
     }
 
+    func testRenderWithTextAnnotation() {
+        manager.add(Annotation(type: .text, text: "Hello", position: NSPoint(x: 10, y: 10), fontSize: 16, color: .black))
+        let context = createTestContext(width: 200, height: 200)
+        // Push NSGraphicsContext so text rendering can work
+        let nsContext = NSGraphicsContext(cgContext: context, flipped: true)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = nsContext
+        manager.render(in: context, size: NSSize(width: 200, height: 200))
+        NSGraphicsContext.restoreGraphicsState()
+
+        guard let image = context.makeImage() else {
+            XCTFail("Failed to create image from context")
+            return
+        }
+        XCTAssertFalse(isBlankImage(image))
+    }
+
+    func testRenderTextWithNilTextDoesNotCrash() {
+        // Text annotation created via rect init (text field will be nil)
+        manager.add(Annotation(type: .text, rect: NSRect(x: 0, y: 0, width: 50, height: 20), color: .red))
+        let context = createTestContext(width: 100, height: 100)
+        manager.render(in: context, size: NSSize(width: 100, height: 100))
+    }
+
     // MARK: - Compositing
 
     func testCompositeReturnsImage() {

@@ -110,10 +110,49 @@ final class AnnotationTests: XCTestCase {
         XCTAssertEqual(annotation.rect.size.height, 0, accuracy: 0.001)
     }
 
+    // MARK: - Text initializer
+
+    func testTextInitSetsTextAndFontSize() {
+        let annotation = Annotation(type: .text, text: "Hello", position: NSPoint(x: 10, y: 20), fontSize: 18, color: .black)
+
+        XCTAssertEqual(annotation.type, .text)
+        XCTAssertEqual(annotation.text, "Hello")
+        XCTAssertEqual(annotation.fontSize, 18)
+        XCTAssertEqual(annotation.color, .black)
+    }
+
+    func testTextInitComputesBoundingRect() {
+        let annotation = Annotation(type: .text, text: "Test", position: NSPoint(x: 30, y: 40), fontSize: 16, color: .red)
+
+        XCTAssertEqual(annotation.rect.origin.x, 30, accuracy: 0.001)
+        XCTAssertEqual(annotation.rect.origin.y, 40, accuracy: 0.001)
+        XCTAssertGreaterThan(annotation.rect.size.width, 0)
+        XCTAssertGreaterThan(annotation.rect.size.height, 0)
+    }
+
+    func testTextInitHasUniqueID() {
+        let a = Annotation(type: .text, text: "A", position: .zero, fontSize: 16, color: .red)
+        let b = Annotation(type: .text, text: "A", position: .zero, fontSize: 16, color: .red)
+        XCTAssertNotEqual(a.id, b.id)
+    }
+
+    func testTextInitPointFieldsAreNil() {
+        let annotation = Annotation(type: .text, text: "Hi", position: .zero, fontSize: 16, color: .red)
+        XCTAssertNil(annotation.startPoint)
+        XCTAssertNil(annotation.endPoint)
+        XCTAssertNil(annotation.points)
+    }
+
+    func testRectInitTextFieldsAreNil() {
+        let annotation = Annotation(type: .rectangle, rect: .zero, color: .red)
+        XCTAssertNil(annotation.text)
+        XCTAssertNil(annotation.fontSize)
+    }
+
     // MARK: - AnnotationType cases
 
     func testAllAnnotationTypesExist() {
-        let types: [AnnotationType] = [.rectangle, .ellipse, .line, .arrow, .freehand]
-        XCTAssertEqual(types.count, 5)
+        let types: [AnnotationType] = [.rectangle, .ellipse, .line, .arrow, .freehand, .text]
+        XCTAssertEqual(types.count, 6)
     }
 }
