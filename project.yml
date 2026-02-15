@@ -24,3 +24,14 @@ targets:
         COMBINE_HIDPI_IMAGES: YES
     entitlements:
       path: Snap/Resources/Snap.entitlements
+  SnapTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - SnapTests
+    dependencies:
+      - target: Snap
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.snap.tests
+        GENERATE_INFOPLIST_FILE: YES
