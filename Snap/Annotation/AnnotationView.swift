@@ -233,6 +233,7 @@ final class AnnotationView: NSView {
         case .freehand: return .freehand
         case .rectangle: return .rectangle
         case .ellipse: return .ellipse
+        case .text: return .text
         }
     }
 }
