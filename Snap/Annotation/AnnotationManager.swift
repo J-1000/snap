@@ -66,7 +66,17 @@ final class AnnotationManager {
             context.strokePath()
             drawArrowhead(in: context, from: start, to: end, size: max(10, annotation.lineWidth * 5))
         case .freehand:
-            break
+            guard let points = annotation.points, points.count >= 2 else { return }
+            context.setStrokeColor(annotation.color.cgColor)
+            context.setLineWidth(annotation.lineWidth)
+            context.setLineCap(.round)
+            context.setLineJoin(.round)
+            context.beginPath()
+            context.move(to: points[0])
+            for i in 1..<points.count {
+                context.addLine(to: points[i])
+            }
+            context.strokePath()
         }
     }
 
