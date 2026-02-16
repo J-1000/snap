@@ -306,6 +306,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         case .rectangle: return .rectangle
         case .ellipse: return .ellipse
         case .text: return .text
+        case .blur: return .blur
         }
     }
 }

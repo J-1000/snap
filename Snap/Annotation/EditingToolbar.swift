@@ -7,6 +7,7 @@ enum AnnotationTool: String, CaseIterable {
     case rectangle
     case ellipse
     case text
+    case blur
 }
 
 final class EditingToolbar: NSView {
@@ -93,6 +94,14 @@ final class EditingToolbar: NSView {
         )
         toolButtons[.text] = textButton
         stack.addArrangedSubview(textButton)
+
+        let blurButton = makeToolButton(
+            tool: .blur,
+            symbol: "square.grid.3x3",
+            tooltip: "Blur / Pixelate"
+        )
+        toolButtons[.blur] = blurButton
+        stack.addArrangedSubview(blurButton)
 
         // Divider
         let divider = NSBox()
