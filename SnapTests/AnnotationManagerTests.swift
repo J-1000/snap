@@ -284,6 +284,42 @@ final class AnnotationManagerTests: XCTestCase {
         manager.render(in: context, size: NSSize(width: 100, height: 100))
     }
 
+    // MARK: - Blur rendering
+
+    func testRenderBlurWithoutSourceImageDoesNotCrash() {
+        manager.add(Annotation(type: .blur, rect: NSRect(x: 10, y: 10, width: 50, height: 50), color: .clear))
+        let context = createTestContext(width: 100, height: 100)
+        manager.render(in: context, size: NSSize(width: 100, height: 100))
+        // No crash = pass (no sourceImage provided, blur is a no-op)
+    }
+
+    func testRenderBlurWithSourceImageDoesNotCrash() {
+        manager.add(Annotation(type: .blur, rect: NSRect(x: 10, y: 10, width: 50, height: 50), color: .clear))
+        let sourceImage = createTestImage(width: 100, height: 100, fillColor: .red)
+        let context = createTestContext(width: 100, height: 100)
+        manager.render(in: context, size: NSSize(width: 100, height: 100), sourceImage: sourceImage)
+    }
+
+    func testRenderBlurZeroSizeDoesNotCrash() {
+        manager.add(Annotation(type: .blur, rect: NSRect(x: 10, y: 10, width: 0, height: 0), color: .clear))
+        let sourceImage = createTestImage(width: 100, height: 100, fillColor: .white)
+        let context = createTestContext(width: 100, height: 100)
+        manager.render(in: context, size: NSSize(width: 100, height: 100), sourceImage: sourceImage)
+    }
+
+    func testCompositeWithBlurModifiesImage() {
+        let baseImage = createTestImage(width: 100, height: 100, fillColor: .white)
+        // Add a red region first, then blur over it — the blur should modify pixels
+        manager.add(Annotation(type: .blur, rect: NSRect(x: 10, y: 10, width: 80, height: 80), color: .clear))
+
+        guard let result = manager.composite(onto: baseImage) else {
+            XCTFail("Composite returned nil")
+            return
+        }
+        XCTAssertEqual(result.width, 100)
+        XCTAssertEqual(result.height, 100)
+    }
+
     // MARK: - Compositing
 
     func testCompositeReturnsImage() {

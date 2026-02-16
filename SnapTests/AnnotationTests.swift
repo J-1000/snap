@@ -152,7 +152,31 @@ final class AnnotationTests: XCTestCase {
     // MARK: - AnnotationType cases
 
     func testAllAnnotationTypesExist() {
-        let types: [AnnotationType] = [.rectangle, .ellipse, .line, .arrow, .freehand, .text]
-        XCTAssertEqual(types.count, 6)
+        let types: [AnnotationType] = [.rectangle, .ellipse, .line, .arrow, .freehand, .text, .blur]
+        XCTAssertEqual(types.count, 7)
+    }
+
+    // MARK: - Blur initializer
+
+    func testBlurInitSetsTypeAndRect() {
+        let rect = NSRect(x: 20, y: 30, width: 80, height: 60)
+        let annotation = Annotation(type: .blur, rect: rect, color: .clear)
+
+        XCTAssertEqual(annotation.type, .blur)
+        XCTAssertEqual(annotation.rect, rect)
+    }
+
+    func testBlurInitHasUniqueID() {
+        let a = Annotation(type: .blur, rect: .zero, color: .clear)
+        let b = Annotation(type: .blur, rect: .zero, color: .clear)
+        XCTAssertNotEqual(a.id, b.id)
+    }
+
+    func testBlurInitPointFieldsAreNil() {
+        let annotation = Annotation(type: .blur, rect: .zero, color: .clear)
+        XCTAssertNil(annotation.startPoint)
+        XCTAssertNil(annotation.endPoint)
+        XCTAssertNil(annotation.points)
+        XCTAssertNil(annotation.text)
     }
 }
