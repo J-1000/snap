@@ -100,6 +100,11 @@ xcodebuild -scheme Snap -configuration Debug build
 21. `659e002` add text tool button to editing toolbar
 22. `3863752` add text input interaction to AnnotationView
 23. `ca8d080` add unit tests for text annotation
+24. `de41728` add blur case to AnnotationType enum
+25. `3d224d4` add blur rendering with CIPixellate filter to AnnotationManager
+26. `2ec6ad6` add blur tool button to editing toolbar
+27. `baca668` add blur preview and interaction to AnnotationView
+28. `26fbf7c` add unit tests for blur annotation
 
 ### What's Implemented
 
@@ -117,6 +122,7 @@ xcodebuild -scheme Snap -configuration Debug build
 | Arrow tool | Done | Line + filled triangular arrowhead (30° spread, atan2) |
 | Freehand tool | Done | Point-based drag, round caps/joins, live preview |
 | Text tool | Done | Click to place inline text field, Enter to commit, Esc to cancel |
+| Blur/pixelate tool | Done | Rect-based drag, CIPixellate filter on source image region, live preview |
 
 ### Annotation File Structure
 ```
@@ -136,11 +142,14 @@ Snap/Annotation/
 - **Arrowhead rendering**: Filled triangle using atan2 for angle, 30° spread, size scales with lineWidth.
 - **Freehand rendering**: Array of CGPoints with `addLine(to:)`, round line caps and joins for smooth appearance.
 - **Text rendering**: Uses NSAttributedString drawn via NSGraphicsContext pushed from CGContext (flipped). Inline NSTextField for input with Enter to commit, Escape to cancel.
+- **Blur/pixelate rendering**: Crops source image region, applies CIPixellate filter (scale = max(w,h)/10), draws pixelated result back. Render method accepts optional sourceImage parameter for blur support.
 
 ### Remaining for M2
 - [x] Freehand / marker tool (array of points, round caps/joins)
 - [x] Text tool (inline text field, system font, click to place, Enter to commit)
-- [ ] Blur / pixelate tool (Core Image filter on selected region)
+- [x] Blur / pixelate tool (Core Image CIPixellate filter on selected region)
+
+All M2 annotation tools are now complete.
 
 ## Unit Tests
 
@@ -156,8 +165,8 @@ Snap/Annotation/
 
 | Test File | Tests | What's Covered |
 |---|---|---|
-| `AnnotationTests` | 18 | All 4 initializers (rect, point, freehand, text), bounding rect computation, unique IDs, default/custom lineWidth, field isolation, edge cases |
-| `AnnotationManagerTests` | 33 | Add, undo, redo, canUndo/canRedo, onChanged callback, rendering all 6 annotation types, compositing onto CGImage |
+| `AnnotationTests` | 21 | All 4 initializers (rect, point, freehand, text), blur type, bounding rect computation, unique IDs, default/custom lineWidth, field isolation, edge cases |
+| `AnnotationManagerTests` | 37 | Add, undo, redo, canUndo/canRedo, onChanged callback, rendering all 7 annotation types incl. blur with/without sourceImage, compositing |
 | `FileNamingTests` | 9 | Filename format/regex, default/custom extension, URL points to Desktop |
 | `OutputManagerTests` | 6 | Image caching, save to file, PNG round-trip validation, invalid path handling |
 
