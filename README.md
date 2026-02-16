@@ -16,6 +16,7 @@ A fast, native macOS screenshot tool built for power users. Area selection, full
 - **Arrow** — directional arrows with filled arrowhead
 - **Freehand / Marker** — freeform drawing with smooth strokes
 - **Text** — click to place, inline editing, Enter to commit, Escape to cancel
+- **Blur / Pixelate** — drag to select region, applies pixelation to obscure content
 - **Color picker** — preset swatches plus custom color dialog
 - **Undo / Redo** — full undo/redo stack (⌘Z / ⌘⇧Z)
 
@@ -70,7 +71,7 @@ Snap/
 | Milestone | Status |
 |-----------|--------|
 | **M1 — Core Capture** | Complete |
-| **M2 — Annotation** | In progress — rectangle, ellipse, line, arrow, freehand, text done; blur remaining |
+| **M2 — Annotation** | Complete |
 | **M3 — Polish** | Not started — JPEG output, print, reverse image search, dark mode polish |
 
 See [PROGRESS.md](PROGRESS.md) for detailed implementation notes.
@@ -82,7 +83,7 @@ xcodegen generate
 xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=macOS'
 ```
 
-66 unit tests covering the Annotation data model (including text), AnnotationManager (undo/redo, rendering, compositing), FileNaming, and OutputManager.
+73 unit tests covering the Annotation data model (including text and blur), AnnotationManager (undo/redo, rendering, compositing), FileNaming, and OutputManager.
 
 ## Tech Stack
 
