@@ -90,6 +90,8 @@ final class AnnotationManager {
             NSGraphicsContext.current = nsContext
             attrString.draw(at: annotation.rect.origin)
             NSGraphicsContext.restoreGraphicsState()
+        case .blur:
+            break // Rendering implemented in a subsequent commit
         }
     }
 

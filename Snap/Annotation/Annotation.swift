@@ -8,6 +8,7 @@ enum AnnotationType {
     case arrow
     case freehand
     case text
+    case blur
 }
 
 struct Annotation {
