@@ -31,13 +31,13 @@ final class AnnotationManager {
     var canUndo: Bool { !undoStack.isEmpty }
     var canRedo: Bool { !redoStack.isEmpty }
 
-    func render(in context: CGContext, size: NSSize) {
+    func render(in context: CGContext, size: NSSize, sourceImage: CGImage? = nil) {
         for annotation in annotations {
-            renderAnnotation(annotation, in: context, size: size)
+            renderAnnotation(annotation, in: context, size: size, sourceImage: sourceImage)
         }
     }
 
-    private func renderAnnotation(_ annotation: Annotation, in context: CGContext, size: NSSize) {
+    private func renderAnnotation(_ annotation: Annotation, in context: CGContext, size: NSSize, sourceImage: CGImage? = nil) {
         switch annotation.type {
         case .rectangle:
             context.setStrokeColor(annotation.color.cgColor)
@@ -91,7 +91,7 @@ final class AnnotationManager {
             attrString.draw(at: annotation.rect.origin)
             NSGraphicsContext.restoreGraphicsState()
         case .blur:
-            break // Rendering implemented in a subsequent commit
+            renderBlur(annotation, in: context, sourceImage: sourceImage)
         }
     }
 
@@ -114,6 +114,37 @@ final class AnnotationManager {
         context.addLine(to: right)
         context.closePath()
         context.fillPath()
+    }
+
+    private func renderBlur(_ annotation: Annotation, in context: CGContext, sourceImage: CGImage?) {
+        guard let sourceImage = sourceImage else { return }
+        let rect = annotation.rect
+        guard rect.width > 0, rect.height > 0 else { return }
+
+        // Convert from top-left (annotation) to bottom-left (CGImage) coordinates
+        let imageHeight = CGFloat(sourceImage.height)
+        let cropRect = CGRect(
+            x: rect.origin.x,
+            y: imageHeight - rect.maxY,
+            width: rect.width,
+            height: rect.height
+        ).integral.intersection(CGRect(x: 0, y: 0, width: CGFloat(sourceImage.width), height: imageHeight))
+
+        guard !cropRect.isEmpty,
+              let croppedImage = sourceImage.cropping(to: cropRect) else { return }
+
+        let ciImage = CIImage(cgImage: croppedImage)
+        let pixelScale = max(rect.width, rect.height) / 10
+        guard let filter = CIFilter(name: "CIPixellate") else { return }
+        filter.setValue(ciImage, forKey: kCIInputImageKey)
+        filter.setValue(max(pixelScale, 2.0), forKey: kCIInputScaleKey)
+
+        let ciContext = CIContext()
+        guard let outputImage = filter.outputImage,
+              let pixelatedCGImage = ciContext.createCGImage(outputImage, from: ciImage.extent) else { return }
+
+        // Context is already flipped to top-left origin; draw pixelated region back
+        context.draw(pixelatedCGImage, in: rect)
     }
 
     /// Composites annotations onto a CGImage, returning a new image.
@@ -139,7 +170,7 @@ final class AnnotationManager {
         context.translateBy(x: 0, y: CGFloat(height))
         context.scaleBy(x: 1, y: -1)
 
-        render(in: context, size: NSSize(width: width, height: height))
+        render(in: context, size: NSSize(width: width, height: height), sourceImage: image)
 
         return context.makeImage()
     }
