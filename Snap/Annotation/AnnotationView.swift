@@ -47,7 +47,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         context.saveGState()
         context.translateBy(x: 0, y: bounds.height)
         context.scaleBy(x: 1, y: -1)
-        annotationManager.render(in: context, size: bounds.size)
+        annotationManager.render(in: context, size: bounds.size, sourceImage: image)
         context.restoreGState()
 
         // Draw live preview of current drag
@@ -99,6 +99,37 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             context.addLine(to: right)
             context.closePath()
             context.fillPath()
+            context.restoreGState()
+        } else if currentTool == .blur, let rect = dragRect, rect.width > 0, rect.height > 0 {
+            context.saveGState()
+            context.translateBy(x: 0, y: bounds.height)
+            context.scaleBy(x: 1, y: -1)
+            // Draw pixelated preview of the region
+            let imageHeight = CGFloat(image.height)
+            let cropRect = CGRect(
+                x: rect.origin.x,
+                y: imageHeight - rect.maxY,
+                width: rect.width,
+                height: rect.height
+            ).integral.intersection(CGRect(x: 0, y: 0, width: CGFloat(image.width), height: imageHeight))
+            if !cropRect.isEmpty, let cropped = image.cropping(to: cropRect) {
+                let ciImage = CIImage(cgImage: cropped)
+                let pixelScale = max(rect.width, rect.height) / 10
+                if let filter = CIFilter(name: "CIPixellate") {
+                    filter.setValue(ciImage, forKey: kCIInputImageKey)
+                    filter.setValue(max(pixelScale, 2.0), forKey: kCIInputScaleKey)
+                    let ciContext = CIContext()
+                    if let output = filter.outputImage,
+                       let pixelated = ciContext.createCGImage(output, from: ciImage.extent) {
+                        context.draw(pixelated, in: rect)
+                    }
+                }
+            }
+            // Draw dashed border to show selection area
+            context.setStrokeColor(NSColor.white.withAlphaComponent(0.8).cgColor)
+            context.setLineWidth(1.0)
+            context.setLineDash(phase: 0, lengths: [4, 4])
+            context.stroke(rect)
             context.restoreGState()
         } else if currentTool == .ellipse, let rect = dragRect {
             context.saveGState()
