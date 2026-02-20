@@ -54,7 +54,8 @@ final class OutputManager {
 
     static func saveWithDialog(_ image: CGImage) {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = FileNaming.defaultFilename()
+        let prefs = PreferencesManager.shared
+        panel.nameFieldStringValue = FileNaming.defaultFilename(extension: prefs.imageFormat)
         panel.allowedContentTypes = [.png, .jpeg]
         panel.canCreateDirectories = true
 
