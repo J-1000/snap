@@ -41,6 +41,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true) {
         lastCaptureScaleFactor = scaleFactor
         OutputManager.saveImage(image, scaleFactor: scaleFactor)
+        let prefs = PreferencesManager.shared
+
+        if prefs.copyToClipboardAfterCapture {
+            OutputManager.copyToClipboard(image, scaleFactor: scaleFactor)
+        }
+
+        if prefs.autoSaveAfterCapture {
+            let url = prefs.saveDirectory.appendingPathComponent(
+                FileNaming.defaultFilename(extension: prefs.imageFormat)
+            )
+            if OutputManager.saveToFile(
+                image,
+                url: url,
+                scaleFactor: scaleFactor,
+                format: prefs.imageFormat,
+                jpegQuality: prefs.jpegQuality
+            ) {
+                OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+            }
+        }
         if showUI {
             showAnnotationWindow(image: image)
         }
