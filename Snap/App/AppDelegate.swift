@@ -51,6 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.onCopy = { [weak self, weak window] in
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
+            OutputManager.saveImage(output)
             OutputManager.copyToClipboard(output)
             OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
             self?.dismissAnnotationWindow()
@@ -58,6 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.onSave = { [weak self, weak window] in
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
+            OutputManager.saveImage(output)
             let prefs = PreferencesManager.shared
             let url = prefs.saveDirectory.appendingPathComponent(
                 FileNaming.defaultFilename(extension: prefs.imageFormat))
@@ -69,6 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.onSaveAs = { [weak window] in
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
+            OutputManager.saveImage(output)
             OutputManager.saveWithDialog(output)
         }
         window.onClose = { [weak self] in
