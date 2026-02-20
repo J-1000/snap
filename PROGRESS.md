@@ -192,3 +192,13 @@ xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=ma
 - [ ] Retina downscaling
 - [ ] Dark mode polish
 - [ ] Launch at login
+
+## Code Review (2026-02-20)
+
+### Findings
+1. **Save Last Screenshot never has data**: `OutputManager.lastCapturedImage` is only set by `saveImage(_:)`, but nothing calls it. As a result, menu actions "Save Last Screenshot" and "Save Last Screenshot As…" are no-ops in real usage. (`Snap/Output/OutputManager.swift`, `Snap/App/AppDelegate.swift`)
+2. **JPEG saves are actually PNG data**: `saveToFile` always encodes with `kUTTypePNG`, ignoring format/quality preferences. Saving as JPEG writes PNG bytes with a `.jpg/.jpeg` filename. (`Snap/Output/OutputManager.swift`, `Snap/Preferences/PreferencesManager.swift`)
+3. **Several preferences are persisted but unused**: `downscaleRetina`, `autoSaveAfterCapture`, `copyToClipboardAfterCapture`, and `launchAtLogin` are stored but not wired into capture flow. (`Snap/Preferences/PreferencesManager.swift`)
+
+### Notes
+- Tests not run for this review.
