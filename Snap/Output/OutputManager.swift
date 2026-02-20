@@ -11,21 +11,44 @@ final class OutputManager {
         lastCapturedScaleFactor = scaleFactor
     }
 
-    static func copyToClipboard(_ image: CGImage) -> Bool {
+    static func copyToClipboard(_ image: CGImage, scaleFactor: CGFloat? = nil) -> Bool {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
-        let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+        let outputImage = downscaledImageIfNeeded(image, scaleFactor: scaleFactor)
+        let nsImage = NSImage(
+            cgImage: outputImage,
+            size: NSSize(width: outputImage.width, height: outputImage.height)
+        )
         return pasteboard.writeObjects([nsImage])
     }
 
     @discardableResult
-    static func saveToFile(_ image: CGImage, url: URL? = nil) -> Bool {
+    static func saveToFile(
+        _ image: CGImage,
+        url: URL? = nil,
+        scaleFactor: CGFloat? = nil,
+        format: String? = nil,
+        jpegQuality: Double? = nil
+    ) -> Bool {
         let saveURL = url ?? FileNaming.defaultSaveURL()
-        guard let destination = CGImageDestinationCreateWithURL(saveURL as CFURL, kUTTypePNG, 1, nil) else {
+        let prefs = PreferencesManager.shared
+        let outputFormat = (format ?? prefs.imageFormat).lowercased()
+        let quality = jpegQuality ?? prefs.jpegQuality
+
+        let outputType = imageType(for: saveURL, preferredFormat: outputFormat)
+        guard let destination = CGImageDestinationCreateWithURL(
+            saveURL as CFURL,
+            outputType.identifier as CFString,
+            1,
+            nil
+        ) else {
             return false
         }
-        CGImageDestinationAddImage(destination, image, nil)
+
+        let outputImage = downscaledImageIfNeeded(image, scaleFactor: scaleFactor)
+        let properties = destinationProperties(for: outputType, jpegQuality: quality)
+        CGImageDestinationAddImage(destination, outputImage, properties)
         return CGImageDestinationFinalize(destination)
     }
 
@@ -42,6 +65,47 @@ final class OutputManager {
                 }
             }
         }
+    }
+
+    private static func imageType(for url: URL, preferredFormat: String) -> UTType {
+        if let type = UTType(filenameExtension: url.pathExtension) {
+            return type
+        }
+        return preferredFormat == "jpeg" ? .jpeg : .png
+    }
+
+    private static func destinationProperties(for type: UTType, jpegQuality: Double) -> CFDictionary? {
+        if type == .jpeg {
+            return [kCGImageDestinationLossyCompressionQuality: jpegQuality] as CFDictionary
+        }
+        return nil
+    }
+
+    private static func downscaledImageIfNeeded(_ image: CGImage, scaleFactor: CGFloat?) -> CGImage {
+        let prefs = PreferencesManager.shared
+        guard prefs.downscaleRetina else { return image }
+
+        let factor = scaleFactor ?? lastCapturedScaleFactor
+        guard factor > 1.0 else { return image }
+
+        let newWidth = max(Int(CGFloat(image.width) / factor), 1)
+        let newHeight = max(Int(CGFloat(image.height) / factor), 1)
+        guard newWidth != image.width || newHeight != image.height else { return image }
+
+        let colorSpace = image.colorSpace ?? CGColorSpace(name: CGColorSpace.sRGB)!
+        guard let context = CGContext(
+            data: nil,
+            width: newWidth,
+            height: newHeight,
+            bitsPerComponent: image.bitsPerComponent,
+            bytesPerRow: 0,
+            space: colorSpace,
+            bitmapInfo: image.bitmapInfo.rawValue
+        ) else { return image }
+
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(x: 0, y: 0, width: newWidth, height: newHeight))
+        return context.makeImage() ?? image
     }
 
     static func showNotification(title: String, text: String) {
