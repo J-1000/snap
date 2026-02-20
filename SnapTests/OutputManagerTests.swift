@@ -1,4 +1,5 @@
 import XCTest
+import UniformTypeIdentifiers
 @testable import Snap
 
 final class OutputManagerTests: XCTestCase {
@@ -82,6 +83,43 @@ final class OutputManagerTests: XCTestCase {
 
         let success = OutputManager.saveToFile(image, url: url)
         XCTAssertFalse(success)
+    }
+
+    func testSaveToFileUsesJPEGWhenExtensionIsJPEG() {
+        let image = createTestImage(width: 20, height: 20)
+        let url = tempDir.appendingPathComponent("test.jpeg")
+
+        let success = OutputManager.saveToFile(image, url: url)
+
+        XCTAssertTrue(success)
+        guard let data = try? Data(contentsOf: url),
+              let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let type = CGImageSourceGetType(source) as String? else {
+            XCTFail("Could not load saved image")
+            return
+        }
+        XCTAssertEqual(UTType(type), .jpeg)
+    }
+
+    func testSaveToFileDownscalesWhenEnabled() {
+        let prefs = PreferencesManager.shared
+        let originalDownscale = prefs.downscaleRetina
+        defer { prefs.downscaleRetina = originalDownscale }
+
+        prefs.downscaleRetina = true
+        let image = createTestImage(width: 200, height: 100)
+        let url = tempDir.appendingPathComponent("downscale.png")
+
+        OutputManager.saveToFile(image, url: url, scaleFactor: 2.0)
+
+        guard let data = try? Data(contentsOf: url),
+              let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let loadedImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+            XCTFail("Could not load saved image")
+            return
+        }
+        XCTAssertEqual(loadedImage.width, 100)
+        XCTAssertEqual(loadedImage.height, 50)
     }
 
     // MARK: - Helpers
