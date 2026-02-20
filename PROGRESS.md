@@ -186,12 +186,17 @@ xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=ma
 ```
 
 ### Not Yet Implemented (M3: Polish)
-- [ ] JPEG save support (prefs exist, output needs format switching)
 - [ ] Print (⌘P)
 - [ ] Google reverse image search (⌘G)
-- [ ] Retina downscaling
 - [ ] Dark mode polish
-- [ ] Launch at login
+
+### Recent Updates (2026-02-20)
+- Output format now respects PNG/JPEG preferences and JPEG quality settings.
+- Retina downscaling is supported when enabled in preferences.
+- Auto-save and copy-to-clipboard preferences are applied on capture.
+- Launch at login preference is applied via `SMAppService` on macOS 13+.
+- Added tests for auto-save behavior, JPEG output detection, and downscale output.
+- Test runs failed in this environment due to sandbox restrictions (DerivedData and `com.apple.testmanagerd.control`).
 
 ## Code Review (2026-02-20)
 
