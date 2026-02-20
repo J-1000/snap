@@ -21,10 +21,10 @@ A fast, native macOS screenshot tool built for power users. Area selection, full
 - **Undo / Redo** — full undo/redo stack (⌘Z / ⌘⇧Z)
 
 ### Output
-- **Copy to clipboard** (⌘C) — PNG format
+- **Copy to clipboard** (⌘C) — PNG/JPEG output with optional retina downscale
 - **Save to file** (⌘S) — auto-generated `Snap_YYYY-MM-DD_HH-mm-ss` filenames
 - **Save as** (⌘⇧S) — choose location and format
-- **Configurable preferences** — save directory, format (PNG/JPEG), hotkeys, and more
+- **Configurable preferences** — save directory, format (PNG/JPEG), JPEG quality, auto-save, clipboard, launch at login
 
 ## Requirements
 
@@ -72,7 +72,7 @@ Snap/
 |-----------|--------|
 | **M1 — Core Capture** | Complete |
 | **M2 — Annotation** | Complete |
-| **M3 — Polish** | Not started — JPEG output, print, reverse image search, dark mode polish |
+| **M3 — Polish** | In progress — print, reverse image search, dark mode polish |
 
 See [PROGRESS.md](PROGRESS.md) for detailed implementation notes.
 
@@ -83,7 +83,7 @@ xcodegen generate
 xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=macOS'
 ```
 
-73 unit tests covering the Annotation data model (including text and blur), AnnotationManager (undo/redo, rendering, compositing), FileNaming, and OutputManager.
+77 unit tests covering the Annotation data model (including text and blur), AnnotationManager (undo/redo, rendering, compositing), FileNaming, OutputManager, and AppDelegate capture handling.
 
 ## Tech Stack
 
