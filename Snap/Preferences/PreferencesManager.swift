@@ -1,4 +1,5 @@
 import Foundation
+import ServiceManagement
 
 final class PreferencesManager {
     static let shared = PreferencesManager()
@@ -17,6 +18,7 @@ final class PreferencesManager {
 
     private init() {
         registerDefaults()
+        applyLaunchAtLoginSetting()
     }
 
     private func registerDefaults() {
@@ -57,7 +59,10 @@ final class PreferencesManager {
 
     var launchAtLogin: Bool {
         get { defaults.bool(forKey: Keys.launchAtLogin) }
-        set { defaults.set(newValue, forKey: Keys.launchAtLogin) }
+        set {
+            defaults.set(newValue, forKey: Keys.launchAtLogin)
+            applyLaunchAtLoginSetting()
+        }
     }
 
     var copyToClipboardAfterCapture: Bool {
@@ -68,5 +73,19 @@ final class PreferencesManager {
     var autoSaveAfterCapture: Bool {
         get { defaults.bool(forKey: Keys.autoSaveAfterCapture) }
         set { defaults.set(newValue, forKey: Keys.autoSaveAfterCapture) }
+    }
+
+    private func applyLaunchAtLoginSetting() {
+        guard #available(macOS 13.0, *) else { return }
+        let enabled = launchAtLogin
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            NSLog("Snap: Failed to update launch-at-login setting: \(error.localizedDescription)")
+        }
     }
 }
