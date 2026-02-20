@@ -10,8 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController = StatusBarController()
 
         captureEngine.onImageCaptured = { [weak self] image in
-            OutputManager.saveImage(image)
-            self?.showAnnotationWindow(image: image)
+            self?.handleCapturedImage(image)
         }
 
         captureEngine.onError = { error in
@@ -36,6 +35,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func startFullScreenCapture() {
         guard let screen = NSScreen.main else { return }
         captureEngine.captureFullScreen(screen)
+    }
+
+    func handleCapturedImage(_ image: CGImage, showUI: Bool = true) {
+        OutputManager.saveImage(image)
+        if showUI {
+            showAnnotationWindow(image: image)
+        }
     }
 
     private func showAnnotationWindow(image: CGImage) {
