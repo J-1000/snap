@@ -44,7 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let prefs = PreferencesManager.shared
 
         if prefs.copyToClipboardAfterCapture {
-            OutputManager.copyToClipboard(image, scaleFactor: scaleFactor)
+            _ = OutputManager.copyToClipboard(image, scaleFactor: scaleFactor)
         }
 
         if prefs.autoSaveAfterCapture {
@@ -80,7 +80,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
             OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            OutputManager.copyToClipboard(output)
+            _ = OutputManager.copyToClipboard(output)
             OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
             self?.dismissAnnotationWindow()
         }
