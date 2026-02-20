@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController = StatusBarController()
 
         captureEngine.onImageCaptured = { [weak self] image in
+            OutputManager.saveImage(image)
             self?.showAnnotationWindow(image: image)
         }
 
