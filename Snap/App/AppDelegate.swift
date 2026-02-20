@@ -5,6 +5,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotKeyManager = HotKeyManager()
     let captureEngine = CaptureEngine()
     private var annotationWindow: AnnotationWindow?
+    private var lastCaptureScaleFactor: CGFloat = 1.0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusBarController = StatusBarController()
@@ -38,6 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true) {
+        lastCaptureScaleFactor = scaleFactor
         OutputManager.saveImage(image, scaleFactor: scaleFactor)
         if showUI {
             showAnnotationWindow(image: image)
@@ -57,7 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.onCopy = { [weak self, weak window] in
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output)
+            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
             OutputManager.copyToClipboard(output)
             OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
             self?.dismissAnnotationWindow()
@@ -65,7 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.onSave = { [weak self, weak window] in
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output)
+            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
             let prefs = PreferencesManager.shared
             let url = prefs.saveDirectory.appendingPathComponent(
                 FileNaming.defaultFilename(extension: prefs.imageFormat))
@@ -74,10 +76,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             self?.dismissAnnotationWindow()
         }
-        window.onSaveAs = { [weak window] in
+        window.onSaveAs = { [weak self, weak window] in
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output)
+            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
             OutputManager.saveWithDialog(output)
         }
         window.onClose = { [weak self] in
