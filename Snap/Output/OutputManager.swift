@@ -4,9 +4,11 @@ import UniformTypeIdentifiers
 final class OutputManager {
 
     private(set) static var lastCapturedImage: CGImage?
+    private(set) static var lastCapturedScaleFactor: CGFloat = 1.0
 
-    static func saveImage(_ image: CGImage) {
+    static func saveImage(_ image: CGImage, scaleFactor: CGFloat = 1.0) {
         lastCapturedImage = image
+        lastCapturedScaleFactor = scaleFactor
     }
 
     static func copyToClipboard(_ image: CGImage) -> Bool {
