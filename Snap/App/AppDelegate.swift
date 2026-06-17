@@ -42,9 +42,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         lastCaptureScaleFactor = scaleFactor
         OutputManager.saveImage(image, scaleFactor: scaleFactor)
         let prefs = PreferencesManager.shared
+        var performedAutomaticOutput = false
 
         if prefs.copyToClipboardAfterCapture {
-            _ = OutputManager.copyToClipboard(image, scaleFactor: scaleFactor)
+            performedAutomaticOutput = OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) || performedAutomaticOutput
         }
 
         if prefs.autoSaveAfterCapture {
@@ -58,10 +59,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 format: prefs.imageFormat,
                 jpegQuality: prefs.jpegQuality
             ) {
+                performedAutomaticOutput = true
                 OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
             }
         }
-        if showUI {
+        if showUI && (prefs.openEditorAfterCapture || !performedAutomaticOutput) {
             showAnnotationWindow(image: image)
         }
     }
@@ -80,7 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
             OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            _ = OutputManager.copyToClipboard(output)
+            _ = OutputManager.copyToClipboard(output, scaleFactor: self?.lastCaptureScaleFactor)
             OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
             self?.dismissAnnotationWindow()
         }
@@ -91,7 +93,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let prefs = PreferencesManager.shared
             let url = prefs.saveDirectory.appendingPathComponent(
                 FileNaming.defaultFilename(extension: prefs.imageFormat))
-            if OutputManager.saveToFile(output, url: url) {
+            if OutputManager.saveToFile(
+                output,
+                url: url,
+                scaleFactor: self?.lastCaptureScaleFactor,
+                format: prefs.imageFormat,
+                jpegQuality: prefs.jpegQuality
+            ) {
                 OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
             }
             self?.dismissAnnotationWindow()

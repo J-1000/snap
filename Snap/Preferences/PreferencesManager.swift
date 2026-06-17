@@ -14,6 +14,7 @@ final class PreferencesManager {
         static let launchAtLogin = "launchAtLogin"
         static let copyToClipboardAfterCapture = "copyToClipboardAfterCapture"
         static let autoSaveAfterCapture = "autoSaveAfterCapture"
+        static let openEditorAfterCapture = "openEditorAfterCapture"
     }
 
     private init() {
@@ -31,6 +32,7 @@ final class PreferencesManager {
             Keys.launchAtLogin: false,
             Keys.copyToClipboardAfterCapture: true,
             Keys.autoSaveAfterCapture: false,
+            Keys.openEditorAfterCapture: false,
         ])
     }
 
@@ -73,6 +75,11 @@ final class PreferencesManager {
     var autoSaveAfterCapture: Bool {
         get { defaults.bool(forKey: Keys.autoSaveAfterCapture) }
         set { defaults.set(newValue, forKey: Keys.autoSaveAfterCapture) }
+    }
+
+    var openEditorAfterCapture: Bool {
+        get { defaults.bool(forKey: Keys.openEditorAfterCapture) }
+        set { defaults.set(newValue, forKey: Keys.openEditorAfterCapture) }
     }
 
     private func applyLaunchAtLoginSetting() {
