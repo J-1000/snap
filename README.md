@@ -5,7 +5,7 @@ A fast, native macOS screenshot tool built for power users. Area selection, full
 ## Features
 
 ### Capture
-- **Area selection** — click and drag to select any region, with live dimension labels
+- **Area selection** — click and drag to select any region, adjust with handles, then press Return to capture
 - **Full-screen capture** — instant capture via configurable hotkey
 - **Multi-monitor support** — overlays all displays, selections can span monitors
 
@@ -18,13 +18,16 @@ A fast, native macOS screenshot tool built for power users. Area selection, full
 - **Text** — click to place, inline editing, Enter to commit, Escape to cancel
 - **Blur / Pixelate** — drag to select region, applies pixelation to obscure content
 - **Color picker** — preset swatches plus custom color dialog
+- **Annotation controls** — adjustable stroke width and text size
 - **Undo / Redo** — full undo/redo stack (⌘Z / ⌘⇧Z)
 
 ### Output
 - **Copy to clipboard** (⌘C) — PNG/JPEG output with optional retina downscale
 - **Save to file** (⌘S) — auto-generated `Snap_YYYY-MM-DD_HH-mm-ss` filenames
 - **Save as** (⌘⇧S) — choose location and format
-- **Configurable preferences** — save directory, format (PNG/JPEG), JPEG quality, auto-save, clipboard, launch at login
+- **Print** (⌘P) — print the annotated screenshot
+- **Reverse image search** (⌘G) — copies the image and opens Google Images
+- **Configurable preferences** — save directory, format (PNG/JPEG), JPEG quality, auto-save, clipboard, editor behavior, cursor capture, notifications, launch at login
 
 ## Requirements
 
@@ -50,8 +53,11 @@ The app bundle is output to `~/Library/Developer/Xcode/DerivedData/Snap-*/Build/
 | Copy to clipboard | ⌘C |
 | Save to file | ⌘S |
 | Save as | ⌘⇧S |
+| Reverse image search | ⌘G |
+| Print | ⌘P |
 | Undo / Redo | ⌘Z / ⌘⇧Z |
 | Cancel | Esc |
+| Confirm area selection | Return |
 
 ## Project Structure
 
@@ -72,7 +78,7 @@ Snap/
 |-----------|--------|
 | **M1 — Core Capture** | Complete |
 | **M2 — Annotation** | Complete |
-| **M3 — Polish** | In progress — print, reverse image search, dark mode polish |
+| **M3 — Polish** | In progress — print, reverse image search, editor preferences, dark mode polish |
 
 See [PROGRESS.md](PROGRESS.md) for detailed implementation notes.
 
