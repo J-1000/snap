@@ -5,9 +5,9 @@ A fast, native macOS screenshot tool built for power users. Area selection, full
 ## Features
 
 ### Capture
-- **Area selection** — click and drag to select any region, adjust with handles, then press Return to capture
-- **Full-screen capture** — instant capture via configurable hotkey
-- **Multi-monitor support** — overlays all displays, selections can span monitors
+- **Area selection** — click and drag to select a region, adjust with handles, then press Return to capture
+- **Full-screen capture** — instant capture via global hotkey
+- **Multi-monitor support** — overlays all displays for per-display region selection
 
 ### Annotation
 - **Rectangle** — outlined stroke, color selectable
@@ -22,7 +22,7 @@ A fast, native macOS screenshot tool built for power users. Area selection, full
 - **Undo / Redo** — full undo/redo stack (⌘Z / ⌘⇧Z)
 
 ### Output
-- **Copy to clipboard** (⌘C) — PNG/JPEG output with optional retina downscale
+- **Copy to clipboard** (⌘C) — copies the current screenshot to the system clipboard, with optional retina downscale
 - **Save to file** (⌘S) — auto-generated `Snap_YYYY-MM-DD_HH-mm-ss` filenames
 - **Save as** (⌘⇧S) — choose location and format
 - **Print** (⌘P) — print the annotated screenshot
@@ -78,9 +78,7 @@ Snap/
 |-----------|--------|
 | **M1 — Core Capture** | Complete |
 | **M2 — Annotation** | Complete |
-| **M3 — Polish** | In progress — print, reverse image search, editor preferences, dark mode polish |
-
-See [PROGRESS.md](PROGRESS.md) for detailed implementation notes.
+| **M3 — Polish** | In progress — print, reverse image search, editor preferences, and output polish implemented; dark mode polish remains |
 
 ## Testing
 
