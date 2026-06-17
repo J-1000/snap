@@ -9,6 +9,8 @@ final class AnnotationWindow: NSWindow {
     var onCopy: (() -> Void)?
     var onSave: (() -> Void)?
     var onSaveAs: (() -> Void)?
+    var onReverseSearch: (() -> Void)?
+    var onPrint: (() -> Void)?
     var onClose: (() -> Void)?
 
     init(image: CGImage, screenRect: NSRect) {
@@ -57,6 +59,8 @@ final class AnnotationWindow: NSWindow {
         actionToolbar.onCopy = { [weak self] in self?.onCopy?() }
         actionToolbar.onSave = { [weak self] in self?.onSave?() }
         actionToolbar.onSaveAs = { [weak self] in self?.onSaveAs?() }
+        actionToolbar.onReverseSearch = { [weak self] in self?.onReverseSearch?() }
+        actionToolbar.onPrint = { [weak self] in self?.onPrint?() }
         actionToolbar.onClose = { [weak self] in self?.onClose?() }
 
         editingToolbar.onToolChanged = { [weak self] tool in

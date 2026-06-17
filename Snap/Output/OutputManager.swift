@@ -68,6 +68,35 @@ final class OutputManager {
         }
     }
 
+    static func printImage(_ image: CGImage) -> Bool {
+        let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+        let imageView = NSImageView(frame: NSRect(x: 0, y: 0, width: nsImage.size.width, height: nsImage.size.height))
+        imageView.image = nsImage
+        imageView.imageScaling = .scaleProportionallyUpOrDown
+
+        let printInfo = NSPrintInfo.shared
+        printInfo.horizontalPagination = .fit
+        printInfo.verticalPagination = .fit
+        printInfo.isHorizontallyCentered = true
+        printInfo.isVerticallyCentered = true
+
+        let operation = NSPrintOperation(view: imageView, printInfo: printInfo)
+        operation.showsPrintPanel = true
+        operation.showsProgressPanel = true
+        return operation.run()
+    }
+
+    @discardableResult
+    static func reverseImageSearch(_ image: CGImage, scaleFactor: CGFloat? = nil) -> Bool {
+        guard copyToClipboard(image, scaleFactor: scaleFactor),
+              let url = URL(string: "https://images.google.com/") else {
+            return false
+        }
+        NSWorkspace.shared.open(url)
+        showNotification(title: "Snap", text: "Image copied. Paste it into Google Images.")
+        return true
+    }
+
     private static func imageType(for url: URL, preferredFormat: String) -> UTType {
         if let type = UTType(filenameExtension: url.pathExtension) {
             return type

@@ -110,6 +110,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
             OutputManager.saveWithDialog(output)
         }
+        window.onReverseSearch = { [weak self, weak window] in
+            guard let window = window else { return }
+            let output = window.annotationView.annotationManager.composite(onto: image) ?? image
+            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
+            _ = OutputManager.reverseImageSearch(output, scaleFactor: self?.lastCaptureScaleFactor)
+            self?.dismissAnnotationWindow()
+        }
+        window.onPrint = { [weak self, weak window] in
+            guard let window = window else { return }
+            let output = window.annotationView.annotationManager.composite(onto: image) ?? image
+            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
+            _ = OutputManager.printImage(output)
+        }
         window.onClose = { [weak self] in
             self?.dismissAnnotationWindow()
         }
