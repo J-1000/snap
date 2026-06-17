@@ -5,6 +5,8 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     let annotationManager = AnnotationManager()
     var currentTool: AnnotationTool?
     var currentColor: NSColor = .systemRed
+    var currentLineWidth: CGFloat = 2
+    var currentFontSize: CGFloat = 16
 
     private var dragOrigin: NSPoint?
     private var dragRect: NSRect?
@@ -13,8 +15,6 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
 
     private var activeTextField: NSTextField?
     private var textInsertionPoint: NSPoint? // image coords (top-left origin)
-    private let textFontSize: CGFloat = 16
-
     init(image: CGImage) {
         self.image = image
         super.init(frame: NSRect(x: 0, y: 0, width: CGFloat(image.width), height: CGFloat(image.height)))
@@ -56,7 +56,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             context.translateBy(x: 0, y: bounds.height)
             context.scaleBy(x: 1, y: -1)
             context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(2.0)
+            context.setLineWidth(currentLineWidth)
             context.setLineCap(.round)
             context.setLineJoin(.round)
             context.beginPath()
@@ -71,7 +71,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             context.translateBy(x: 0, y: bounds.height)
             context.scaleBy(x: 1, y: -1)
             context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(2.0)
+            context.setLineWidth(currentLineWidth)
             context.beginPath()
             context.move(to: start)
             context.addLine(to: end)
@@ -83,13 +83,13 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             context.scaleBy(x: 1, y: -1)
             context.setStrokeColor(currentColor.cgColor)
             context.setFillColor(currentColor.cgColor)
-            context.setLineWidth(2.0)
+            context.setLineWidth(currentLineWidth)
             context.beginPath()
             context.move(to: start)
             context.addLine(to: end)
             context.strokePath()
             let angle = atan2(end.y - start.y, end.x - start.x)
-            let headSize: CGFloat = 10
+            let headSize: CGFloat = max(10, currentLineWidth * 5)
             let spread: CGFloat = .pi / 6
             let left = CGPoint(x: end.x - headSize * cos(angle - spread), y: end.y - headSize * sin(angle - spread))
             let right = CGPoint(x: end.x - headSize * cos(angle + spread), y: end.y - headSize * sin(angle + spread))
@@ -136,7 +136,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             context.translateBy(x: 0, y: bounds.height)
             context.scaleBy(x: 1, y: -1)
             context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(2.0)
+            context.setLineWidth(currentLineWidth)
             context.strokeEllipse(in: rect)
             context.restoreGState()
         } else if let rect = dragRect {
@@ -144,7 +144,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             context.translateBy(x: 0, y: bounds.height)
             context.scaleBy(x: 1, y: -1)
             context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(2.0)
+            context.setLineWidth(currentLineWidth)
             context.stroke(rect)
             context.restoreGState()
         }
@@ -215,7 +215,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                 needsDisplay = true
                 return
             }
-            let annotation = Annotation(type: .freehand, points: dragPoints, color: currentColor)
+            let annotation = Annotation(type: .freehand, points: dragPoints, color: currentColor, lineWidth: currentLineWidth)
             annotationManager.add(annotation)
         } else if annotationType == .line || annotationType == .arrow {
             guard let start = dragOrigin, let end = dragEndPoint else {
@@ -233,7 +233,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                 needsDisplay = true
                 return
             }
-            let annotation = Annotation(type: annotationType, start: start, end: end, color: currentColor)
+            let annotation = Annotation(type: annotationType, start: start, end: end, color: currentColor, lineWidth: currentLineWidth)
             annotationManager.add(annotation)
         } else {
             guard let rect = dragRect, rect.width > 1, rect.height > 1 else {
@@ -243,7 +243,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                 needsDisplay = true
                 return
             }
-            let annotation = Annotation(type: annotationType, rect: rect, color: currentColor)
+            let annotation = Annotation(type: annotationType, rect: rect, color: currentColor, lineWidth: currentLineWidth)
             annotationManager.add(annotation)
         }
 
@@ -277,7 +277,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     private func showTextField(at viewPoint: NSPoint, imagePoint: NSPoint) {
         textInsertionPoint = imagePoint
         let textField = NSTextField()
-        textField.font = NSFont.systemFont(ofSize: textFontSize)
+        textField.font = NSFont.systemFont(ofSize: currentFontSize)
         textField.textColor = currentColor
         textField.backgroundColor = NSColor.white.withAlphaComponent(0.8)
         textField.drawsBackground = true
@@ -286,7 +286,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         textField.isEditable = true
         textField.cell?.wraps = false
         textField.cell?.isScrollable = true
-        let fieldHeight = textFontSize + 8
+        let fieldHeight = currentFontSize + 8
         textField.frame = NSRect(x: viewPoint.x, y: viewPoint.y - fieldHeight, width: 200, height: fieldHeight)
         textField.delegate = self
         addSubview(textField)
@@ -302,7 +302,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                 type: .text,
                 text: text,
                 position: insertionPoint,
-                fontSize: textFontSize,
+                fontSize: currentFontSize,
                 color: currentColor
             )
             annotationManager.add(annotation)

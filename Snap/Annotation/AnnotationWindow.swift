@@ -69,6 +69,12 @@ final class AnnotationWindow: NSWindow {
         editingToolbar.onColorChanged = { [weak self] color in
             self?.annotationView.currentColor = color
         }
+        editingToolbar.onLineWidthChanged = { [weak self] lineWidth in
+            self?.annotationView.currentLineWidth = lineWidth
+        }
+        editingToolbar.onFontSizeChanged = { [weak self] fontSize in
+            self?.annotationView.currentFontSize = fontSize
+        }
     }
 
     override var canBecomeKey: Bool { true }

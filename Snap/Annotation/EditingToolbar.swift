@@ -17,13 +17,23 @@ final class EditingToolbar: NSView {
     var selectedColor: NSColor = .systemRed {
         didSet { colorWell.color = selectedColor }
     }
+    var selectedLineWidth: CGFloat = 2 {
+        didSet { lineWidthPopup.selectItem(withTitle: "\(Int(selectedLineWidth)) px") }
+    }
+    var selectedFontSize: CGFloat = 16 {
+        didSet { fontSizePopup.selectItem(withTitle: "\(Int(selectedFontSize)) pt") }
+    }
     var onToolChanged: ((AnnotationTool?) -> Void)?
     var onColorChanged: ((NSColor) -> Void)?
+    var onLineWidthChanged: ((CGFloat) -> Void)?
+    var onFontSizeChanged: ((CGFloat) -> Void)?
 
-    static let width: CGFloat = 44
+    static let width: CGFloat = 72
 
     private var toolButtons: [AnnotationTool: NSButton] = [:]
     private let colorWell = NSColorWell()
+    private let lineWidthPopup = NSPopUpButton()
+    private let fontSizePopup = NSPopUpButton()
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -133,6 +143,32 @@ final class EditingToolbar: NSView {
             stack.addArrangedSubview(swatch)
         }
 
+        let secondDivider = NSBox()
+        secondDivider.boxType = .separator
+        secondDivider.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(secondDivider)
+        NSLayoutConstraint.activate([
+            secondDivider.widthAnchor.constraint(equalToConstant: 44),
+        ])
+
+        configureOptionPopup(
+            lineWidthPopup,
+            titles: ["1 px", "2 px", "3 px", "4 px", "5 px"],
+            selectedTitle: "\(Int(selectedLineWidth)) px",
+            tooltip: "Stroke Width",
+            action: #selector(lineWidthChanged)
+        )
+        stack.addArrangedSubview(lineWidthPopup)
+
+        configureOptionPopup(
+            fontSizePopup,
+            titles: ["12 pt", "16 pt", "20 pt", "24 pt", "32 pt", "48 pt"],
+            selectedTitle: "\(Int(selectedFontSize)) pt",
+            tooltip: "Text Size",
+            action: #selector(fontSizeChanged)
+        )
+        stack.addArrangedSubview(fontSizePopup)
+
         visualEffect.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: visualEffect.topAnchor, constant: 8),
@@ -177,6 +213,27 @@ final class EditingToolbar: NSView {
         return button
     }
 
+    private func configureOptionPopup(
+        _ popup: NSPopUpButton,
+        titles: [String],
+        selectedTitle: String,
+        tooltip: String,
+        action: Selector
+    ) {
+        popup.addItems(withTitles: titles)
+        popup.selectItem(withTitle: selectedTitle)
+        popup.toolTip = tooltip
+        popup.target = self
+        popup.action = action
+        popup.controlSize = .small
+        popup.font = NSFont.systemFont(ofSize: 10)
+        popup.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            popup.widthAnchor.constraint(equalToConstant: 58),
+            popup.heightAnchor.constraint(equalToConstant: 24),
+        ])
+    }
+
     private var swatchColorMap: [ObjectIdentifier: NSColor] = [:]
 
     @objc private func toolTapped(_ sender: NSButton) {
@@ -200,6 +257,24 @@ final class EditingToolbar: NSView {
     @objc private func colorChanged() {
         selectedColor = colorWell.color
         onColorChanged?(selectedColor)
+    }
+
+    @objc private func lineWidthChanged() {
+        let value = lineWidthPopup.titleOfSelectedItem?
+            .split(separator: " ")
+            .first
+            .flatMap { Double($0) } ?? Double(selectedLineWidth)
+        selectedLineWidth = CGFloat(value)
+        onLineWidthChanged?(selectedLineWidth)
+    }
+
+    @objc private func fontSizeChanged() {
+        let value = fontSizePopup.titleOfSelectedItem?
+            .split(separator: " ")
+            .first
+            .flatMap { Double($0) } ?? Double(selectedFontSize)
+        selectedFontSize = CGFloat(value)
+        onFontSizeChanged?(selectedFontSize)
     }
 
     private func updateSelection() {
