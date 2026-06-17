@@ -63,7 +63,7 @@ final class ScreenCapture: NSObject, SCStreamOutput {
         config.sourceRect = sourceRect
         config.width = Int(rect.width * scaleFactor)
         config.height = Int(rect.height * scaleFactor)
-        config.showsCursor = false
+        config.showsCursor = PreferencesManager.shared.includeMouseCursor
         config.capturesAudio = false
         config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
 

@@ -3,9 +3,21 @@ import AppKit
 final class PreferencesWindow: NSWindowController {
     private let prefs = PreferencesManager.shared
 
+    private var formatPopup: NSPopUpButton!
+    private var qualitySlider: NSSlider!
+    private var qualityLabel: NSTextField!
+    private var directoryLabel: NSTextField!
+    private var retinaCheckbox: NSButton!
+    private var clipboardCheckbox: NSButton!
+    private var autoSaveCheckbox: NSButton!
+    private var openEditorCheckbox: NSButton!
+    private var cursorCheckbox: NSButton!
+    private var notificationCheckbox: NSButton!
+    private var launchAtLoginCheckbox: NSButton!
+
     convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 450, height: 340),
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 520),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -17,103 +29,165 @@ final class PreferencesWindow: NSWindowController {
         setupUI()
     }
 
-    private var formatPopup: NSPopUpButton!
-    private var qualitySlider: NSSlider!
-    private var qualityLabel: NSTextField!
-    private var directoryLabel: NSTextField!
-    private var retinaCheckbox: NSButton!
-    private var clipboardCheckbox: NSButton!
-    private var autoSaveCheckbox: NSButton!
-    private var launchAtLoginCheckbox: NSButton!
-
     private func setupUI() {
         guard let contentView = window?.contentView else { return }
 
-        let padding: CGFloat = 20
-        var y: CGFloat = 300
+        let rootStack = NSStackView()
+        rootStack.orientation = .vertical
+        rootStack.alignment = .leading
+        rootStack.spacing = 18
+        rootStack.edgeInsets = NSEdgeInsets(top: 22, left: 24, bottom: 22, right: 24)
+        rootStack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(rootStack)
 
-        // Save directory
-        y -= 30
-        let dirTitleLabel = makeLabel("Save Directory:", bold: true)
-        dirTitleLabel.frame.origin = NSPoint(x: padding, y: y)
-        contentView.addSubview(dirTitleLabel)
+        NSLayoutConstraint.activate([
+            rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            rootStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            rootStack.topAnchor.constraint(equalTo: contentView.topAnchor),
+            rootStack.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor),
+        ])
 
-        y -= 26
-        directoryLabel = makeLabel(prefs.saveDirectory.path)
-        directoryLabel.frame = NSRect(x: padding, y: y, width: 300, height: 20)
+        rootStack.addArrangedSubview(makeCaptureSection())
+        rootStack.addArrangedSubview(makeOutputSection())
+        rootStack.addArrangedSubview(makeEditorSection())
+        rootStack.addArrangedSubview(makeSystemSection())
+    }
+
+    private func makeCaptureSection() -> NSView {
+        let stack = makeSection(title: "Capture")
+        stack.addArrangedSubview(makeInfoRow(label: "Area capture", value: "Command-Shift-Option-4"))
+        stack.addArrangedSubview(makeInfoRow(label: "Full screen", value: "Command-Shift-Option-3"))
+
+        cursorCheckbox = makeCheckbox(
+            title: "Include mouse cursor",
+            state: prefs.includeMouseCursor,
+            action: #selector(cursorToggled)
+        )
+        stack.addArrangedSubview(cursorCheckbox)
+        return stack
+    }
+
+    private func makeOutputSection() -> NSView {
+        let stack = makeSection(title: "Output")
+
+        directoryLabel = NSTextField(labelWithString: prefs.saveDirectory.path)
         directoryLabel.lineBreakMode = .byTruncatingMiddle
-        contentView.addSubview(directoryLabel)
+        directoryLabel.maximumNumberOfLines = 1
 
-        let chooseButton = NSButton(title: "Choose…", target: self, action: #selector(chooseSaveDirectory))
-        chooseButton.frame = NSRect(x: 330, y: y - 2, width: 100, height: 24)
+        let chooseButton = NSButton(title: "Choose...", target: self, action: #selector(chooseSaveDirectory))
         chooseButton.bezelStyle = .rounded
-        contentView.addSubview(chooseButton)
+        stack.addArrangedSubview(makeControlRow(label: "Save directory", controls: [directoryLabel, chooseButton]))
+        directoryLabel.widthAnchor.constraint(equalToConstant: 280).isActive = true
 
-        // Image format
-        y -= 40
-        let formatLabel = makeLabel("Image Format:", bold: true)
-        formatLabel.frame.origin = NSPoint(x: padding, y: y)
-        contentView.addSubview(formatLabel)
-
-        formatPopup = NSPopUpButton(frame: NSRect(x: 150, y: y - 2, width: 100, height: 24))
+        formatPopup = NSPopUpButton()
         formatPopup.addItems(withTitles: ["PNG", "JPEG"])
         formatPopup.selectItem(withTitle: prefs.imageFormat.uppercased())
         formatPopup.target = self
         formatPopup.action = #selector(formatChanged)
-        contentView.addSubview(formatPopup)
-
-        // JPEG quality
-        y -= 34
-        let qualityTitleLabel = makeLabel("JPEG Quality:")
-        qualityTitleLabel.frame.origin = NSPoint(x: padding + 20, y: y)
-        contentView.addSubview(qualityTitleLabel)
+        stack.addArrangedSubview(makeControlRow(label: "Image format", controls: [formatPopup]))
 
         qualitySlider = NSSlider(value: prefs.jpegQuality, minValue: 0.1, maxValue: 1.0, target: self, action: #selector(qualityChanged))
-        qualitySlider.frame = NSRect(x: 150, y: y, width: 200, height: 20)
+        qualitySlider.widthAnchor.constraint(equalToConstant: 220).isActive = true
         qualitySlider.isEnabled = prefs.imageFormat == "jpeg"
-        contentView.addSubview(qualitySlider)
+        qualityLabel = NSTextField(labelWithString: "\(Int(prefs.jpegQuality * 100))%")
+        qualityLabel.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        stack.addArrangedSubview(makeControlRow(label: "JPEG quality", controls: [qualitySlider, qualityLabel]))
 
-        qualityLabel = makeLabel("\(Int(prefs.jpegQuality * 100))%")
-        qualityLabel.frame = NSRect(x: 360, y: y, width: 50, height: 20)
-        contentView.addSubview(qualityLabel)
+        retinaCheckbox = makeCheckbox(
+            title: "Downscale Retina screenshots to 1x",
+            state: prefs.downscaleRetina,
+            action: #selector(retinaToggled)
+        )
+        stack.addArrangedSubview(retinaCheckbox)
 
-        // Checkboxes
-        y -= 40
-        retinaCheckbox = NSButton(checkboxWithTitle: "Downscale Retina screenshots to 1x", target: self, action: #selector(retinaToggled))
-        retinaCheckbox.frame.origin = NSPoint(x: padding, y: y)
-        retinaCheckbox.state = prefs.downscaleRetina ? .on : .off
-        contentView.addSubview(retinaCheckbox)
+        clipboardCheckbox = makeCheckbox(
+            title: "Copy to clipboard after capture",
+            state: prefs.copyToClipboardAfterCapture,
+            action: #selector(clipboardToggled)
+        )
+        stack.addArrangedSubview(clipboardCheckbox)
 
-        y -= 26
-        clipboardCheckbox = NSButton(checkboxWithTitle: "Copy to clipboard after capture", target: self, action: #selector(clipboardToggled))
-        clipboardCheckbox.frame.origin = NSPoint(x: padding, y: y)
-        clipboardCheckbox.state = prefs.copyToClipboardAfterCapture ? .on : .off
-        contentView.addSubview(clipboardCheckbox)
-
-        y -= 26
-        autoSaveCheckbox = NSButton(checkboxWithTitle: "Auto-save after capture", target: self, action: #selector(autoSaveToggled))
-        autoSaveCheckbox.frame.origin = NSPoint(x: padding, y: y)
-        autoSaveCheckbox.state = prefs.autoSaveAfterCapture ? .on : .off
-        contentView.addSubview(autoSaveCheckbox)
-
-        y -= 34
-        let separator = NSBox()
-        separator.boxType = .separator
-        separator.frame = NSRect(x: padding, y: y, width: 410, height: 1)
-        contentView.addSubview(separator)
-
-        y -= 30
-        launchAtLoginCheckbox = NSButton(checkboxWithTitle: "Launch Snap at login", target: self, action: #selector(launchAtLoginToggled))
-        launchAtLoginCheckbox.frame.origin = NSPoint(x: padding, y: y)
-        launchAtLoginCheckbox.state = prefs.launchAtLogin ? .on : .off
-        contentView.addSubview(launchAtLoginCheckbox)
+        autoSaveCheckbox = makeCheckbox(
+            title: "Auto-save after capture",
+            state: prefs.autoSaveAfterCapture,
+            action: #selector(autoSaveToggled)
+        )
+        stack.addArrangedSubview(autoSaveCheckbox)
+        return stack
     }
 
-    private func makeLabel(_ text: String, bold: Bool = false) -> NSTextField {
-        let label = NSTextField(labelWithString: text)
-        label.font = bold ? NSFont.boldSystemFont(ofSize: 13) : NSFont.systemFont(ofSize: 13)
-        label.sizeToFit()
-        return label
+    private func makeEditorSection() -> NSView {
+        let stack = makeSection(title: "Editor")
+        openEditorCheckbox = makeCheckbox(
+            title: "Open editor after automatic copy or save",
+            state: prefs.openEditorAfterCapture,
+            action: #selector(openEditorToggled)
+        )
+        stack.addArrangedSubview(openEditorCheckbox)
+        return stack
+    }
+
+    private func makeSystemSection() -> NSView {
+        let stack = makeSection(title: "System")
+
+        notificationCheckbox = makeCheckbox(
+            title: "Show save and copy notifications",
+            state: prefs.showNotifications,
+            action: #selector(notificationToggled)
+        )
+        stack.addArrangedSubview(notificationCheckbox)
+
+        launchAtLoginCheckbox = makeCheckbox(
+            title: "Launch Snap at login",
+            state: prefs.launchAtLogin,
+            action: #selector(launchAtLoginToggled)
+        )
+        stack.addArrangedSubview(launchAtLoginCheckbox)
+        return stack
+    }
+
+    private func makeSection(title: String) -> NSStackView {
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = NSTextField(labelWithString: title)
+        label.font = NSFont.systemFont(ofSize: 13, weight: .semibold)
+        stack.addArrangedSubview(label)
+        return stack
+    }
+
+    private func makeInfoRow(label: String, value: String) -> NSView {
+        let valueLabel = NSTextField(labelWithString: value)
+        valueLabel.textColor = .secondaryLabelColor
+        return makeControlRow(label: label, controls: [valueLabel])
+    }
+
+    private func makeControlRow(label: String, controls: [NSView]) -> NSView {
+        let row = NSStackView()
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 10
+        row.translatesAutoresizingMaskIntoConstraints = false
+
+        let labelView = NSTextField(labelWithString: label)
+        labelView.textColor = .secondaryLabelColor
+        labelView.alignment = .right
+        labelView.widthAnchor.constraint(equalToConstant: 110).isActive = true
+        row.addArrangedSubview(labelView)
+
+        for control in controls {
+            row.addArrangedSubview(control)
+        }
+        return row
+    }
+
+    private func makeCheckbox(title: String, state: Bool, action: Selector) -> NSButton {
+        let checkbox = NSButton(checkboxWithTitle: title, target: self, action: action)
+        checkbox.state = state ? .on : .off
+        return checkbox
     }
 
     @objc private func chooseSaveDirectory() {
@@ -151,6 +225,18 @@ final class PreferencesWindow: NSWindowController {
 
     @objc private func autoSaveToggled() {
         prefs.autoSaveAfterCapture = autoSaveCheckbox.state == .on
+    }
+
+    @objc private func openEditorToggled() {
+        prefs.openEditorAfterCapture = openEditorCheckbox.state == .on
+    }
+
+    @objc private func cursorToggled() {
+        prefs.includeMouseCursor = cursorCheckbox.state == .on
+    }
+
+    @objc private func notificationToggled() {
+        prefs.showNotifications = notificationCheckbox.state == .on
     }
 
     @objc private func launchAtLoginToggled() {

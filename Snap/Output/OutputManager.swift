@@ -139,6 +139,8 @@ final class OutputManager {
     }
 
     static func showNotification(title: String, text: String) {
+        guard PreferencesManager.shared.showNotifications else { return }
+
         // Use a transient floating panel as notification
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 280, height: 50),

@@ -15,6 +15,8 @@ final class PreferencesManager {
         static let copyToClipboardAfterCapture = "copyToClipboardAfterCapture"
         static let autoSaveAfterCapture = "autoSaveAfterCapture"
         static let openEditorAfterCapture = "openEditorAfterCapture"
+        static let includeMouseCursor = "includeMouseCursor"
+        static let showNotifications = "showNotifications"
     }
 
     private init() {
@@ -33,6 +35,8 @@ final class PreferencesManager {
             Keys.copyToClipboardAfterCapture: true,
             Keys.autoSaveAfterCapture: false,
             Keys.openEditorAfterCapture: false,
+            Keys.includeMouseCursor: false,
+            Keys.showNotifications: true,
         ])
     }
 
@@ -80,6 +84,16 @@ final class PreferencesManager {
     var openEditorAfterCapture: Bool {
         get { defaults.bool(forKey: Keys.openEditorAfterCapture) }
         set { defaults.set(newValue, forKey: Keys.openEditorAfterCapture) }
+    }
+
+    var includeMouseCursor: Bool {
+        get { defaults.bool(forKey: Keys.includeMouseCursor) }
+        set { defaults.set(newValue, forKey: Keys.includeMouseCursor) }
+    }
+
+    var showNotifications: Bool {
+        get { defaults.bool(forKey: Keys.showNotifications) }
+        set { defaults.set(newValue, forKey: Keys.showNotifications) }
     }
 
     private func applyLaunchAtLoginSetting() {
