@@ -1,17 +1,7 @@
 import AppKit
 
-enum AnnotationTool: String, CaseIterable {
-    case line
-    case arrow
-    case freehand
-    case rectangle
-    case ellipse
-    case text
-    case blur
-}
-
 final class EditingToolbar: NSView {
-    var selectedTool: AnnotationTool? {
+    var selectedTool: AnnotationType? {
         didSet { updateSelection() }
     }
     var selectedColor: NSColor = .systemRed {
@@ -23,14 +13,14 @@ final class EditingToolbar: NSView {
     var selectedFontSize: CGFloat = 16 {
         didSet { fontSizePopup.selectItem(withTitle: "\(Int(selectedFontSize)) pt") }
     }
-    var onToolChanged: ((AnnotationTool?) -> Void)?
+    var onToolChanged: ((AnnotationType?) -> Void)?
     var onColorChanged: ((NSColor) -> Void)?
     var onLineWidthChanged: ((CGFloat) -> Void)?
     var onFontSizeChanged: ((CGFloat) -> Void)?
 
     static let width: CGFloat = 72
 
-    private var toolButtons: [AnnotationTool: NSButton] = [:]
+    private var toolButtons: [AnnotationType: NSButton] = [:]
     private let colorWell = NSColorWell()
     private let lineWidthPopup = NSPopUpButton()
     private let fontSizePopup = NSPopUpButton()
@@ -56,62 +46,12 @@ final class EditingToolbar: NSView {
         stack.alignment = .centerX
         stack.translatesAutoresizingMaskIntoConstraints = false
 
-        // Tool buttons
-        let lineButton = makeToolButton(
-            tool: .line,
-            symbol: "line.diagonal",
-            tooltip: "Line"
-        )
-        toolButtons[.line] = lineButton
-        stack.addArrangedSubview(lineButton)
-
-        let arrowButton = makeToolButton(
-            tool: .arrow,
-            symbol: "arrow.up.right",
-            tooltip: "Arrow"
-        )
-        toolButtons[.arrow] = arrowButton
-        stack.addArrangedSubview(arrowButton)
-
-        let freehandButton = makeToolButton(
-            tool: .freehand,
-            symbol: "scribble",
-            tooltip: "Freehand"
-        )
-        toolButtons[.freehand] = freehandButton
-        stack.addArrangedSubview(freehandButton)
-
-        let rectButton = makeToolButton(
-            tool: .rectangle,
-            symbol: "rectangle",
-            tooltip: "Rectangle"
-        )
-        toolButtons[.rectangle] = rectButton
-        stack.addArrangedSubview(rectButton)
-
-        let ellipseButton = makeToolButton(
-            tool: .ellipse,
-            symbol: "oval",
-            tooltip: "Ellipse"
-        )
-        toolButtons[.ellipse] = ellipseButton
-        stack.addArrangedSubview(ellipseButton)
-
-        let textButton = makeToolButton(
-            tool: .text,
-            symbol: "textformat",
-            tooltip: "Text"
-        )
-        toolButtons[.text] = textButton
-        stack.addArrangedSubview(textButton)
-
-        let blurButton = makeToolButton(
-            tool: .blur,
-            symbol: "square.grid.3x3",
-            tooltip: "Blur / Pixelate"
-        )
-        toolButtons[.blur] = blurButton
-        stack.addArrangedSubview(blurButton)
+        // Tool buttons — one per annotation type, in declaration order.
+        for tool in AnnotationType.allCases {
+            let button = makeToolButton(tool: tool)
+            toolButtons[tool] = button
+            stack.addArrangedSubview(button)
+        }
 
         // Divider
         let divider = NSBox()
@@ -176,16 +116,16 @@ final class EditingToolbar: NSView {
         ])
     }
 
-    private func makeToolButton(tool: AnnotationTool, symbol: String, tooltip: String) -> NSButton {
+    private func makeToolButton(tool: AnnotationType) -> NSButton {
         let button = NSButton()
         button.bezelStyle = .recessed
         button.setButtonType(.pushOnPushOff)
         button.isBordered = true
-        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: tooltip)
-        button.toolTip = tooltip
+        button.image = NSImage(systemSymbolName: tool.toolbarSymbol, accessibilityDescription: tool.tooltip)
+        button.toolTip = tool.tooltip
         button.target = self
         button.action = #selector(toolTapped(_:))
-        button.tag = AnnotationTool.allCases.firstIndex(of: tool)!
+        button.tag = AnnotationType.allCases.firstIndex(of: tool)!
         button.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             button.widthAnchor.constraint(equalToConstant: 32),
@@ -237,7 +177,7 @@ final class EditingToolbar: NSView {
     private var swatchColorMap: [ObjectIdentifier: NSColor] = [:]
 
     @objc private func toolTapped(_ sender: NSButton) {
-        let tool = AnnotationTool.allCases[sender.tag]
+        let tool = AnnotationType.allCases[sender.tag]
         if selectedTool == tool {
             selectedTool = nil
         } else {

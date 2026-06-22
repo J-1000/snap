@@ -109,7 +109,7 @@ final class AnnotationWindow: NSWindow {
         editingToolbar.selectedColor = color
         editingToolbar.selectedLineWidth = CGFloat(prefs.lastLineWidth)
         editingToolbar.selectedFontSize = CGFloat(prefs.lastFontSize)
-        if let raw = prefs.lastTool, let tool = AnnotationTool(rawValue: raw) {
+        if let raw = prefs.lastTool, let tool = AnnotationType(rawValue: raw) {
             editingToolbar.selectedTool = tool
             annotationView.currentTool = tool
         }

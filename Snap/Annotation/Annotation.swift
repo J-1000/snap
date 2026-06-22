@@ -1,14 +1,39 @@
 import AppKit
 import Foundation
 
-enum AnnotationType {
-    case rectangle
-    case ellipse
+enum AnnotationType: String, CaseIterable {
+    // Declaration order is the editing-toolbar order.
     case line
     case arrow
     case freehand
+    case rectangle
+    case ellipse
     case text
     case blur
+
+    var toolbarSymbol: String {
+        switch self {
+        case .line: return "line.diagonal"
+        case .arrow: return "arrow.up.right"
+        case .freehand: return "scribble"
+        case .rectangle: return "rectangle"
+        case .ellipse: return "oval"
+        case .text: return "textformat"
+        case .blur: return "square.grid.3x3"
+        }
+    }
+
+    var tooltip: String {
+        switch self {
+        case .line: return "Line"
+        case .arrow: return "Arrow"
+        case .freehand: return "Freehand"
+        case .rectangle: return "Rectangle"
+        case .ellipse: return "Ellipse"
+        case .text: return "Text"
+        case .blur: return "Blur / Pixelate"
+        }
+    }
 }
 
 struct Annotation {

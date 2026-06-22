@@ -3,7 +3,7 @@ import AppKit
 final class AnnotationView: NSView, NSTextFieldDelegate {
     private let image: CGImage
     let annotationManager = AnnotationManager()
-    var currentTool: AnnotationTool?
+    var currentTool: AnnotationType?
     var currentColor: NSColor = .systemRed
     var currentLineWidth: CGFloat = 2
     var currentFontSize: CGFloat = 16
@@ -203,7 +203,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             return
         }
 
-        let annotationType = annotationTypeFor(tool)
+        let annotationType = tool
 
         if annotationType == .freehand {
             guard dragPoints.count >= 2 else {
@@ -326,17 +326,5 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             return true
         }
         return false
-    }
-
-    private func annotationTypeFor(_ tool: AnnotationTool) -> AnnotationType {
-        switch tool {
-        case .line: return .line
-        case .arrow: return .arrow
-        case .freehand: return .freehand
-        case .rectangle: return .rectangle
-        case .ellipse: return .ellipse
-        case .text: return .text
-        case .blur: return .blur
-        }
     }
 }
