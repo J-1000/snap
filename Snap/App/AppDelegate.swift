@@ -5,6 +5,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotKeyManager = HotKeyManager()
     let captureEngine = CaptureEngine()
     private var annotationWindow: AnnotationWindow?
+    private var captureHUD: CaptureHUD?
     private var lastCaptureScaleFactor: CGFloat = 1.0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -63,9 +64,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
             }
         }
-        if showUI && (prefs.openEditorAfterCapture || !performedAutomaticOutput) {
-            showAnnotationWindow(image: image, scaleFactor: scaleFactor, selectionRect: selectionRect)
+        if showUI {
+            if prefs.openEditorAfterCapture {
+                showAnnotationWindow(image: image, scaleFactor: scaleFactor, selectionRect: selectionRect)
+            } else {
+                // Otherwise show the post-capture HUD so the shot and the editor
+                // are always reachable, even after an automatic copy/save.
+                showCaptureHUD(image: image, scaleFactor: scaleFactor, selectionRect: selectionRect)
+            }
         }
+    }
+
+    private func showCaptureHUD(image: CGImage, scaleFactor: CGFloat, selectionRect: NSRect?) {
+        let hud = CaptureHUD(image: image)
+        hud.onAnnotate = { [weak self] in
+            self?.showAnnotationWindow(image: image, scaleFactor: scaleFactor, selectionRect: selectionRect)
+        }
+        hud.onCopy = {
+            if OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) {
+                OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
+            }
+        }
+        hud.onSave = {
+            let prefs = PreferencesManager.shared
+            let url = prefs.saveDirectory.appendingPathComponent(
+                FileNaming.defaultFilename(extension: prefs.imageFormat))
+            if OutputManager.saveToFile(
+                image, url: url, scaleFactor: scaleFactor,
+                format: prefs.imageFormat, jpegQuality: prefs.jpegQuality
+            ) {
+                OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+            }
+        }
+        hud.onDismiss = { [weak self] in self?.captureHUD = nil }
+        captureHUD = hud
+        hud.present()
     }
 
     /// Keep a window of `size` fully on screen within `area`, pinning to the
