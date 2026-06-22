@@ -61,6 +61,9 @@ The app bundle is output to `~/Library/Developer/Xcode/DerivedData/Snap-*/Build/
 | Reverse image search | ⌘G |
 | Print | ⌘P |
 | Undo / Redo | ⌘Z / ⌘⇧Z |
+| Delete last annotation | ⌫ |
+| Nudge selection | ← ↑ → ↓ (⇧ for 10px) |
+| Constrain to square / 45° | Hold ⇧ while dragging |
 | Cancel | Esc |
 | Confirm area selection | Return |
 
@@ -83,7 +86,7 @@ Snap/
 |-----------|--------|
 | **M1 — Core Capture** | Complete |
 | **M2 — Annotation** | Complete |
-| **M3 — Polish** | In progress — print, reverse image search, editor preferences, and output polish implemented; dark mode polish remains |
+| **M3 — Polish** | Complete — print, reverse image search, share sheet, OCR/delayed capture, permission UX, wide-gamut capture, Retina editor, and performance/output polish |
 
 ## Testing
 
@@ -92,7 +95,7 @@ xcodegen generate
 xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=macOS'
 ```
 
-77 unit tests covering the Annotation data model (including text and blur), AnnotationManager (undo/redo, rendering, compositing), FileNaming, OutputManager, and AppDelegate capture handling.
+95 unit tests covering the Annotation data model (including text and blur), AnnotationManager (undo/redo, rendering, pixel-level compositing), FileNaming, OutputManager, AppDelegate capture handling, SelectionGeometry (selection/resize math), HotKeyManager modifier matching, and PreferencesManager round-trips.
 
 ## Tech Stack
 
