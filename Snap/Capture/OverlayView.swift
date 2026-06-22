@@ -96,6 +96,40 @@ final class OverlayView: NSView {
         }
     }
 
+    override func resetCursorRects() {
+        addCursorRect(bounds, cursor: .crosshair)
+        guard let selection = currentSelection, selection.width > 1, selection.height > 1 else { return }
+        addCursorRect(selection, cursor: .openHand)
+        for (handle, rect) in handleRects(for: selection) {
+            addCursorRect(rect.insetBy(dx: -4, dy: -4), cursor: cursor(for: handle))
+        }
+    }
+
+    private func refreshCursorRects() {
+        window?.invalidateCursorRects(for: self)
+    }
+
+    private func cursor(for handle: ResizeHandle) -> NSCursor {
+        switch handle {
+        case .top, .bottom: return .resizeUpDown
+        case .left, .right: return .resizeLeftRight
+        case .topLeft, .bottomRight: return OverlayView.diagonalResizeCursor(nwse: true)
+        case .topRight, .bottomLeft: return OverlayView.diagonalResizeCursor(nwse: false)
+        }
+    }
+
+    /// AppKit only exposes axis resize cursors publicly; use the system's
+    /// diagonal cursors when available, falling back to the crosshair.
+    private static func diagonalResizeCursor(nwse: Bool) -> NSCursor {
+        let name = nwse ? "_windowResizeNorthWestSouthEastCursor" : "_windowResizeNorthEastSouthWestCursor"
+        let selector = NSSelectorFromString(name)
+        if NSCursor.responds(to: selector),
+           let value = NSCursor.perform(selector)?.takeUnretainedValue() as? NSCursor {
+            return value
+        }
+        return .crosshair
+    }
+
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
         if event.clickCount == 2, let selection = currentSelection, selection.contains(point) {
@@ -122,6 +156,7 @@ final class OverlayView: NSView {
         dimensionLabel.isHidden = false
         hintLabel.isHidden = true
         needsDisplay = true
+        refreshCursorRects()
     }
 
     override func mouseDragged(with event: NSEvent) {
@@ -144,6 +179,7 @@ final class OverlayView: NSView {
 
         updateLabels()
         needsDisplay = true
+        refreshCursorRects()
     }
 
     override func mouseUp(with event: NSEvent) {
@@ -156,6 +192,7 @@ final class OverlayView: NSView {
         }
         updateLabels()
         needsDisplay = true
+        refreshCursorRects()
     }
 
     override func keyDown(with event: NSEvent) {
@@ -232,6 +269,7 @@ final class OverlayView: NSView {
         dimensionLabel.isHidden = true
         hintLabel.isHidden = true
         needsDisplay = true
+        refreshCursorRects()
     }
 
     private func normalizedRect(from start: NSPoint, to end: NSPoint) -> NSRect {
