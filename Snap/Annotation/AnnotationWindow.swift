@@ -80,18 +80,76 @@ final class AnnotationWindow: NSWindow {
 
         editingToolbar.onToolChanged = { [weak self] tool in
             self?.annotationView.currentTool = tool
+            PreferencesManager.shared.lastTool = tool?.rawValue
         }
         editingToolbar.onColorChanged = { [weak self] color in
             self?.annotationView.currentColor = color
+            PreferencesManager.shared.lastAnnotationColorHex = color.hexString
         }
         editingToolbar.onLineWidthChanged = { [weak self] lineWidth in
             self?.annotationView.currentLineWidth = lineWidth
+            PreferencesManager.shared.lastLineWidth = Double(lineWidth)
         }
         editingToolbar.onFontSizeChanged = { [weak self] fontSize in
             self?.annotationView.currentFontSize = fontSize
+            PreferencesManager.shared.lastFontSize = Double(fontSize)
+        }
+
+        seedAnnotationStyle()
+    }
+
+    /// Restore the last-used color, stroke width, font size, and tool so the
+    /// editor remembers your settings between captures.
+    private func seedAnnotationStyle() {
+        let prefs = PreferencesManager.shared
+        let color = NSColor(hexString: prefs.lastAnnotationColorHex) ?? .systemRed
+        annotationView.currentColor = color
+        annotationView.currentLineWidth = CGFloat(prefs.lastLineWidth)
+        annotationView.currentFontSize = CGFloat(prefs.lastFontSize)
+        editingToolbar.selectedColor = color
+        editingToolbar.selectedLineWidth = CGFloat(prefs.lastLineWidth)
+        editingToolbar.selectedFontSize = CGFloat(prefs.lastFontSize)
+        if let raw = prefs.lastTool, let tool = AnnotationTool(rawValue: raw) {
+            editingToolbar.selectedTool = tool
+            annotationView.currentTool = tool
         }
     }
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
+}
+
+extension NSColor {
+    /// `#RRGGBBAA` representation, normalized through sRGB so catalog/dynamic
+    /// colors archive without crashing on component access.
+    var hexString: String {
+        let c = usingColorSpace(.sRGB) ?? self
+        let r = Int(round(c.redComponent * 255))
+        let g = Int(round(c.greenComponent * 255))
+        let b = Int(round(c.blueComponent * 255))
+        let a = Int(round(c.alphaComponent * 255))
+        return String(format: "#%02X%02X%02X%02X", r, g, b, a)
+    }
+
+    convenience init?(hexString: String) {
+        var hex = hexString
+        if hex.hasPrefix("#") { hex.removeFirst() }
+        guard let value = UInt32(hex, radix: 16) else { return nil }
+        let r, g, b, a: CGFloat
+        switch hex.count {
+        case 6:
+            r = CGFloat((value >> 16) & 0xFF) / 255
+            g = CGFloat((value >> 8) & 0xFF) / 255
+            b = CGFloat(value & 0xFF) / 255
+            a = 1
+        case 8:
+            r = CGFloat((value >> 24) & 0xFF) / 255
+            g = CGFloat((value >> 16) & 0xFF) / 255
+            b = CGFloat((value >> 8) & 0xFF) / 255
+            a = CGFloat(value & 0xFF) / 255
+        default:
+            return nil
+        }
+        self.init(srgbRed: r, green: g, blue: b, alpha: a)
+    }
 }

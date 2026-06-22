@@ -17,6 +17,10 @@ final class PreferencesManager {
         static let openEditorAfterCapture = "openEditorAfterCapture"
         static let includeMouseCursor = "includeMouseCursor"
         static let showNotifications = "showNotifications"
+        static let lastAnnotationColor = "lastAnnotationColor"
+        static let lastLineWidth = "lastLineWidth"
+        static let lastFontSize = "lastFontSize"
+        static let lastTool = "lastTool"
     }
 
     private init() {
@@ -37,6 +41,9 @@ final class PreferencesManager {
             Keys.openEditorAfterCapture: false,
             Keys.includeMouseCursor: false,
             Keys.showNotifications: true,
+            Keys.lastAnnotationColor: "#FF3B30",
+            Keys.lastLineWidth: 2.0,
+            Keys.lastFontSize: 16.0,
         ])
     }
 
@@ -94,6 +101,27 @@ final class PreferencesManager {
     var showNotifications: Bool {
         get { defaults.bool(forKey: Keys.showNotifications) }
         set { defaults.set(newValue, forKey: Keys.showNotifications) }
+    }
+
+    // Last-used annotation style, remembered between captures.
+    var lastAnnotationColorHex: String {
+        get { defaults.string(forKey: Keys.lastAnnotationColor) ?? "#FF3B30" }
+        set { defaults.set(newValue, forKey: Keys.lastAnnotationColor) }
+    }
+
+    var lastLineWidth: Double {
+        get { defaults.double(forKey: Keys.lastLineWidth) }
+        set { defaults.set(newValue, forKey: Keys.lastLineWidth) }
+    }
+
+    var lastFontSize: Double {
+        get { defaults.double(forKey: Keys.lastFontSize) }
+        set { defaults.set(newValue, forKey: Keys.lastFontSize) }
+    }
+
+    var lastTool: String? {
+        get { defaults.string(forKey: Keys.lastTool) }
+        set { defaults.set(newValue, forKey: Keys.lastTool) }
     }
 
     private func applyLaunchAtLoginSetting() {
