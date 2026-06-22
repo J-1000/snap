@@ -52,6 +52,24 @@ final class OutputManager {
         return CGImageDestinationFinalize(destination)
     }
 
+    /// Save to the user's configured directory and format with an
+    /// auto-generated filename. Returns the destination URL on success. Shared
+    /// by the capture flow, the editor's Save button, and the menu-bar item so
+    /// they can't drift apart.
+    @discardableResult
+    static func saveToDefaultLocation(_ image: CGImage, scaleFactor: CGFloat? = nil) -> URL? {
+        let prefs = PreferencesManager.shared
+        let url = prefs.saveDirectory.appendingPathComponent(
+            FileNaming.defaultFilename(extension: prefs.imageFormat))
+        guard saveToFile(
+            image, url: url, scaleFactor: scaleFactor,
+            format: prefs.imageFormat, jpegQuality: prefs.jpegQuality
+        ) else {
+            return nil
+        }
+        return url
+    }
+
     static func saveWithDialog(_ image: CGImage) {
         let panel = NSSavePanel()
         let prefs = PreferencesManager.shared

@@ -50,16 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         if prefs.autoSaveAfterCapture {
-            let url = prefs.saveDirectory.appendingPathComponent(
-                FileNaming.defaultFilename(extension: prefs.imageFormat)
-            )
-            if OutputManager.saveToFile(
-                image,
-                url: url,
-                scaleFactor: scaleFactor,
-                format: prefs.imageFormat,
-                jpegQuality: prefs.jpegQuality
-            ) {
+            if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: scaleFactor) {
                 performedAutomaticOutput = true
                 OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
             }
@@ -86,13 +77,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         hud.onSave = {
-            let prefs = PreferencesManager.shared
-            let url = prefs.saveDirectory.appendingPathComponent(
-                FileNaming.defaultFilename(extension: prefs.imageFormat))
-            if OutputManager.saveToFile(
-                image, url: url, scaleFactor: scaleFactor,
-                format: prefs.imageFormat, jpegQuality: prefs.jpegQuality
-            ) {
+            if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: scaleFactor) {
                 OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
             }
         }
@@ -142,16 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
             OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            let prefs = PreferencesManager.shared
-            let url = prefs.saveDirectory.appendingPathComponent(
-                FileNaming.defaultFilename(extension: prefs.imageFormat))
-            if OutputManager.saveToFile(
-                output,
-                url: url,
-                scaleFactor: self?.lastCaptureScaleFactor,
-                format: prefs.imageFormat,
-                jpegQuality: prefs.jpegQuality
-            ) {
+            if let url = OutputManager.saveToDefaultLocation(output, scaleFactor: self?.lastCaptureScaleFactor) {
                 OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
             }
             self?.dismissAnnotationWindow()
@@ -191,8 +167,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func saveScreenshot() {
         guard let image = OutputManager.lastCapturedImage else { return }
-        if OutputManager.saveToFile(image) {
-            OutputManager.showNotification(title: "Snap", text: "Saved to Desktop")
+        if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: OutputManager.lastCapturedScaleFactor) {
+            OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
         }
     }
 
