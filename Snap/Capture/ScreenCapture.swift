@@ -28,6 +28,7 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
     private var continuation: CheckedContinuation<CGImage, Error>?
     private let lock = NSLock()
     private let sampleHandlerQueue = DispatchQueue(label: "com.snap.ScreenCapture.sampleHandler")
+    private var expectedPixelSize: (width: Int, height: Int)?
 
     static func captureRegion(_ rect: NSRect, screen: NSScreen) async throws -> CGImage {
         let capturer = ScreenCapture()
@@ -67,8 +68,8 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         let filter = SCContentFilter(display: display, excludingWindows: [])
         let config = SCStreamConfiguration()
         config.sourceRect = sourceRect
-        config.width = Int(rect.width * scaleFactor)
-        config.height = Int(rect.height * scaleFactor)
+        config.width = Int((rect.width * scaleFactor).rounded())
+        config.height = Int((rect.height * scaleFactor).rounded())
         config.showsCursor = PreferencesManager.shared.includeMouseCursor
         config.capturesAudio = false
         config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
@@ -81,6 +82,7 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
             lock.lock()
             self.continuation = continuation
             self.stream = stream
+            self.expectedPixelSize = (config.width, config.height)
             lock.unlock()
 
             do {
@@ -114,7 +116,14 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         self.continuation = nil
         let stream = self.stream
         self.stream = nil
+        let expected = self.expectedPixelSize
+        self.expectedPixelSize = nil
         lock.unlock()
+
+        if case .success(let image) = result, let expected,
+           image.width != expected.width || image.height != expected.height {
+            NSLog("Snap: captured \(image.width)x\(image.height) but requested \(expected.width)x\(expected.height)")
+        }
 
         stream?.stopCapture { _ in }
         continuation.resume(with: result)
