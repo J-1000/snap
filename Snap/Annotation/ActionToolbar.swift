@@ -6,6 +6,7 @@ final class ActionToolbar: NSView {
     var onSaveAs: (() -> Void)?
     var onReverseSearch: (() -> Void)?
     var onPrint: (() -> Void)?
+    var onShare: (() -> Void)?
     var onClose: (() -> Void)?
 
     static let height: CGFloat = 40
@@ -35,6 +36,7 @@ final class ActionToolbar: NSView {
         let saveAsButton = makeButton(title: "Save As…", symbol: "square.and.arrow.down.on.square", key: "S", action: #selector(saveAsTapped))
         let searchButton = makeButton(title: "Search", symbol: "magnifyingglass", key: "g", action: #selector(reverseSearchTapped))
         let printButton = makeButton(title: "Print", symbol: "printer", key: "p", action: #selector(printTapped))
+        let shareButton = makeButton(title: "Share", symbol: "square.and.arrow.up", key: "", action: #selector(shareTapped))
         let closeButton = makeButton(title: "Close", symbol: "xmark", key: "\u{1b}", action: #selector(closeTapped))
         closeButton.keyEquivalentModifierMask = []
 
@@ -43,6 +45,7 @@ final class ActionToolbar: NSView {
         stack.addArrangedSubview(saveAsButton)
         stack.addArrangedSubview(searchButton)
         stack.addArrangedSubview(printButton)
+        stack.addArrangedSubview(shareButton)
         stack.addArrangedSubview(NSView()) // spacer
         stack.addArrangedSubview(closeButton)
 
@@ -72,5 +75,6 @@ final class ActionToolbar: NSView {
     @objc private func saveAsTapped() { onSaveAs?() }
     @objc private func reverseSearchTapped() { onReverseSearch?() }
     @objc private func printTapped() { onPrint?() }
+    @objc private func shareTapped() { onShare?() }
     @objc private func closeTapped() { onClose?() }
 }

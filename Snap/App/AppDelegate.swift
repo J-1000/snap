@@ -177,6 +177,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self, let window else { return }
             _ = OutputManager.printImage(self.flattenedOutput(from: window))
         }
+        window.onShare = { [weak self, weak window] in
+            guard let self, let window else { return }
+            let output = self.flattenedOutput(from: window)
+            let nsImage = NSImage(cgImage: output, size: NSSize(width: output.width, height: output.height))
+            let picker = NSSharingServicePicker(items: [nsImage])
+            let anchor = window.actionToolbar
+            picker.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .maxY)
+        }
         window.onClose = { [weak self] in
             self?.dismissAnnotationWindow()
         }

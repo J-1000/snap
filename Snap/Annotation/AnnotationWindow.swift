@@ -11,6 +11,7 @@ final class AnnotationWindow: NSWindow {
     var onSaveAs: (() -> Void)?
     var onReverseSearch: (() -> Void)?
     var onPrint: (() -> Void)?
+    var onShare: (() -> Void)?
     var onClose: (() -> Void)?
 
     /// Total window size in points for a capture, including the toolbar margins.
@@ -76,6 +77,7 @@ final class AnnotationWindow: NSWindow {
         actionToolbar.onSaveAs = { [weak self] in self?.onSaveAs?() }
         actionToolbar.onReverseSearch = { [weak self] in self?.onReverseSearch?() }
         actionToolbar.onPrint = { [weak self] in self?.onPrint?() }
+        actionToolbar.onShare = { [weak self] in self?.onShare?() }
         actionToolbar.onClose = { [weak self] in self?.onClose?() }
 
         editingToolbar.onToolChanged = { [weak self] tool in
