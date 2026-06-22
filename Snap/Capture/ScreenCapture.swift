@@ -1,7 +1,7 @@
 import AppKit
 import ScreenCaptureKit
 
-final class ScreenCapture: NSObject, SCStreamOutput {
+final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Sendable {
 
     enum CaptureError: Error, LocalizedError {
         case permissionDenied
@@ -20,8 +20,14 @@ final class ScreenCapture: NSObject, SCStreamOutput {
         }
     }
 
+    /// Maximum time to wait for a frame before giving up, so a capture can
+    /// never wedge the app if no sample buffer ever arrives.
+    private static let captureTimeout: TimeInterval = 3
+
     private var stream: SCStream?
     private var continuation: CheckedContinuation<CGImage, Error>?
+    private let lock = NSLock()
+    private let sampleHandlerQueue = DispatchQueue(label: "com.snap.ScreenCapture.sampleHandler")
 
     static func captureRegion(_ rect: NSRect, screen: NSScreen) async throws -> CGImage {
         let capturer = ScreenCapture()
@@ -68,48 +74,72 @@ final class ScreenCapture: NSObject, SCStreamOutput {
         config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
 
         return try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
+            let stream = SCStream(filter: filter, configuration: config, delegate: self)
 
-            let stream = SCStream(filter: filter, configuration: config, delegate: nil)
+            // Arm under the lock so finish() (called from the sample-handler
+            // queue, start-error callback, or timeout) sees these writes.
+            lock.lock()
+            self.continuation = continuation
             self.stream = stream
+            lock.unlock()
 
             do {
-                try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
-                stream.startCapture { error in
+                try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: sampleHandlerQueue)
+                stream.startCapture { [weak self] error in
                     if let error = error {
-                        self.continuation?.resume(throwing: error)
-                        self.continuation = nil
+                        self?.finish(.failure(error))
                     }
                 }
             } catch {
-                self.continuation?.resume(throwing: error)
-                self.continuation = nil
+                finish(.failure(error))
+            }
+
+            // Safety net: if no frame ever arrives (display unplugged, throttled,
+            // degenerate rect), resolve with an error instead of wedging forever.
+            sampleHandlerQueue.asyncAfter(deadline: .now() + Self.captureTimeout) { [weak self] in
+                self?.finish(.failure(CaptureError.captureFailed))
             }
         }
+    }
+
+    /// Resolve the capture exactly once. Whichever path — frame, start error,
+    /// delegate stop, or timeout — arrives first wins; the rest are no-ops.
+    /// Also tears down the stream so the SCStream<->self retain cycle can't leak.
+    private func finish(_ result: Result<CGImage, Error>) {
+        lock.lock()
+        guard let continuation = self.continuation else {
+            lock.unlock()
+            return
+        }
+        self.continuation = nil
+        let stream = self.stream
+        self.stream = nil
+        lock.unlock()
+
+        stream?.stopCapture { _ in }
+        continuation.resume(with: result)
     }
 
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen else { return }
 
-        stream.stopCapture { _ in }
-        self.stream = nil
-
         guard let imageBuffer = sampleBuffer.imageBuffer else {
-            continuation?.resume(throwing: CaptureError.captureFailed)
-            continuation = nil
+            finish(.failure(CaptureError.captureFailed))
             return
         }
 
         let ciImage = CIImage(cvImageBuffer: imageBuffer)
         let context = CIContext()
         guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
-            continuation?.resume(throwing: CaptureError.captureFailed)
-            continuation = nil
+            finish(.failure(CaptureError.captureFailed))
             return
         }
 
-        continuation?.resume(returning: cgImage)
-        continuation = nil
+        finish(.success(cgImage))
+    }
+
+    func stream(_ stream: SCStream, didStopWithError error: Error) {
+        finish(.failure(error))
     }
 
     static func requestPermission() async -> Bool {
