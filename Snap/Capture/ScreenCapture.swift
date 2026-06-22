@@ -29,6 +29,13 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
     private let lock = NSLock()
     private let sampleHandlerQueue = DispatchQueue(label: "com.snap.ScreenCapture.sampleHandler")
     private var expectedPixelSize: (width: Int, height: Int)?
+    private var outputColorSpace: CGColorSpace?
+
+    /// Shared Core Image context with a wide-gamut working space. Reused across
+    /// captures — `CIContext` is expensive to construct.
+    private static let ciContext = CIContext(options: [
+        .workingColorSpace: CGColorSpace(name: CGColorSpace.displayP3) ?? CGColorSpaceCreateDeviceRGB()
+    ])
 
     static func captureRegion(_ rect: NSRect, screen: NSScreen) async throws -> CGImage {
         let capturer = ScreenCapture()
@@ -74,6 +81,16 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         config.capturesAudio = false
         config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
 
+        // Capture in the display's native (often Display P3) gamut instead of
+        // letting ScreenCaptureKit color-match wide-gamut content down to sRGB.
+        let colorSpace = screen.colorSpace?.cgColorSpace
+            ?? CGColorSpace(name: CGColorSpace.displayP3)
+            ?? CGColorSpaceCreateDeviceRGB()
+        if let name = colorSpace.name {
+            config.colorSpaceName = name
+        }
+        config.pixelFormat = kCVPixelFormatType_32BGRA
+
         return try await withCheckedThrowingContinuation { continuation in
             let stream = SCStream(filter: filter, configuration: config, delegate: self)
 
@@ -83,6 +100,7 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
             self.continuation = continuation
             self.stream = stream
             self.expectedPixelSize = (config.width, config.height)
+            self.outputColorSpace = colorSpace
             lock.unlock()
 
             do {
@@ -138,8 +156,12 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         }
 
         let ciImage = CIImage(cvImageBuffer: imageBuffer)
-        let context = CIContext()
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+        lock.lock()
+        let colorSpace = outputColorSpace ?? CGColorSpaceCreateDeviceRGB()
+        lock.unlock()
+        guard let cgImage = Self.ciContext.createCGImage(
+            ciImage, from: ciImage.extent, format: .RGBA8, colorSpace: colorSpace
+        ) else {
             finish(.failure(CaptureError.captureFailed))
             return
         }
