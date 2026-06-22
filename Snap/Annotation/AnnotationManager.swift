@@ -1,9 +1,12 @@
 import AppKit
 
 final class AnnotationManager {
-    private(set) var annotations: [Annotation] = []
+    private(set) var annotations: [Annotation] = [] {
+        didSet { compositeCache = nil }
+    }
     private var undoStack: [[Annotation]] = []
     private var redoStack: [[Annotation]] = []
+    private var compositeCache: CGImage?
 
     var onChanged: (() -> Void)?
 
@@ -149,6 +152,12 @@ final class AnnotationManager {
 
     /// Composites annotations onto a CGImage, returning a new image.
     func composite(onto image: CGImage) -> CGImage? {
+        // Nothing to draw — return the original instead of doing a full-size
+        // off-screen copy. Cache the result so repeated output actions (e.g.
+        // Copy then Save) don't re-composite.
+        guard !annotations.isEmpty else { return image }
+        if let cached = compositeCache { return cached }
+
         let width = image.width
         let height = image.height
         let colorSpace = image.colorSpace ?? CGColorSpace(name: CGColorSpace.sRGB)!
@@ -172,6 +181,8 @@ final class AnnotationManager {
 
         render(in: context, size: NSSize(width: width, height: height), sourceImage: image)
 
-        return context.makeImage()
+        let result = context.makeImage()
+        compositeCache = result
+        return result
     }
 }
