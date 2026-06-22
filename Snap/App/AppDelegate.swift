@@ -7,6 +7,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var annotationWindow: AnnotationWindow?
     private var captureHUD: CaptureHUD?
     private var lastCaptureScaleFactor: CGFloat = 1.0
+    private var isShowingPermissionAlert = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusBarController = StatusBarController()
@@ -15,9 +16,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.handleCapturedImage(image, scaleFactor: scaleFactor, selectionRect: selectionRect)
         }
 
-        captureEngine.onError = { error in
+        captureEngine.onError = { [weak self] error in
             NSLog("Snap capture error: \(error.localizedDescription)")
-            OutputManager.showNotification(title: "Snap", text: "Capture failed: \(error.localizedDescription)")
+            if !ScreenCapture.hasScreenRecordingPermission() {
+                self?.presentScreenRecordingPermissionAlert()
+            } else {
+                OutputManager.showNotification(title: "Snap", text: "Capture failed: \(error.localizedDescription)")
+            }
         }
 
         hotKeyManager.onAreaCapture = { [weak self] in
@@ -27,6 +32,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.startFullScreenCapture()
         }
         hotKeyManager.start()
+
+        // Prime Screen Recording permission on first launch so the system adds
+        // Snap to the Privacy list before the first capture.
+        if !ScreenCapture.hasScreenRecordingPermission() {
+            ScreenCapture.requestScreenRecordingPermission()
+        }
+    }
+
+    private func presentScreenRecordingPermissionAlert() {
+        guard !isShowingPermissionAlert else { return }
+        isShowingPermissionAlert = true
+        let alert = NSAlert()
+        alert.messageText = "Screen Recording Permission Needed"
+        alert.informativeText = "Snap needs Screen Recording permission to capture your screen.\n\nEnable it in System Settings ▸ Privacy & Security ▸ Screen Recording, then try again."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "Cancel")
+        NSApp.activate(ignoringOtherApps: true)
+        let response = alert.runModal()
+        isShowingPermissionAlert = false
+        if response == .alertFirstButtonReturn,
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     func startAreaCapture() {

@@ -191,4 +191,16 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
             return false
         }
     }
+
+    /// Whether Snap currently has Screen Recording permission (does not prompt).
+    static func hasScreenRecordingPermission() -> Bool {
+        CGPreflightScreenCaptureAccess()
+    }
+
+    /// Trigger the system Screen Recording prompt and add Snap to the Privacy
+    /// list. Returns whether access is granted.
+    @discardableResult
+    static func requestScreenRecordingPermission() -> Bool {
+        CGRequestScreenCaptureAccess()
+    }
 }
