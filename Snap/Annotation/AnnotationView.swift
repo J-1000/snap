@@ -196,6 +196,11 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                 break
             }
         }
+        // Delete / forward-delete removes the most recent annotation.
+        if event.keyCode == 51 || event.keyCode == 117 {
+            annotationManager.removeLast()
+            return
+        }
         super.keyDown(with: event)
     }
 

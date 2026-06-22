@@ -21,6 +21,15 @@ final class AnnotationManager {
         onChanged?()
     }
 
+    /// Remove the most recently added annotation (delete/backspace in the editor).
+    func removeLast() {
+        guard !annotations.isEmpty else { return }
+        undoStack.append(annotations)
+        redoStack.removeAll()
+        annotations.removeLast()
+        onChanged?()
+    }
+
     func undo() {
         guard let previous = undoStack.popLast() else { return }
         redoStack.append(annotations)
