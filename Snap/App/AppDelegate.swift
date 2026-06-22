@@ -64,19 +64,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         if showUI && (prefs.openEditorAfterCapture || !performedAutomaticOutput) {
-            showAnnotationWindow(image: image)
+            showAnnotationWindow(image: image, scaleFactor: scaleFactor)
         }
     }
 
-    private func showAnnotationWindow(image: CGImage) {
-        // Position at center of main screen
-        let screen = NSScreen.main ?? NSScreen.screens[0]
-        let imageSize = NSSize(width: CGFloat(image.width), height: CGFloat(image.height))
-        let x = screen.frame.midX - imageSize.width / 2
-        let y = screen.frame.midY - imageSize.height / 2
-        let screenRect = NSRect(origin: NSPoint(x: x, y: y), size: imageSize)
+    /// Keep a window of `size` fully on screen within `area`, pinning to the
+    /// min edge when the window is larger than the available space.
+    static func clampOrigin(_ origin: NSPoint, size: NSSize, into area: NSRect) -> NSPoint {
+        var x = origin.x
+        var y = origin.y
+        x = size.width <= area.width ? min(max(x, area.minX), area.maxX - size.width) : area.minX
+        y = size.height <= area.height ? min(max(y, area.minY), area.maxY - size.height) : area.minY
+        return NSPoint(x: x, y: y)
+    }
 
-        let window = AnnotationWindow(image: image, screenRect: screenRect)
+    private func showAnnotationWindow(image: CGImage, scaleFactor: CGFloat) {
+        let screen = NSScreen.main ?? NSScreen.screens[0]
+        let size = AnnotationWindow.contentSize(for: image, scaleFactor: scaleFactor)
+        let centered = NSPoint(x: screen.frame.midX - size.width / 2,
+                               y: screen.frame.midY - size.height / 2)
+        let origin = Self.clampOrigin(centered, size: size, into: screen.visibleFrame)
+
+        let window = AnnotationWindow(image: image, scaleFactor: scaleFactor, origin: origin)
 
         window.onCopy = { [weak self, weak window] in
             guard let window = window else { return }

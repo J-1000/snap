@@ -13,17 +13,29 @@ final class AnnotationWindow: NSWindow {
     var onPrint: (() -> Void)?
     var onClose: (() -> Void)?
 
-    init(image: CGImage, screenRect: NSRect) {
+    /// Total window size in points for a capture, including the toolbar margins.
+    static func contentSize(for image: CGImage, scaleFactor: CGFloat) -> NSSize {
+        let s = max(scaleFactor, 1)
+        return NSSize(
+            width: CGFloat(image.width) / s + EditingToolbar.width,
+            height: CGFloat(image.height) / s + ActionToolbar.height
+        )
+    }
+
+    init(image: CGImage, scaleFactor: CGFloat, origin: NSPoint) {
         self.capturedImage = image
         self.annotationView = AnnotationView(image: image)
         self.actionToolbar = ActionToolbar()
         self.editingToolbar = EditingToolbar()
 
-        let imageWidth = CGFloat(image.width)
-        let imageHeight = CGFloat(image.height)
+        // The captured image is in physical pixels; lay the editor out in points
+        // (pixels / scale) and let the Retina backing store render it crisply.
+        let s = max(scaleFactor, 1)
+        let imageWidth = CGFloat(image.width) / s
+        let imageHeight = CGFloat(image.height) / s
         let windowWidth = imageWidth + EditingToolbar.width
         let windowHeight = imageHeight + ActionToolbar.height
-        let contentRect = NSRect(origin: screenRect.origin, size: NSSize(width: windowWidth, height: windowHeight))
+        let contentRect = NSRect(origin: origin, size: NSSize(width: windowWidth, height: windowHeight))
 
         super.init(
             contentRect: contentRect,
@@ -46,8 +58,11 @@ final class AnnotationWindow: NSWindow {
         actionToolbar.autoresizingMask = [.width]
         container.addSubview(actionToolbar)
 
-        // Image canvas on the left
+        // Image canvas on the left, sized in points but with a pixel-resolution
+        // coordinate system so drawing maps 1 image pixel to 1 device pixel and
+        // mouse points convert straight to image-pixel coordinates.
         annotationView.frame = NSRect(x: 0, y: ActionToolbar.height, width: imageWidth, height: imageHeight)
+        annotationView.setBoundsSize(NSSize(width: CGFloat(image.width), height: CGFloat(image.height)))
         container.addSubview(annotationView)
 
         // Editing toolbar on the right
