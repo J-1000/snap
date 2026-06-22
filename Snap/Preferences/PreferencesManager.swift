@@ -25,7 +25,6 @@ final class PreferencesManager {
 
     private init() {
         registerDefaults()
-        applyLaunchAtLoginSetting()
     }
 
     private func registerDefaults() {
@@ -71,10 +70,15 @@ final class PreferencesManager {
     }
 
     var launchAtLogin: Bool {
-        get { defaults.bool(forKey: Keys.launchAtLogin) }
+        get {
+            if #available(macOS 13.0, *) {
+                return SMAppService.mainApp.status == .enabled
+            }
+            return defaults.bool(forKey: Keys.launchAtLogin)
+        }
         set {
             defaults.set(newValue, forKey: Keys.launchAtLogin)
-            applyLaunchAtLoginSetting()
+            applyLaunchAtLoginSetting(enabled: newValue)
         }
     }
 
@@ -124,9 +128,8 @@ final class PreferencesManager {
         set { defaults.set(newValue, forKey: Keys.lastTool) }
     }
 
-    private func applyLaunchAtLoginSetting() {
+    private func applyLaunchAtLoginSetting(enabled: Bool) {
         guard #available(macOS 13.0, *) else { return }
-        let enabled = launchAtLogin
         do {
             if enabled {
                 try SMAppService.mainApp.register()
@@ -135,6 +138,10 @@ final class PreferencesManager {
             }
         } catch {
             NSLog("Snap: Failed to update launch-at-login setting: \(error.localizedDescription)")
+            OutputManager.showNotification(
+                title: "Snap",
+                text: "Could not update Launch at Login. Approve it in System Settings > General > Login Items."
+            )
         }
     }
 }
