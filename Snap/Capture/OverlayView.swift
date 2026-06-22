@@ -10,17 +10,6 @@ final class OverlayView: NSView {
         case resizing(handle: ResizeHandle)
     }
 
-    private enum ResizeHandle: CaseIterable {
-        case topLeft
-        case top
-        case topRight
-        case right
-        case bottomRight
-        case bottom
-        case bottomLeft
-        case left
-    }
-
     private var selectionOrigin: NSPoint?
     private var currentSelection: NSRect?
     private var dragMode: DragMode?
@@ -28,6 +17,10 @@ final class OverlayView: NSView {
     private var resizeOriginalSelection: NSRect?
     private let dimColor = NSColor.black.withAlphaComponent(0.3)
     private let handleSize: CGFloat = 8
+
+    private var geometry: SelectionGeometry {
+        SelectionGeometry(bounds: bounds, handleSize: handleSize)
+    }
 
     private lazy var dimensionLabel: NSTextField = {
         let label = NSTextField(labelWithString: "")
@@ -89,7 +82,7 @@ final class OverlayView: NSView {
 
             context.setFillColor(NSColor.white.cgColor)
             context.setStrokeColor(NSColor.black.withAlphaComponent(0.4).cgColor)
-            for handleRect in handleRects(for: selection).values {
+            for handleRect in geometry.handleRects(for: selection).values {
                 context.fill(handleRect)
                 context.stroke(handleRect)
             }
@@ -100,7 +93,7 @@ final class OverlayView: NSView {
         addCursorRect(bounds, cursor: .crosshair)
         guard let selection = currentSelection, selection.width > 1, selection.height > 1 else { return }
         addCursorRect(selection, cursor: .openHand)
-        for (handle, rect) in handleRects(for: selection) {
+        for (handle, rect) in geometry.handleRects(for: selection) {
             addCursorRect(rect.insetBy(dx: -4, dy: -4), cursor: cursor(for: handle))
         }
     }
@@ -138,9 +131,9 @@ final class OverlayView: NSView {
         }
 
         if let selection = currentSelection, selection.width > 1, selection.height > 1 {
-            if let handle = resizeHandle(at: point, in: selection) {
+            if let handle = geometry.resizeHandle(at: point, in: selection) {
                 dragMode = .resizing(handle: handle)
-                resizeAnchor = anchorPoint(for: handle, in: selection)
+                resizeAnchor = geometry.anchorPoint(for: handle, in: selection)
                 resizeOriginalSelection = selection
                 return
             }
@@ -166,15 +159,15 @@ final class OverlayView: NSView {
         case .drawing:
             guard let origin = selectionOrigin else { return }
             currentSelection = event.modifierFlags.contains(.shift)
-                ? constrainedSquare(from: origin, to: current)
-                : normalizedRect(from: origin, to: current)
+                ? geometry.constrainedSquare(from: origin, to: current)
+                : geometry.normalizedRect(from: origin, to: current)
         case .moving(let offset):
             guard let selection = currentSelection else { return }
             let origin = NSPoint(x: current.x - offset.x, y: current.y - offset.y)
-            currentSelection = clamped(rect: NSRect(origin: origin, size: selection.size))
+            currentSelection = geometry.clamped(NSRect(origin: origin, size: selection.size))
         case .resizing:
             guard let anchor = resizeAnchor, let original = resizeOriginalSelection else { return }
-            currentSelection = clamped(rect: resizedRect(handle: handleFromDragMode(), original: original, anchor: anchor, current: current))
+            currentSelection = geometry.clamped(geometry.resizedRect(handle: handleFromDragMode(), original: original, anchor: anchor, current: current))
         case .none:
             return
         }
@@ -222,7 +215,7 @@ final class OverlayView: NSView {
         guard var selection = currentSelection, selection.width > 1, selection.height > 1 else { return }
         selection.origin.x += dx
         selection.origin.y += dy
-        currentSelection = clamped(rect: selection)
+        currentSelection = geometry.clamped(selection)
         updateLabels()
         needsDisplay = true
         refreshCursorRects()
@@ -297,93 +290,10 @@ final class OverlayView: NSView {
         refreshCursorRects()
     }
 
-    private func normalizedRect(from start: NSPoint, to end: NSPoint) -> NSRect {
-        NSRect(
-            x: min(start.x, end.x),
-            y: min(start.y, end.y),
-            width: abs(end.x - start.x),
-            height: abs(end.y - start.y)
-        )
-    }
-
-    /// A square rooted at `origin`, sized by the larger axis toward `current`.
-    private func constrainedSquare(from origin: NSPoint, to current: NSPoint) -> NSRect {
-        let side = max(abs(current.x - origin.x), abs(current.y - origin.y))
-        let x = current.x >= origin.x ? origin.x : origin.x - side
-        let y = current.y >= origin.y ? origin.y : origin.y - side
-        return NSRect(x: x, y: y, width: side, height: side)
-    }
-
-    private func clamped(rect: NSRect) -> NSRect {
-        var rect = rect
-        rect.size.width = min(rect.width, bounds.width)
-        rect.size.height = min(rect.height, bounds.height)
-        rect.origin.x = min(max(rect.origin.x, bounds.minX), bounds.maxX - rect.width)
-        rect.origin.y = min(max(rect.origin.y, bounds.minY), bounds.maxY - rect.height)
-        return rect
-    }
-
-    private func resizeHandle(at point: NSPoint, in selection: NSRect) -> ResizeHandle? {
-        handleRects(for: selection).first { $0.value.insetBy(dx: -4, dy: -4).contains(point) }?.key
-    }
-
-    private func handleRects(for selection: NSRect) -> [ResizeHandle: NSRect] {
-        let half = handleSize / 2
-        let points: [ResizeHandle: NSPoint] = [
-            .topLeft: NSPoint(x: selection.minX, y: selection.maxY),
-            .top: NSPoint(x: selection.midX, y: selection.maxY),
-            .topRight: NSPoint(x: selection.maxX, y: selection.maxY),
-            .right: NSPoint(x: selection.maxX, y: selection.midY),
-            .bottomRight: NSPoint(x: selection.maxX, y: selection.minY),
-            .bottom: NSPoint(x: selection.midX, y: selection.minY),
-            .bottomLeft: NSPoint(x: selection.minX, y: selection.minY),
-            .left: NSPoint(x: selection.minX, y: selection.midY),
-        ]
-        return points.mapValues { point in
-            NSRect(x: point.x - half, y: point.y - half, width: handleSize, height: handleSize)
-        }
-    }
-
-    private func anchorPoint(for handle: ResizeHandle, in selection: NSRect) -> NSPoint {
-        switch handle {
-        case .topLeft:
-            return NSPoint(x: selection.maxX, y: selection.minY)
-        case .top:
-            return NSPoint(x: selection.midX, y: selection.minY)
-        case .topRight:
-            return NSPoint(x: selection.minX, y: selection.minY)
-        case .right:
-            return NSPoint(x: selection.minX, y: selection.midY)
-        case .bottomRight:
-            return NSPoint(x: selection.minX, y: selection.maxY)
-        case .bottom:
-            return NSPoint(x: selection.midX, y: selection.maxY)
-        case .bottomLeft:
-            return NSPoint(x: selection.maxX, y: selection.maxY)
-        case .left:
-            return NSPoint(x: selection.maxX, y: selection.midY)
-        }
-    }
-
     private func handleFromDragMode() -> ResizeHandle {
         if case .resizing(let handle) = dragMode {
             return handle
         }
         return .bottomRight
-    }
-
-    private func resizedRect(handle: ResizeHandle, original: NSRect, anchor: NSPoint, current: NSPoint) -> NSRect {
-        switch handle {
-        case .topLeft, .topRight, .bottomRight, .bottomLeft:
-            return normalizedRect(from: anchor, to: current)
-        case .top:
-            return normalizedRect(from: NSPoint(x: original.minX, y: original.minY), to: NSPoint(x: original.maxX, y: current.y))
-        case .right:
-            return normalizedRect(from: NSPoint(x: original.minX, y: original.minY), to: NSPoint(x: current.x, y: original.maxY))
-        case .bottom:
-            return normalizedRect(from: NSPoint(x: original.minX, y: current.y), to: NSPoint(x: original.maxX, y: original.maxY))
-        case .left:
-            return normalizedRect(from: NSPoint(x: current.x, y: original.minY), to: NSPoint(x: original.maxX, y: original.maxY))
-        }
     }
 }
