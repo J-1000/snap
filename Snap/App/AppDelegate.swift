@@ -70,7 +70,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true, selectionRect: NSRect? = nil) {
         lastCaptureScaleFactor = scaleFactor
-        OutputManager.saveImage(image, scaleFactor: scaleFactor)
+        OutputManager.cacheLastCapture(image, scaleFactor: scaleFactor)
         let prefs = PreferencesManager.shared
         var performedAutomaticOutput = false
 
@@ -147,43 +147,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let window = AnnotationWindow(image: image, scaleFactor: scaleFactor, origin: origin)
 
         window.onCopy = { [weak self, weak window] in
-            guard let window = window else { return }
-            let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            if OutputManager.copyToClipboard(output, scaleFactor: self?.lastCaptureScaleFactor) {
-                self?.confirm("Copied to clipboard")
+            guard let self, let window else { return }
+            let output = self.flattenedOutput(from: window)
+            if OutputManager.copyToClipboard(output, scaleFactor: self.lastCaptureScaleFactor) {
+                self.confirm("Copied to clipboard")
             } else {
                 OutputManager.showNotification(title: "Snap", text: "Copy failed")
             }
-            self?.dismissAnnotationWindow()
+            self.dismissAnnotationWindow()
         }
         window.onSave = { [weak self, weak window] in
-            guard let window = window else { return }
-            let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            if let url = OutputManager.saveToDefaultLocation(output, scaleFactor: self?.lastCaptureScaleFactor) {
-                self?.confirm("Saved to \(url.lastPathComponent)")
+            guard let self, let window else { return }
+            let output = self.flattenedOutput(from: window)
+            if let url = OutputManager.saveToDefaultLocation(output, scaleFactor: self.lastCaptureScaleFactor) {
+                self.confirm("Saved to \(url.lastPathComponent)")
             }
-            self?.dismissAnnotationWindow()
+            self.dismissAnnotationWindow()
         }
         window.onSaveAs = { [weak self, weak window] in
-            guard let window = window else { return }
-            let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            OutputManager.saveWithDialog(output)
+            guard let self, let window else { return }
+            OutputManager.saveWithDialog(self.flattenedOutput(from: window))
         }
         window.onReverseSearch = { [weak self, weak window] in
-            guard let window = window else { return }
-            let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            _ = OutputManager.reverseImageSearch(output, scaleFactor: self?.lastCaptureScaleFactor)
-            self?.dismissAnnotationWindow()
+            guard let self, let window else { return }
+            _ = OutputManager.reverseImageSearch(self.flattenedOutput(from: window), scaleFactor: self.lastCaptureScaleFactor)
+            self.dismissAnnotationWindow()
         }
         window.onPrint = { [weak self, weak window] in
-            guard let window = window else { return }
-            let output = window.annotationView.annotationManager.composite(onto: image) ?? image
-            OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            _ = OutputManager.printImage(output)
+            guard let self, let window else { return }
+            _ = OutputManager.printImage(self.flattenedOutput(from: window))
         }
         window.onClose = { [weak self] in
             self?.dismissAnnotationWindow()
@@ -192,6 +184,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         annotationWindow = window
+    }
+
+    /// Composite the editor's annotations onto the capture (or return the
+    /// capture unchanged) and refresh the last-capture cache once.
+    private func flattenedOutput(from window: AnnotationWindow) -> CGImage {
+        let output = window.annotationView.annotationManager.composite(onto: window.capturedImage)
+            ?? window.capturedImage
+        OutputManager.cacheLastCapture(output, scaleFactor: lastCaptureScaleFactor)
+        return output
     }
 
     /// Confirm an output action: a notification when enabled, otherwise a brief

@@ -17,22 +17,22 @@ final class OutputManagerTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - saveImage
+    // MARK: - cacheLastCapture
 
-    func testSaveImageCachesLastImage() {
+    func testCacheLastCaptureCachesLastImage() {
         let image = createTestImage(width: 50, height: 50)
-        OutputManager.saveImage(image)
+        OutputManager.cacheLastCapture(image)
         XCTAssertNotNil(OutputManager.lastCapturedImage)
         XCTAssertEqual(OutputManager.lastCapturedImage?.width, 50)
         XCTAssertEqual(OutputManager.lastCapturedImage?.height, 50)
     }
 
-    func testSaveImageOverwritesPrevious() {
+    func testCacheLastCaptureOverwritesPrevious() {
         let image1 = createTestImage(width: 50, height: 50)
         let image2 = createTestImage(width: 100, height: 100)
 
-        OutputManager.saveImage(image1)
-        OutputManager.saveImage(image2)
+        OutputManager.cacheLastCapture(image1)
+        OutputManager.cacheLastCapture(image2)
 
         XCTAssertEqual(OutputManager.lastCapturedImage?.width, 100)
     }

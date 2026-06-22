@@ -12,7 +12,9 @@ final class OutputManager {
     /// full-resolution image (up to ~33 MB for a 4K grab) indefinitely.
     private static let retentionInterval: TimeInterval = 120
 
-    static func saveImage(_ image: CGImage, scaleFactor: CGFloat = 1.0) {
+    /// Cache the latest capture/output for the "Save Last" menu items. This
+    /// does not write to disk — see `saveToFile`/`saveToDefaultLocation`.
+    static func cacheLastCapture(_ image: CGImage, scaleFactor: CGFloat = 1.0) {
         lastCapturedImage = image
         lastCapturedScaleFactor = scaleFactor
         scheduleClearLastCapture()
