@@ -16,11 +16,34 @@ final class OutputManager {
         pasteboard.clearContents()
 
         let outputImage = downscaledImageIfNeeded(image, scaleFactor: scaleFactor)
+        let item = NSPasteboardItem()
+
+        // Offer PNG first — most targets (web forms, Slack/Discord, Google
+        // Images) prefer or require it — with TIFF for AppKit-native consumers.
+        if let png = pngData(from: outputImage) {
+            item.setData(png, forType: .png)
+        }
         let nsImage = NSImage(
             cgImage: outputImage,
             size: NSSize(width: outputImage.width, height: outputImage.height)
         )
-        return pasteboard.writeObjects([nsImage])
+        if let tiff = nsImage.tiffRepresentation {
+            item.setData(tiff, forType: .tiff)
+        }
+        guard !item.types.isEmpty else { return false }
+        return pasteboard.writeObjects([item])
+    }
+
+    private static func pngData(from image: CGImage) -> Data? {
+        let data = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            data, UTType.png.identifier as CFString, 1, nil
+        ) else {
+            return nil
+        }
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination) else { return nil }
+        return data as Data
     }
 
     @discardableResult
