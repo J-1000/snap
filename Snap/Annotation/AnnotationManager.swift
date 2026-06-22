@@ -8,6 +8,10 @@ final class AnnotationManager {
     private var redoStack: [[Annotation]] = []
     private var compositeCache: CGImage?
 
+    /// Shared Core Image context — expensive to construct, so reuse one across
+    /// blur renders and live previews instead of allocating per frame.
+    static let ciContext = CIContext()
+
     var onChanged: (() -> Void)?
 
     func add(_ annotation: Annotation) {
@@ -142,9 +146,8 @@ final class AnnotationManager {
         filter.setValue(ciImage, forKey: kCIInputImageKey)
         filter.setValue(max(pixelScale, 2.0), forKey: kCIInputScaleKey)
 
-        let ciContext = CIContext()
         guard let outputImage = filter.outputImage,
-              let pixelatedCGImage = ciContext.createCGImage(outputImage, from: ciImage.extent) else { return }
+              let pixelatedCGImage = AnnotationManager.ciContext.createCGImage(outputImage, from: ciImage.extent) else { return }
 
         // Context is already flipped to top-left origin; draw pixelated region back
         context.draw(pixelatedCGImage, in: rect)

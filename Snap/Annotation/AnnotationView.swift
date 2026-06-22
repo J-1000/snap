@@ -118,9 +118,8 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                 if let filter = CIFilter(name: "CIPixellate") {
                     filter.setValue(ciImage, forKey: kCIInputImageKey)
                     filter.setValue(max(pixelScale, 2.0), forKey: kCIInputScaleKey)
-                    let ciContext = CIContext()
                     if let output = filter.outputImage,
-                       let pixelated = ciContext.createCGImage(output, from: ciImage.extent) {
+                       let pixelated = AnnotationManager.ciContext.createCGImage(output, from: ciImage.extent) {
                         context.draw(pixelated, in: rect)
                     }
                 }
