@@ -10,8 +10,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusBarController = StatusBarController()
 
-        captureEngine.onImageCaptured = { [weak self] image, scaleFactor in
-            self?.handleCapturedImage(image, scaleFactor: scaleFactor)
+        captureEngine.onImageCaptured = { [weak self] image, scaleFactor, selectionRect in
+            self?.handleCapturedImage(image, scaleFactor: scaleFactor, selectionRect: selectionRect)
         }
 
         captureEngine.onError = { error in
@@ -38,7 +38,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         captureEngine.captureFullScreen(screen)
     }
 
-    func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true) {
+    func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true, selectionRect: NSRect? = nil) {
         lastCaptureScaleFactor = scaleFactor
         OutputManager.saveImage(image, scaleFactor: scaleFactor)
         let prefs = PreferencesManager.shared
@@ -64,7 +64,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         if showUI && (prefs.openEditorAfterCapture || !performedAutomaticOutput) {
-            showAnnotationWindow(image: image, scaleFactor: scaleFactor)
+            showAnnotationWindow(image: image, scaleFactor: scaleFactor, selectionRect: selectionRect)
         }
     }
 
@@ -78,12 +78,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return NSPoint(x: x, y: y)
     }
 
-    private func showAnnotationWindow(image: CGImage, scaleFactor: CGFloat) {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+    private func showAnnotationWindow(image: CGImage, scaleFactor: CGFloat, selectionRect: NSRect? = nil) {
         let size = AnnotationWindow.contentSize(for: image, scaleFactor: scaleFactor)
-        let centered = NSPoint(x: screen.frame.midX - size.width / 2,
+        let screen = selectionRect.flatMap { rect in
+            NSScreen.screens.first { $0.frame.intersects(rect) }
+        } ?? NSScreen.main ?? NSScreen.screens[0]
+
+        let proposed: NSPoint
+        if let sel = selectionRect {
+            // Align the image canvas (which sits above the action toolbar) with
+            // the on-screen selection so the editor opens where you captured.
+            proposed = NSPoint(x: sel.minX, y: sel.minY - ActionToolbar.height)
+        } else {
+            proposed = NSPoint(x: screen.frame.midX - size.width / 2,
                                y: screen.frame.midY - size.height / 2)
-        let origin = Self.clampOrigin(centered, size: size, into: screen.visibleFrame)
+        }
+        let origin = Self.clampOrigin(proposed, size: size, into: screen.visibleFrame)
 
         let window = AnnotationWindow(image: image, scaleFactor: scaleFactor, origin: origin)
 

@@ -4,7 +4,7 @@ final class CaptureEngine {
     private var overlayWindows: [OverlayWindow] = []
     private(set) var isActive = false
 
-    var onImageCaptured: ((CGImage, CGFloat) -> Void)?
+    var onImageCaptured: ((CGImage, CGFloat, NSRect?) -> Void)?
     var onCancel: (() -> Void)?
     var onError: ((Error) -> Void)?
 
@@ -19,7 +19,7 @@ final class CaptureEngine {
             do {
                 let image = try await ScreenCapture.captureFullScreen(screen)
                 await MainActor.run {
-                    self.onImageCaptured?(image, screen.backingScaleFactor)
+                    self.onImageCaptured?(image, screen.backingScaleFactor, nil)
                 }
             } catch {
                 await MainActor.run {
@@ -75,7 +75,7 @@ final class CaptureEngine {
             do {
                 let image = try await ScreenCapture.captureRegion(rect, screen: screen)
                 await MainActor.run {
-                    self.onImageCaptured?(image, screen.backingScaleFactor)
+                    self.onImageCaptured?(image, screen.backingScaleFactor, rect)
                 }
             } catch {
                 await MainActor.run {
