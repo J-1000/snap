@@ -205,6 +205,25 @@ final class OverlayView: NSView {
             completeSelection()
             return
         }
+        // Arrow keys nudge the selection (10px with Shift).
+        let step: CGFloat = event.modifierFlags.contains(.shift) ? 10 : 1
+        switch event.keyCode {
+        case 123: nudgeSelection(dx: -step, dy: 0)
+        case 124: nudgeSelection(dx: step, dy: 0)
+        case 125: nudgeSelection(dx: 0, dy: -step)
+        case 126: nudgeSelection(dx: 0, dy: step)
+        default: break
+        }
+    }
+
+    private func nudgeSelection(dx: CGFloat, dy: CGFloat) {
+        guard var selection = currentSelection, selection.width > 1, selection.height > 1 else { return }
+        selection.origin.x += dx
+        selection.origin.y += dy
+        currentSelection = clamped(rect: selection)
+        updateLabels()
+        needsDisplay = true
+        refreshCursorRects()
     }
 
     private func completeSelection() {
