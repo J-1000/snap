@@ -5,10 +5,24 @@ final class OutputManager {
 
     private(set) static var lastCapturedImage: CGImage?
     private(set) static var lastCapturedScaleFactor: CGFloat = 1.0
+    private static var clearWorkItem: DispatchWorkItem?
+
+    /// How long to keep the last capture resident for the "Save Last" menu items
+    /// before releasing it, so the idle menu-bar process doesn't hold a
+    /// full-resolution image (up to ~33 MB for a 4K grab) indefinitely.
+    private static let retentionInterval: TimeInterval = 120
 
     static func saveImage(_ image: CGImage, scaleFactor: CGFloat = 1.0) {
         lastCapturedImage = image
         lastCapturedScaleFactor = scaleFactor
+        scheduleClearLastCapture()
+    }
+
+    private static func scheduleClearLastCapture() {
+        clearWorkItem?.cancel()
+        let item = DispatchWorkItem { lastCapturedImage = nil }
+        clearWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + retentionInterval, execute: item)
     }
 
     static func copyToClipboard(_ image: CGImage, scaleFactor: CGFloat? = nil) -> Bool {
