@@ -68,6 +68,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         captureEngine.captureFullScreen(screen)
     }
 
+    func startDelayedFullScreenCapture() {
+        OutputManager.showNotification(title: "Snap", text: "Capturing full screen in 5 seconds…")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.startFullScreenCapture()
+        }
+    }
+
     func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true, selectionRect: NSRect? = nil) {
         lastCaptureScaleFactor = scaleFactor
         OutputManager.cacheLastCapture(image, scaleFactor: scaleFactor)

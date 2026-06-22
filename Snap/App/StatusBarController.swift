@@ -31,6 +31,7 @@ final class StatusBarController {
 
         menu.addItem(NSMenuItem(title: "Capture Area", action: #selector(captureArea), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Capture Full Screen", action: #selector(captureFullScreen), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Capture Full Screen (5s delay)", action: #selector(captureFullScreenDelayed), keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
 
         let saveItem = NSMenuItem(title: "Save Last Screenshot", action: #selector(saveScreenshot), keyEquivalent: "s")
@@ -62,6 +63,11 @@ final class StatusBarController {
     @objc private func captureFullScreen() {
         guard let delegate = NSApp.delegate as? AppDelegate else { return }
         delegate.startFullScreenCapture()
+    }
+
+    @objc private func captureFullScreenDelayed() {
+        guard let delegate = NSApp.delegate as? AppDelegate else { return }
+        delegate.startDelayedFullScreenCapture()
     }
 
     @objc private func saveScreenshot() {
