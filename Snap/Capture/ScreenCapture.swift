@@ -91,6 +91,16 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         }
         config.pixelFormat = kCVPixelFormatType_32BGRA
 
+        // macOS 14+: one-shot capture returns a CGImage directly, skipping the
+        // stream / continuation / delegate / timeout plumbing entirely.
+        if #available(macOS 14.0, *) {
+            let image = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
+            if image.width != config.width || image.height != config.height {
+                NSLog("Snap: captured \(image.width)x\(image.height) but requested \(config.width)x\(config.height)")
+            }
+            return image
+        }
+
         return try await withCheckedThrowingContinuation { continuation in
             let stream = SCStream(filter: filter, configuration: config, delegate: self)
 
