@@ -15,6 +15,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
 
     private var activeTextField: NSTextField?
     private var textInsertionPoint: NSPoint? // image coords (top-left origin)
+    private var stepBadgeCounter = 0 // resets each time the editor opens
     init(image: CGImage) {
         self.image = image
         super.init(frame: NSRect(x: 0, y: 0, width: CGFloat(image.width), height: CGFloat(image.height)))
@@ -72,9 +73,22 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         case .rectangle, .ellipse, .blur:
             guard let rect = dragRect, rect.width > 0, rect.height > 0 else { return nil }
             return Annotation(type: tool, rect: rect, color: currentColor, lineWidth: currentLineWidth)
-        case .text:
+        case .text, .stepBadge:
             return nil
         }
+    }
+
+    private func placeStepBadge(at imagePoint: NSPoint) {
+        stepBadgeCounter += 1
+        let diameter = max(currentFontSize * 1.6, 24)
+        let annotation = Annotation(
+            type: .stepBadge,
+            badgeNumber: stepBadgeCounter,
+            center: imagePoint,
+            diameter: diameter,
+            color: currentColor
+        )
+        annotationManager.add(annotation)
     }
 
     // MARK: - Mouse handling
@@ -92,6 +106,11 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
 
         if currentTool == .text {
             showTextField(at: point, imagePoint: imagePoint)
+            return
+        }
+
+        if currentTool == .stepBadge {
+            placeStepBadge(at: imagePoint)
             return
         }
 

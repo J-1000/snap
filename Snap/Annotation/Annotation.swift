@@ -10,6 +10,7 @@ enum AnnotationType: String, CaseIterable {
     case ellipse
     case text
     case blur
+    case stepBadge
 
     var toolbarSymbol: String {
         switch self {
@@ -20,6 +21,7 @@ enum AnnotationType: String, CaseIterable {
         case .ellipse: return "oval"
         case .text: return "textformat"
         case .blur: return "square.grid.3x3"
+        case .stepBadge: return "1.circle.fill"
         }
     }
 
@@ -32,6 +34,7 @@ enum AnnotationType: String, CaseIterable {
         case .ellipse: return "Ellipse"
         case .text: return "Text"
         case .blur: return "Blur / Pixelate"
+        case .stepBadge: return "Step Badge"
         }
     }
 }
@@ -98,5 +101,15 @@ struct Annotation {
         let attrs: [NSAttributedString.Key: Any] = [.font: font]
         let size = (text as NSString).size(withAttributes: attrs)
         self.rect = NSRect(origin: position, size: size)
+    }
+
+    init(type: AnnotationType, badgeNumber: Int, center: NSPoint, diameter: CGFloat, color: NSColor) {
+        self.id = UUID()
+        self.type = type
+        self.text = "\(badgeNumber)"
+        self.fontSize = diameter * 0.55
+        self.color = color
+        self.lineWidth = 1.0
+        self.rect = NSRect(x: center.x - diameter / 2, y: center.y - diameter / 2, width: diameter, height: diameter)
     }
 }

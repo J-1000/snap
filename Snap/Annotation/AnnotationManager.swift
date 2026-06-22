@@ -114,6 +114,26 @@ final class AnnotationManager {
             NSGraphicsContext.restoreGraphicsState()
         case .blur:
             renderBlur(annotation, in: context, sourceImage: sourceImage)
+        case .stepBadge:
+            guard let text = annotation.text else { return }
+            context.setFillColor(annotation.color.cgColor)
+            context.fillEllipse(in: annotation.rect)
+            let fontSize = annotation.fontSize ?? annotation.rect.height * 0.55
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.boldSystemFont(ofSize: fontSize),
+                .foregroundColor: NSColor.white,
+            ]
+            let attrString = NSAttributedString(string: text, attributes: attrs)
+            let textSize = attrString.size()
+            let origin = NSPoint(
+                x: annotation.rect.midX - textSize.width / 2,
+                y: annotation.rect.midY - textSize.height / 2
+            )
+            let nsContext = NSGraphicsContext(cgContext: context, flipped: true)
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = nsContext
+            attrString.draw(at: origin)
+            NSGraphicsContext.restoreGraphicsState()
         }
     }
 
