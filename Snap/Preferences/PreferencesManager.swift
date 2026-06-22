@@ -4,7 +4,7 @@ import ServiceManagement
 final class PreferencesManager {
     static let shared = PreferencesManager()
 
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
 
     private enum Keys {
         static let saveDirectory = "saveDirectory"
@@ -23,7 +23,8 @@ final class PreferencesManager {
         static let lastTool = "lastTool"
     }
 
-    private init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         registerDefaults()
     }
 
