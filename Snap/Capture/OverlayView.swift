@@ -226,21 +226,25 @@ final class OverlayView: NSView {
         dimensionLabel.stringValue = " \(pixelWidth) × \(pixelHeight) "
         dimensionLabel.sizeToFit()
 
-        // Position label above the top-left corner of the selection
-        let labelX = selection.origin.x
-        let labelY = selection.maxY + 4
-        dimensionLabel.frame.origin = NSPoint(x: labelX, y: labelY)
+        let inset: CGFloat = 4
+        let w = dimensionLabel.frame.width
+        let h = dimensionLabel.frame.height
 
-        // Keep label within view bounds
-        if dimensionLabel.frame.maxY > bounds.maxY {
-            dimensionLabel.frame.origin.y = selection.origin.y - dimensionLabel.frame.height - 4
+        // Per the PRD, anchor inside the selection's top-left corner. The hint
+        // label lives outside the bottom edge, so the two can't overlap.
+        var x = selection.minX + inset
+        var y = selection.maxY - h - inset
+
+        // For selections too short to hold the label, place it just above the
+        // top edge, dropping just below it only if that would clip the screen.
+        if selection.height < h + inset * 2 {
+            y = selection.maxY + inset
+            if y + h > bounds.maxY {
+                y = selection.maxY - h - inset
+            }
         }
-        if dimensionLabel.frame.maxX > bounds.maxX {
-            dimensionLabel.frame.origin.x = bounds.maxX - dimensionLabel.frame.width
-        }
-        if dimensionLabel.frame.minX < bounds.minX {
-            dimensionLabel.frame.origin.x = bounds.minX
-        }
+        x = min(max(x, bounds.minX), bounds.maxX - w)
+        dimensionLabel.frame.origin = NSPoint(x: x, y: y)
     }
 
     private func updateHintLabel() {
