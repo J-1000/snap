@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0998169224D59850E4A9E7F0 /* TextRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99912E5EA38BB16EDF3286FA /* TextRecognizer.swift */; };
 		0A809E6166375EB83F7B98C6 /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */; };
 		0BB1787C393BB8913E4E25CC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14193A4FC394A707FD29428A /* main.swift */; };
 		0E6A4AE60302AC934DC4317F /* AppDelegateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F235903CF03A35912667BD52 /* AppDelegateTests.swift */; };
@@ -61,6 +62,7 @@
 		8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		914A12AB0C57F12378E3EF43 /* OutputManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputManagerTests.swift; sourceTree = "<group>"; };
 		9310F95D52EF3E2DFF4267C7 /* ActionToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionToolbar.swift; sourceTree = "<group>"; };
+		99912E5EA38BB16EDF3286FA /* TextRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognizer.swift; sourceTree = "<group>"; };
 		A572F31244CA8AC57FF14A86 /* PreferencesWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindow.swift; sourceTree = "<group>"; };
 		AAD6FABC7DCFB63F9B66FD5A /* FileNamingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileNamingTests.swift; sourceTree = "<group>"; };
 		B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 			children = (
 				20279F02CD3A925CD0488D9C /* FileNaming.swift */,
 				C0BBCDCF2FCA03D97E67B169 /* OutputManager.swift */,
+				99912E5EA38BB16EDF3286FA /* TextRecognizer.swift */,
 			);
 			path = Output;
 			sourceTree = "<group>";
@@ -306,6 +309,7 @@
 				D848F4034772AC921006EED7 /* PreferencesWindow.swift in Sources */,
 				6C891CBF52E2844317A0D174 /* ScreenCapture.swift in Sources */,
 				A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */,
+				0998169224D59850E4A9E7F0 /* TextRecognizer.swift in Sources */,
 				0BB1787C393BB8913E4E25CC /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

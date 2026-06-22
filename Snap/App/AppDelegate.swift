@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var captureHUD: CaptureHUD?
     private var lastCaptureScaleFactor: CGFloat = 1.0
     private var isShowingPermissionAlert = false
+    private var pendingTextCapture = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusBarController = StatusBarController()
@@ -18,11 +19,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         captureEngine.onError = { [weak self] error in
             NSLog("Snap capture error: \(error.localizedDescription)")
+            self?.pendingTextCapture = false
             if !ScreenCapture.hasScreenRecordingPermission() {
                 self?.presentScreenRecordingPermissionAlert()
             } else {
                 OutputManager.showNotification(title: "Snap", text: "Capture failed: \(error.localizedDescription)")
             }
+        }
+
+        captureEngine.onCancel = { [weak self] in
+            self?.pendingTextCapture = false
         }
 
         hotKeyManager.onAreaCapture = { [weak self] in
@@ -75,7 +81,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func startTextCapture() {
+        guard !captureEngine.isActive else { return }
+        pendingTextCapture = true
+        captureEngine.startAreaSelection()
+    }
+
+    private func recognizeText(in image: CGImage) {
+        TextRecognizer.recognize(in: image) { [weak self] text in
+            guard let text, !text.isEmpty else {
+                OutputManager.showNotification(title: "Snap", text: "No text found")
+                return
+            }
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(text, forType: .string)
+            self?.confirm("Text copied to clipboard")
+        }
+    }
+
     func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true, selectionRect: NSRect? = nil) {
+        if pendingTextCapture {
+            pendingTextCapture = false
+            recognizeText(in: image)
+            return
+        }
         lastCaptureScaleFactor = scaleFactor
         OutputManager.cacheLastCapture(image, scaleFactor: scaleFactor)
         let prefs = PreferencesManager.shared
