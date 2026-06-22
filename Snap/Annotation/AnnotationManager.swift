@@ -44,6 +44,12 @@ final class AnnotationManager {
         }
     }
 
+    /// Render a single annotation — used for the in-progress drag preview so it
+    /// goes through the same code path as committed annotations.
+    func render(_ annotation: Annotation, in context: CGContext, size: NSSize, sourceImage: CGImage? = nil) {
+        renderAnnotation(annotation, in: context, size: size, sourceImage: sourceImage)
+    }
+
     private func renderAnnotation(_ annotation: Annotation, in context: CGContext, size: NSSize, sourceImage: CGImage? = nil) {
         switch annotation.type {
         case .rectangle:

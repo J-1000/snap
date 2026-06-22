@@ -36,116 +36,44 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     override func draw(_ dirtyRect: NSRect) {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
 
-        // Draw the captured image (flipped to top-left origin)
+        // Captured image, flipped to a top-left origin.
         context.saveGState()
-        context.translateBy(x: 0, y: bounds.height)
-        context.scaleBy(x: 1, y: -1)
+        applyTopLeftFlip(context)
         context.draw(image, in: NSRect(origin: .zero, size: bounds.size))
         context.restoreGState()
 
-        // Draw committed annotations (in top-left origin coordinate system)
+        // Committed annotations plus the in-progress drag preview, rendered
+        // through the same path so the preview and final output can't drift.
         context.saveGState()
+        applyTopLeftFlip(context)
+        annotationManager.render(in: context, size: bounds.size, sourceImage: image)
+        if let preview = previewAnnotation() {
+            annotationManager.render(preview, in: context, size: bounds.size, sourceImage: image)
+        }
+        context.restoreGState()
+    }
+
+    private func applyTopLeftFlip(_ context: CGContext) {
         context.translateBy(x: 0, y: bounds.height)
         context.scaleBy(x: 1, y: -1)
-        annotationManager.render(in: context, size: bounds.size, sourceImage: image)
-        context.restoreGState()
+    }
 
-        // Draw live preview of current drag
-        if currentTool == .freehand, dragPoints.count >= 2 {
-            context.saveGState()
-            context.translateBy(x: 0, y: bounds.height)
-            context.scaleBy(x: 1, y: -1)
-            context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(currentLineWidth)
-            context.setLineCap(.round)
-            context.setLineJoin(.round)
-            context.beginPath()
-            context.move(to: dragPoints[0])
-            for i in 1..<dragPoints.count {
-                context.addLine(to: dragPoints[i])
-            }
-            context.strokePath()
-            context.restoreGState()
-        } else if currentTool == .line, let start = dragOrigin, let end = dragEndPoint {
-            context.saveGState()
-            context.translateBy(x: 0, y: bounds.height)
-            context.scaleBy(x: 1, y: -1)
-            context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(currentLineWidth)
-            context.beginPath()
-            context.move(to: start)
-            context.addLine(to: end)
-            context.strokePath()
-            context.restoreGState()
-        } else if currentTool == .arrow, let start = dragOrigin, let end = dragEndPoint {
-            context.saveGState()
-            context.translateBy(x: 0, y: bounds.height)
-            context.scaleBy(x: 1, y: -1)
-            context.setStrokeColor(currentColor.cgColor)
-            context.setFillColor(currentColor.cgColor)
-            context.setLineWidth(currentLineWidth)
-            context.beginPath()
-            context.move(to: start)
-            context.addLine(to: end)
-            context.strokePath()
-            let angle = atan2(end.y - start.y, end.x - start.x)
-            let headSize: CGFloat = max(10, currentLineWidth * 5)
-            let spread: CGFloat = .pi / 6
-            let left = CGPoint(x: end.x - headSize * cos(angle - spread), y: end.y - headSize * sin(angle - spread))
-            let right = CGPoint(x: end.x - headSize * cos(angle + spread), y: end.y - headSize * sin(angle + spread))
-            context.beginPath()
-            context.move(to: end)
-            context.addLine(to: left)
-            context.addLine(to: right)
-            context.closePath()
-            context.fillPath()
-            context.restoreGState()
-        } else if currentTool == .blur, let rect = dragRect, rect.width > 0, rect.height > 0 {
-            context.saveGState()
-            context.translateBy(x: 0, y: bounds.height)
-            context.scaleBy(x: 1, y: -1)
-            // Draw pixelated preview of the region
-            let imageHeight = CGFloat(image.height)
-            let cropRect = CGRect(
-                x: rect.origin.x,
-                y: imageHeight - rect.maxY,
-                width: rect.width,
-                height: rect.height
-            ).integral.intersection(CGRect(x: 0, y: 0, width: CGFloat(image.width), height: imageHeight))
-            if !cropRect.isEmpty, let cropped = image.cropping(to: cropRect) {
-                let ciImage = CIImage(cgImage: cropped)
-                let pixelScale = max(rect.width, rect.height) / 10
-                if let filter = CIFilter(name: "CIPixellate") {
-                    filter.setValue(ciImage, forKey: kCIInputImageKey)
-                    filter.setValue(max(pixelScale, 2.0), forKey: kCIInputScaleKey)
-                    if let output = filter.outputImage,
-                       let pixelated = AnnotationManager.ciContext.createCGImage(output, from: ciImage.extent) {
-                        context.draw(pixelated, in: rect)
-                    }
-                }
-            }
-            // Draw dashed border to show selection area
-            context.setStrokeColor(NSColor.white.withAlphaComponent(0.8).cgColor)
-            context.setLineWidth(1.0)
-            context.setLineDash(phase: 0, lengths: [4, 4])
-            context.stroke(rect)
-            context.restoreGState()
-        } else if currentTool == .ellipse, let rect = dragRect {
-            context.saveGState()
-            context.translateBy(x: 0, y: bounds.height)
-            context.scaleBy(x: 1, y: -1)
-            context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(currentLineWidth)
-            context.strokeEllipse(in: rect)
-            context.restoreGState()
-        } else if let rect = dragRect {
-            context.saveGState()
-            context.translateBy(x: 0, y: bounds.height)
-            context.scaleBy(x: 1, y: -1)
-            context.setStrokeColor(currentColor.cgColor)
-            context.setLineWidth(currentLineWidth)
-            context.stroke(rect)
-            context.restoreGState()
+    /// The current drag expressed as a transient Annotation, or nil when there
+    /// is nothing to preview.
+    private func previewAnnotation() -> Annotation? {
+        guard let tool = currentTool else { return nil }
+        switch tool {
+        case .freehand:
+            guard dragPoints.count >= 2 else { return nil }
+            return Annotation(type: .freehand, points: dragPoints, color: currentColor, lineWidth: currentLineWidth)
+        case .line, .arrow:
+            guard let start = dragOrigin, let end = dragEndPoint else { return nil }
+            return Annotation(type: tool, start: start, end: end, color: currentColor, lineWidth: currentLineWidth)
+        case .rectangle, .ellipse, .blur:
+            guard let rect = dragRect, rect.width > 0, rect.height > 0 else { return nil }
+            return Annotation(type: tool, rect: rect, color: currentColor, lineWidth: currentLineWidth)
+        case .text:
+            return nil
         }
     }
 
