@@ -17,6 +17,25 @@ final class HotKeyManager {
         )
     }
 
+    enum Action: Equatable {
+        case area
+        case fullScreen
+    }
+
+    /// Pure modifier-match: which capture (if any) an event triggers. Requires an
+    /// exact modifier match, so a superset (e.g. extra Control) is passed through.
+    static func matchedAction(keyCode: CGKeyCode, flags: CGEventFlags) -> Action? {
+        let relevantFlags: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
+        let maskedFlags = flags.intersection(relevantFlags)
+        if keyCode == HotKey.areaCapture.keyCode, maskedFlags == HotKey.areaCapture.modifiers {
+            return .area
+        }
+        if keyCode == HotKey.fullScreenCapture.keyCode, maskedFlags == HotKey.fullScreenCapture.modifiers {
+            return .fullScreen
+        }
+        return nil
+    }
+
     var onAreaCapture: (() -> Void)?
     var onFullScreenCapture: (() -> Void)?
 
@@ -65,28 +84,16 @@ final class HotKeyManager {
 
     private func handleEvent(_ event: CGEvent) -> Unmanaged<CGEvent>? {
         let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
-        let flags = event.flags
-
-        let relevantFlags: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
-        let maskedFlags = flags.intersection(relevantFlags)
-
-        if keyCode == HotKey.areaCapture.keyCode &&
-            maskedFlags == HotKey.areaCapture.modifiers {
-            DispatchQueue.main.async { [weak self] in
-                self?.onAreaCapture?()
-            }
+        switch HotKeyManager.matchedAction(keyCode: keyCode, flags: event.flags) {
+        case .area:
+            DispatchQueue.main.async { [weak self] in self?.onAreaCapture?() }
             return nil
-        }
-
-        if keyCode == HotKey.fullScreenCapture.keyCode &&
-            maskedFlags == HotKey.fullScreenCapture.modifiers {
-            DispatchQueue.main.async { [weak self] in
-                self?.onFullScreenCapture?()
-            }
+        case .fullScreen:
+            DispatchQueue.main.async { [weak self] in self?.onFullScreenCapture?() }
             return nil
+        case nil:
+            return Unmanaged.passRetained(event)
         }
-
-        return Unmanaged.passRetained(event)
     }
 
     deinit {
