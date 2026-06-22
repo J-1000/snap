@@ -165,7 +165,9 @@ final class OverlayView: NSView {
         switch dragMode {
         case .drawing:
             guard let origin = selectionOrigin else { return }
-            currentSelection = normalizedRect(from: origin, to: current)
+            currentSelection = event.modifierFlags.contains(.shift)
+                ? constrainedSquare(from: origin, to: current)
+                : normalizedRect(from: origin, to: current)
         case .moving(let offset):
             guard let selection = currentSelection else { return }
             let origin = NSPoint(x: current.x - offset.x, y: current.y - offset.y)
@@ -302,6 +304,14 @@ final class OverlayView: NSView {
             width: abs(end.x - start.x),
             height: abs(end.y - start.y)
         )
+    }
+
+    /// A square rooted at `origin`, sized by the larger axis toward `current`.
+    private func constrainedSquare(from origin: NSPoint, to current: NSPoint) -> NSRect {
+        let side = max(abs(current.x - origin.x), abs(current.y - origin.y))
+        let x = current.x >= origin.x ? origin.x : origin.x - side
+        let y = current.y >= origin.y ? origin.y : origin.y - side
+        return NSRect(x: x, y: y, width: side, height: side)
     }
 
     private func clamped(rect: NSRect) -> NSRect {

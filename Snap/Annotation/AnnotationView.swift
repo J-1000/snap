@@ -106,7 +106,12 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     override func mouseDragged(with event: NSEvent) {
         guard let origin = dragOrigin else { return }
         let point = convert(event.locationInWindow, from: nil)
-        let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+        var imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+
+        let shift = event.modifierFlags.contains(.shift)
+        if shift, currentTool == .line || currentTool == .arrow {
+            imagePoint = constrainedAngle(from: origin, to: imagePoint)
+        }
 
         dragEndPoint = imagePoint
 
@@ -114,12 +119,33 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             dragPoints.append(imagePoint)
         }
 
-        let x = min(origin.x, imagePoint.x)
-        let y = min(origin.y, imagePoint.y)
-        let w = abs(imagePoint.x - origin.x)
-        let h = abs(imagePoint.y - origin.y)
-        dragRect = NSRect(x: x, y: y, width: w, height: h)
+        if shift, currentTool == .rectangle || currentTool == .ellipse || currentTool == .blur {
+            dragRect = constrainedSquare(from: origin, to: imagePoint)
+        } else {
+            let x = min(origin.x, imagePoint.x)
+            let y = min(origin.y, imagePoint.y)
+            let w = abs(imagePoint.x - origin.x)
+            let h = abs(imagePoint.y - origin.y)
+            dragRect = NSRect(x: x, y: y, width: w, height: h)
+        }
         needsDisplay = true
+    }
+
+    /// A square rooted at `origin`, sized by the larger axis toward `current`.
+    private func constrainedSquare(from origin: NSPoint, to current: NSPoint) -> NSRect {
+        let side = max(abs(current.x - origin.x), abs(current.y - origin.y))
+        let x = current.x >= origin.x ? origin.x : origin.x - side
+        let y = current.y >= origin.y ? origin.y : origin.y - side
+        return NSRect(x: x, y: y, width: side, height: side)
+    }
+
+    /// Snap the endpoint to the nearest 45° from `origin`, preserving length.
+    private func constrainedAngle(from origin: NSPoint, to current: NSPoint) -> NSPoint {
+        let dx = current.x - origin.x
+        let dy = current.y - origin.y
+        let distance = hypot(dx, dy)
+        let snapped = (atan2(dy, dx) / (.pi / 4)).rounded() * (.pi / 4)
+        return NSPoint(x: origin.x + distance * cos(snapped), y: origin.y + distance * sin(snapped))
     }
 
     override func mouseUp(with event: NSEvent) {
