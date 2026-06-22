@@ -71,14 +71,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hud.onAnnotate = { [weak self] in
             self?.showAnnotationWindow(image: image, scaleFactor: scaleFactor, selectionRect: selectionRect)
         }
-        hud.onCopy = {
+        hud.onCopy = { [weak self] in
             if OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) {
-                OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
+                self?.confirm("Copied to clipboard")
+            } else {
+                OutputManager.showNotification(title: "Snap", text: "Copy failed")
             }
         }
-        hud.onSave = {
+        hud.onSave = { [weak self] in
             if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: scaleFactor) {
-                OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+                self?.confirm("Saved to \(url.lastPathComponent)")
             }
         }
         hud.onDismiss = { [weak self] in self?.captureHUD = nil }
@@ -119,8 +121,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let window = window else { return }
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
             OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
-            _ = OutputManager.copyToClipboard(output, scaleFactor: self?.lastCaptureScaleFactor)
-            OutputManager.showNotification(title: "Snap", text: "Copied to clipboard")
+            if OutputManager.copyToClipboard(output, scaleFactor: self?.lastCaptureScaleFactor) {
+                self?.confirm("Copied to clipboard")
+            } else {
+                OutputManager.showNotification(title: "Snap", text: "Copy failed")
+            }
             self?.dismissAnnotationWindow()
         }
         window.onSave = { [weak self, weak window] in
@@ -128,7 +133,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let output = window.annotationView.annotationManager.composite(onto: image) ?? image
             OutputManager.saveImage(output, scaleFactor: self?.lastCaptureScaleFactor ?? 1.0)
             if let url = OutputManager.saveToDefaultLocation(output, scaleFactor: self?.lastCaptureScaleFactor) {
-                OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+                self?.confirm("Saved to \(url.lastPathComponent)")
             }
             self?.dismissAnnotationWindow()
         }
@@ -160,6 +165,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         annotationWindow = window
     }
 
+    /// Confirm an output action: a notification when enabled, otherwise a brief
+    /// status-item flash so copy/save always acknowledge.
+    private func confirm(_ text: String) {
+        if PreferencesManager.shared.showNotifications {
+            OutputManager.showNotification(title: "Snap", text: text)
+        } else {
+            statusBarController?.flashSuccess()
+        }
+    }
+
     private func dismissAnnotationWindow() {
         annotationWindow?.orderOut(nil)
         annotationWindow = nil
@@ -168,7 +183,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func saveScreenshot() {
         guard let image = OutputManager.lastCapturedImage else { return }
         if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: OutputManager.lastCapturedScaleFactor) {
-            OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+            confirm("Saved to \(url.lastPathComponent)")
         }
     }
 

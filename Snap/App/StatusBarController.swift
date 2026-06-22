@@ -14,6 +14,18 @@ final class StatusBarController {
         statusItem.menu = buildMenu()
     }
 
+    /// Briefly flash a checkmark on the menu-bar icon as a lightweight
+    /// acknowledgement when notifications are disabled.
+    func flashSuccess() {
+        guard let button = statusItem.button else { return }
+        let original = button.image
+        button.image = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Done")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak button] in
+            button?.image = original
+                ?? NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Snap")
+        }
+    }
+
     private func buildMenu() -> NSMenu {
         let menu = NSMenu()
 
