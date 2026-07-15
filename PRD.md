@@ -7,8 +7,8 @@
 | Document | Product Requirements Document (PRD) |
 | Product name | Snap |
 | Version | 1.0 |
-| Date | February 2026 |
-| Status | Draft |
+| Date | July 2026 |
+| Status | Implemented |
 | Platform | macOS 13 Ventura and later (Intel + Apple Silicon) |
 
 ---
@@ -70,17 +70,21 @@ When the user presses the activation hotkey, the entire screen dims with a semi-
 
 #### 3.1.2 Full-Screen Capture
 
-A separate configurable hotkey triggers an instant full-screen capture. The image is saved directly to the default save location.
+A separate fixed hotkey triggers an instant capture of the primary display. The result follows the same automatic copy/save preferences and post-capture HUD as an area capture. A menu command also provides a five-second delayed full-screen capture.
 
 #### 3.1.3 Multi-Monitor Support
 
-On activation, all connected displays dim simultaneously. The user can drag a selection that spans multiple monitors. Full-screen capture captures the primary display by default.
+On activation, all connected displays dim simultaneously. Each selection is constrained to the display where the drag starts so its pixel scale and color space remain unambiguous. Full-screen capture captures the primary display by default.
+
+#### 3.1.4 Text Capture
+
+The Capture Text menu action reuses area selection, recognizes text on-device with Vision, and copies the result to the pasteboard. No image or recognized text leaves the Mac.
 
 ---
 
 ### 3.2 Annotation Toolbar
 
-After an area selection is confirmed, two toolbars appear adjacent to the selection rectangle.
+After capture, a compact HUD offers Copy, Save, and Annotate. Choosing Annotate—or enabling the open-editor preference—opens an editor with two toolbars around the native-resolution canvas.
 
 #### 3.2.1 Editing Toolbar (Right Side)
 
@@ -88,14 +92,14 @@ After an area selection is confirmed, two toolbars appear adjacent to the select
 |---|------|-------------|
 | 1 | Line | Draws straight lines. Color selectable. Thickness adjustable (1–5 px). |
 | 2 | Arrow | Draws directional arrows. Color selectable. Thickness adjustable. |
-| 3 | Freehand / Marker | Freeform drawing. Defaults to yellow when used as highlighter. |
+| 3 | Freehand | Freeform drawing with round line caps and joins. |
 | 4 | Rectangle | Draws outlined rectangles. Color selectable. |
 | 5 | Ellipse | Draws outlined ellipses. Color selectable. |
 | 6 | Text | Adds typed text annotations. Color selectable. Font size adjustable (8–72 pt). |
-| 7 | Blur / Pixelate | Applies a pixelation or Gaussian blur to a selected rectangular region. Essential for redacting passwords, tokens, emails, and PII in screenshots. |
+| 7 | Blur / Pixelate | Applies pixelation to a selected rectangular region for redacting passwords, tokens, emails, and PII. |
 | 8 | Color Picker | Preset swatches plus a custom color dialog. |
 | 9 | Undo / Redo | ⌘Z undoes the most recent annotation. ⌘⇧Z redoes. Supports full undo/redo stack. |
-| 10 | Close (X) | Discards the capture and returns to normal desktop. |
+| 10 | Close (X) | Closes the editor and returns to the desktop. |
 
 #### 3.2.2 Action Toolbar (Bottom)
 
@@ -103,8 +107,9 @@ After an area selection is confirmed, two toolbars appear adjacent to the select
 |---|--------|----------|-------------|
 | 1 | Copy to Clipboard | ⌘C | Copies the annotated screenshot to the system clipboard. |
 | 2 | Save to File | ⌘S | Saves to the default directory (or opens a save dialog with ⌘⇧S). |
-| 3 | Google Image Search | ⌘G | Performs a reverse image search via Google Images. |
+| 3 | Google Image Search | ⌘G | Copies the image and opens Google Images for the user to paste. |
 | 4 | Print | ⌘P | Opens the macOS system print dialog. |
+| 5 | Share | — | Opens the native macOS share sheet. |
 
 ---
 
@@ -112,17 +117,17 @@ After an area selection is confirmed, two toolbars appear adjacent to the select
 
 #### 3.3.1 Local Save
 
-Pressing ⌘S saves the annotated screenshot to the default save directory (`~/Desktop` by default, configurable in preferences). Pressing ⌘⇧S opens a save-as dialog for choosing a different location or format. Supported formats are PNG (default) and JPEG (with configurable quality). The file name is auto-generated using the pattern `Snap_YYYY-MM-DD_HH-mm-ss`.
+Pressing ⌘S saves the annotated screenshot to the default save directory (`~/Desktop` by default, configurable in preferences). Pressing ⌘⇧S opens a save-as dialog for choosing a different location or format. Supported formats are PNG (default) and JPEG (with configurable quality). The file name is auto-generated using the pattern `Snap_YYYY-MM-DD_HH-mm-ss`; same-second collisions receive a numeric suffix rather than replacing an existing capture.
 
 #### 3.3.2 Clipboard Copy
 
-Pressing ⌘C copies the annotated image to the macOS pasteboard in PNG format.
+Pressing ⌘C copies the annotated image to the macOS pasteboard with PNG and TIFF representations.
 
 ---
 
 ### 3.4 Reverse Image Search
 
-Pressing ⌘G uploads the capture to Google's reverse image search endpoint and opens the results page in the default browser.
+Pressing ⌘G copies the capture and opens Google Images in the default browser. The user explicitly pastes the image to initiate the search; Snap does not transmit it in the background.
 
 ---
 
@@ -136,14 +141,16 @@ The print action (⌘P) opens the macOS system print dialog with the current ann
 
 The preferences window is accessible from the menu bar icon's context menu. It is a single flat pane with the following settings:
 
-- **Activation hotkey** (default: ⌘⇧⌥4). Supports Fn/Ctrl/Shift/Option/⌘ combos.
-- **Full-screen capture hotkey** (configurable).
+- **Area capture shortcut reference**: ⌘⇧⌥4.
+- **Full-screen capture shortcut reference**: ⌘⇧⌥3.
 - **Default save directory** (folder picker, default: `~/Desktop`).
-- **Default save format**: PNG or JPEG. JPEG quality slider (50–100).
+- **Default save format**: PNG or JPEG. JPEG quality slider (10–100).
 - **Retina downscaling toggle**: when enabled, saves at 1x resolution for smaller files.
 - **Include mouse cursor** in captures (toggle, default: off).
 - **Show notification** after save/copy (toggle, default: on).
-- **Launch at login** (toggle, default: on).
+- **Automatic clipboard copy and save** toggles.
+- **Open editor after capture** toggle; otherwise the post-capture HUD is shown.
+- **Launch at login** (toggle, default: off).
 
 ---
 
@@ -151,8 +158,8 @@ The preferences window is accessible from the menu bar icon's context menu. It i
 
 | Action | Default Shortcut |
 |--------|------------------|
-| Activate / start capture | ⌘⇧⌥4 (configurable) |
-| Instant full-screen save | Configurable |
+| Activate / start capture | ⌘⇧⌥4 |
+| Instant full-screen capture | ⌘⇧⌥3 |
 | Copy to clipboard | ⌘C |
 | Save to default directory | ⌘S |
 | Save as (choose location) | ⌘⇧S |
@@ -181,18 +188,18 @@ The preferences window is accessible from the menu bar icon's context menu. It i
 
 The application follows a modular architecture with three core subsystems:
 
-- **CaptureEngine:** Manages screen dimming overlay, user selection interaction, and pixel capture via ScreenCaptureKit. Handles multi-monitor geometry and Retina scaling.
-- **AnnotationEngine:** Renders annotation tools (line, arrow, freehand, rectangle, ellipse, text, blur) as lightweight CALayer overlays on the captured image. Maintains a full undo/redo stack.
+- **CaptureEngine:** Manages per-display dimming overlays, user selection interaction, serialized capture modes, and pixel capture via ScreenCaptureKit. Handles Retina scaling and display color spaces.
+- **AnnotationEngine:** Renders annotation tools (line, arrow, freehand, rectangle, ellipse, text, blur, and step badges) through Core Graphics onto the captured image. Maintains a full undo/redo stack.
 - **OutputManager:** Handles save-to-file (PNG/JPEG conversion), clipboard copy, print dispatch, and reverse image search. Generates filenames from the timestamp pattern.
 
 ### 5.3 macOS Permissions
 
-The app requires Screen Recording permission (Privacy & Security → Screen Recording). On first launch, the app requests this entitlement. If denied, a clear instructional dialog explains how to grant the permission. The app handles macOS Sonoma/Sequoia periodic re-authorization prompts gracefully by detecting capture failures and re-prompting with guidance.
+The app requires Screen Recording permission (Privacy & Security → Screen Recording) and Accessibility permission for its global event-tap shortcuts. On first launch, the app requests both. If Screen Recording is denied or revoked, a clear instructional dialog explains how to restore it. If Accessibility access is granted while Snap is running, the app retries the event tap when it becomes active again.
 
 ### 5.4 System Requirements
 
 - macOS 13 Ventura or later (for ScreenCaptureKit v2).
-- 64-bit Intel or Apple Silicon (M1/M2/M3/M4) processor.
+- 64-bit Intel or Apple Silicon processor.
 - Approximately 15 MB disk space for the application bundle.
 - Internet connection required only for Google reverse image search.
 
@@ -216,7 +223,7 @@ The app requires Screen Recording permission (Privacy & Security → Screen Reco
 ### 6.3 Privacy
 
 - No telemetry, analytics, or usage tracking of any kind.
-- No data is transmitted except explicit user-initiated actions (reverse image search).
+- No data is transmitted by Snap. Reverse image search opens Google Images and leaves the upload/paste action to the user.
 - All data stays local on disk.
 
 ### 6.4 macOS Integration
@@ -240,8 +247,5 @@ The app requires Screen Recording permission (Privacy & Security → Screen Reco
 
 - Window-snap capture: automatically detect window boundaries on hover.
 - Scrolling capture: capture content beyond the visible viewport.
-- Timed / delayed capture with countdown overlay.
-- OCR text extraction from captured regions.
 - Video / GIF recording of a selected screen region.
-- Numbered step annotations for tutorial-style screenshots.
 - Cloud upload to S3-compatible bucket with shareable links (if clipboard-paste workflow proves insufficient).

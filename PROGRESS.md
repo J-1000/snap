@@ -50,7 +50,7 @@ distribution signing.
 
 ## Quality gates
 
-The test suite currently contains 100 tests covering annotation data and
+The test suite currently contains 104 tests covering annotation data and
 pixel-level rendering, undo/redo, output encoding/downscaling, preferences,
 capture-state serialization, editor sizing, selection geometry, filename
 generation, and hotkey matching.
