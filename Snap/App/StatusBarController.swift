@@ -4,6 +4,7 @@ import AppKit
 final class StatusBarController {
     private var statusItem: NSStatusItem
     private var preferencesWindow: PreferencesWindow?
+    private var successFlashWorkItem: DispatchWorkItem?
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -19,12 +20,17 @@ final class StatusBarController {
     /// acknowledgement when notifications are disabled.
     func flashSuccess() {
         guard let button = statusItem.button else { return }
-        let original = button.image
+        successFlashWorkItem?.cancel()
         button.image = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Done")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak button] in
-            button?.image = original
-                ?? NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Snap")
+        let item = DispatchWorkItem { [weak self, weak button] in
+            button?.image = NSImage(
+                systemSymbolName: "camera.viewfinder",
+                accessibilityDescription: "Snap"
+            )
+            self?.successFlashWorkItem = nil
         }
+        successFlashWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: item)
     }
 
     private func buildMenu() -> NSMenu {

@@ -144,10 +144,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         lastCaptureScaleFactor = scaleFactor
         OutputManager.cacheLastCapture(image, scaleFactor: scaleFactor)
         let prefs = PreferencesManager.shared
+        var automaticConfirmations: [String] = []
 
         if prefs.copyToClipboardAfterCapture {
             if OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) {
-                if showUI { confirm("Copied to clipboard") }
+                automaticConfirmations.append("Copied to clipboard")
             } else if showUI {
                 OutputManager.showFailure("Copy failed")
             }
@@ -155,10 +156,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if prefs.autoSaveAfterCapture {
             if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: scaleFactor) {
-                if showUI { confirm("Saved to \(url.lastPathComponent)") }
+                automaticConfirmations.append("Saved to \(url.lastPathComponent)")
             } else if showUI {
                 OutputManager.showFailure("Auto-save failed")
             }
+        }
+        if showUI, !automaticConfirmations.isEmpty {
+            confirm(automaticConfirmations.joined(separator: " • "))
         }
         if showUI {
             if prefs.openEditorAfterCapture {
