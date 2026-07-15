@@ -30,9 +30,8 @@ final class PreferencesManager {
     }
 
     private func registerDefaults() {
-        let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
         defaults.register(defaults: [
-            Keys.saveDirectory: desktop.path,
+            Keys.saveDirectory: FileNaming.defaultSaveDirectory.path,
             Keys.imageFormat: "png",
             Keys.jpegQuality: 0.85,
             Keys.downscaleRetina: false,

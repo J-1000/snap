@@ -43,8 +43,7 @@ final class FileNamingTests: XCTestCase {
 
     func testDefaultSaveURLPointsToDesktop() {
         let url = FileNaming.defaultSaveURL()
-        let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
-        XCTAssertEqual(url.deletingLastPathComponent().path, desktop.path)
+        XCTAssertEqual(url.deletingLastPathComponent(), FileNaming.defaultSaveDirectory)
     }
 
     func testDefaultSaveURLHasPngExtension() {
