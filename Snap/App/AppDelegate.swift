@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastCaptureScaleFactor: CGFloat = 1.0
     private var isShowingPermissionAlert = false
     private var pendingTextCapture = false
+    private var delayedCaptureWorkItem: DispatchWorkItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // App-hosted unit tests launch Snap before loading the test bundle.
@@ -74,25 +75,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func startAreaCapture() {
         guard !captureEngine.isActive else { return }
+        cancelDelayedCapture()
         captureEngine.startAreaSelection()
     }
 
     func startFullScreenCapture() {
         guard let screen = NSScreen.main else { return }
+        cancelDelayedCapture()
         captureEngine.captureFullScreen(screen)
     }
 
     func startDelayedFullScreenCapture() {
+        guard delayedCaptureWorkItem == nil, !captureEngine.isActive else { return }
         OutputManager.showNotification(title: "Snap", text: "Capturing full screen in 5 seconds…")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+        let item = DispatchWorkItem { [weak self] in
+            self?.delayedCaptureWorkItem = nil
             self?.startFullScreenCapture()
         }
+        delayedCaptureWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: item)
     }
 
     func startTextCapture() {
         guard !captureEngine.isActive else { return }
+        cancelDelayedCapture()
         pendingTextCapture = true
         captureEngine.startAreaSelection()
+    }
+
+    private func cancelDelayedCapture() {
+        delayedCaptureWorkItem?.cancel()
+        delayedCaptureWorkItem = nil
     }
 
     private func recognizeText(in image: CGImage) {
