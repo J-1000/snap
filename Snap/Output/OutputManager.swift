@@ -121,6 +121,8 @@ final class OutputManager {
             if response == .OK, let url = panel.url {
                 if OutputManager.saveToFile(image, url: url) {
                     OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+                } else {
+                    OutputManager.showFailure("Could not save \(url.lastPathComponent)")
                 }
             }
         }
@@ -197,7 +199,21 @@ final class OutputManager {
     }
 
     static func showNotification(title: String, text: String) {
-        guard PreferencesManager.shared.showNotifications else { return }
+        showNotification(title: title, text: text, respectingPreference: true)
+    }
+
+    /// Failures must remain visible even when optional success notifications
+    /// are disabled; otherwise a failed output action appears to do nothing.
+    static func showFailure(_ text: String) {
+        showNotification(title: "Snap", text: text, respectingPreference: false)
+    }
+
+    private static func showNotification(
+        title: String,
+        text: String,
+        respectingPreference: Bool
+    ) {
+        guard !respectingPreference || PreferencesManager.shared.showNotifications else { return }
 
         // Use a transient floating panel as notification
         let panel = NSPanel(

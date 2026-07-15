@@ -146,13 +146,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) {
                 if showUI { confirm("Copied to clipboard") }
             } else if showUI {
-                OutputManager.showNotification(title: "Snap", text: "Copy failed")
+                OutputManager.showFailure("Copy failed")
             }
         }
 
         if prefs.autoSaveAfterCapture {
             if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: scaleFactor) {
                 if showUI { confirm("Saved to \(url.lastPathComponent)") }
+            } else if showUI {
+                OutputManager.showFailure("Auto-save failed")
             }
         }
         if showUI {
@@ -175,12 +177,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) {
                 self?.confirm("Copied to clipboard")
             } else {
-                OutputManager.showNotification(title: "Snap", text: "Copy failed")
+                OutputManager.showFailure("Copy failed")
             }
         }
         hud.onSave = { [weak self] in
             if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: scaleFactor) {
                 self?.confirm("Saved to \(url.lastPathComponent)")
+            } else {
+                OutputManager.showFailure("Save failed")
             }
         }
         hud.onDismiss = { [weak self] in self?.captureHUD = nil }
@@ -232,18 +236,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let output = self.flattenedOutput(from: window)
             if OutputManager.copyToClipboard(output, scaleFactor: self.lastCaptureScaleFactor) {
                 self.confirm("Copied to clipboard")
+                self.dismissAnnotationWindow()
             } else {
-                OutputManager.showNotification(title: "Snap", text: "Copy failed")
+                OutputManager.showFailure("Copy failed")
             }
-            self.dismissAnnotationWindow()
         }
         window.onSave = { [weak self, weak window] in
             guard let self, let window else { return }
             let output = self.flattenedOutput(from: window)
             if let url = OutputManager.saveToDefaultLocation(output, scaleFactor: self.lastCaptureScaleFactor) {
                 self.confirm("Saved to \(url.lastPathComponent)")
+                self.dismissAnnotationWindow()
+            } else {
+                OutputManager.showFailure("Save failed")
             }
-            self.dismissAnnotationWindow()
         }
         window.onSaveAs = { [weak self, weak window] in
             guard let self, let window else { return }
@@ -251,8 +257,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         window.onReverseSearch = { [weak self, weak window] in
             guard let self, let window else { return }
-            _ = OutputManager.reverseImageSearch(self.flattenedOutput(from: window), scaleFactor: self.lastCaptureScaleFactor)
-            self.dismissAnnotationWindow()
+            if OutputManager.reverseImageSearch(
+                self.flattenedOutput(from: window),
+                scaleFactor: self.lastCaptureScaleFactor
+            ) {
+                self.dismissAnnotationWindow()
+            } else {
+                OutputManager.showFailure("Reverse image search failed")
+            }
         }
         window.onPrint = { [weak self, weak window] in
             guard let self, let window else { return }
@@ -303,6 +315,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let image = OutputManager.lastCapturedImage else { return }
         if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: OutputManager.lastCapturedScaleFactor) {
             confirm("Saved to \(url.lastPathComponent)")
+        } else {
+            OutputManager.showFailure("Save failed")
         }
     }
 
