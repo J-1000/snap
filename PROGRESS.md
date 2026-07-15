@@ -1,209 +1,68 @@
-# Snap - Implementation Progress
+# Snap — Implementation Progress
 
-## Milestone 1: Core Capture — COMPLETE
+Last verified: 2026-07-15
 
-All 11 implementation steps have been completed and committed. The app builds successfully.
+## Status
 
-### Commits (oldest → newest)
-1. `0dc4a02` scaffold Xcode project with menu bar app configuration
-2. `4989405` add menu bar status item with context menu
-3. `d047cbb` add global hotkey manager with CGEvent tap
-4. `9528134` add full-screen dim overlay windows for all displays
-5. `2d66c5d` add click-drag area selection with dimension label
-6. `ba2e382` capture selected screen region via ScreenCaptureKit
-7. `75a2bba` copy captured screenshot to clipboard as PNG
-8. `5df6ca3` add save-to-file with auto-generated filenames
-9. `5f5937a` add instant full-screen capture on configurable hotkey
-10. `85def59` add preferences window with configurable settings
-11. `b8190a3` refine multi-monitor capture and selection spanning
+All three planned milestones are implemented. The app builds on macOS 13+ with
+Swift 5.9, complete Swift concurrency checking, and Hardened Runtime enabled for
+distribution signing.
 
-### What's Implemented
-
-| Feature | Status | Notes |
+| Milestone | Status | Delivered |
 |---|---|---|
-| Xcode project (xcodegen) | Done | `project.yml` → `.xcodeproj`, LSUIElement menu bar app |
-| Menu bar status item | Done | Camera icon, context menu with all actions |
-| Global hotkeys | Done | ⌘⇧⌥4 area capture, ⌘⇧⌥3 full-screen capture (CGEvent tap) |
-| Screen overlay | Done | Full-screen dim overlay on all connected displays |
-| Area selection | Done | Click-drag rubber-band with dimension label, ESC to cancel |
-| Screen capture | Done | ScreenCaptureKit via SCStream (macOS 13+ compatible) |
-| Clipboard copy | Done | Auto-copies PNG to clipboard after capture |
-| Save to file | Done | `Snap_YYYY-MM-DD_HH-mm-ss.png` to Desktop, Save As dialog |
-| Full-screen capture | Done | Instant capture of primary display |
-| Preferences window | Done | Save directory, format (PNG/JPEG), quality, retina, auto-save, launch at login |
-| Multi-monitor | Done | Per-display overlays, CGDirectDisplayID matching, coordinate mapping |
+| M1 — Core capture | Complete | Area/full-screen capture, per-display overlays, selection editing, clipboard and file output, preferences |
+| M2 — Annotation | Complete | Eight annotation tools, style controls, native-resolution compositing, undo/redo, Retina-aware editor |
+| M3 — Polish | Complete | JPEG, print, reverse-search handoff, share sheet, OCR, delayed capture, permission recovery, launch at login |
 
-### File Structure
-```
-Snap/
-├── project.yml
-├── Snap/
-│   ├── App/
-│   │   ├── main.swift              # NSApplication entry point
-│   │   ├── AppDelegate.swift       # App lifecycle, wires everything together
-│   │   └── StatusBarController.swift   # Menu bar icon + context menu
-│   ├── Capture/
-│   │   ├── CaptureEngine.swift     # Orchestrates overlay → capture flow
-│   │   ├── OverlayWindow.swift     # Full-screen borderless overlay window
-│   │   ├── OverlayView.swift       # Mouse tracking, selection rubber-band
-│   │   └── ScreenCapture.swift     # ScreenCaptureKit SCStream integration
-│   ├── Output/
-│   │   ├── OutputManager.swift     # Clipboard copy, save to file, notifications
-│   │   └── FileNaming.swift        # Snap_YYYY-MM-DD_HH-mm-ss pattern
-│   ├── Preferences/
-│   │   ├── PreferencesManager.swift    # UserDefaults wrapper
-│   │   └── PreferencesWindow.swift     # Preferences UI (AppKit)
-│   ├── HotKey/
-│   │   └── HotKeyManager.swift     # Global hotkey via CGEvent tap
-│   └── Resources/
-│       ├── Info.plist
-│       ├── Snap.entitlements
-│       └── Assets.xcassets/
-```
+## Current capabilities
 
-### Build & Run
+### Capture
+
+- Fixed global shortcuts: ⌘⇧⌥4 for area capture and ⌘⇧⌥3 for full screen.
+- Area selections can be drawn, moved, resized, nudged, and constrained to a
+  square. All displays receive an overlay; capture is performed on the display
+  where the selection starts.
+- Full-screen, five-second delayed, and on-device OCR capture modes.
+- Screen Recording and Accessibility permission prompting and recovery.
+- ScreenCaptureKit one-shot capture on macOS 14+, with a timeout-protected
+  stream fallback on macOS 13.
+- Display-native color-space capture and optional cursor inclusion.
+
+### Annotation
+
+- Line, arrow, freehand, rectangle, ellipse, text, pixelate, and numbered step
+  badge tools.
+- Color, stroke-width, and font-size controls remembered between captures.
+- Shift-constrained geometry, delete-last, and full undo/redo.
+- Native-resolution output with point-correct Retina text. Oversized captures
+  zoom to fit so both toolbars remain reachable.
+
+### Output and preferences
+
+- PNG/JPEG saves, configurable JPEG quality and save directory, Save As, and
+  optional 1× Retina downscaling.
+- PNG and TIFF clipboard representations.
+- Native print and share sheets; reverse image search copies the image and opens
+  Google Images for the user to paste.
+- Optional automatic copy/save, editor opening, notifications, cursor capture,
+  and launch at login.
+- A post-capture HUD keeps Copy, Save, and Annotate reachable by default.
+
+## Quality gates
+
+The test suite currently contains 100 tests covering annotation data and
+pixel-level rendering, undo/redo, output encoding/downscaling, preferences,
+capture-state serialization, editor sizing, selection geometry, filename
+generation, and hotkey matching.
+
 ```bash
 xcodegen generate
-xcodebuild -scheme Snap -configuration Debug build
-# App is at: ~/Library/Developer/Xcode/DerivedData/Snap-*/Build/Products/Debug/Snap.app
-```
-
-### Technical Decisions
-- **SCStream instead of SCScreenshotManager**: `SCScreenshotManager` requires macOS 14+. We use `SCStream` with a single-frame capture to maintain macOS 13+ compatibility.
-- **CGEvent tap for hotkeys**: No external dependencies. Requires Accessibility permission.
-- **Display matching via CGDirectDisplayID**: Reliable matching across identical-resolution multi-monitor setups.
-- **No app sandbox**: Required for global hotkey (CGEvent tap) and screen capture.
-
-## Milestone 2: Annotation — IN PROGRESS
-
-### Commits (oldest → newest)
-1. `eb8c2d9` add editing toolbar with tool selection and color picker
-2. `eb3dba4` add annotation data model and manager
-3. `d524a1e` wire rectangle drawing and annotation compositing
-4. `1b96288` add start/end point fields to Annotation data model
-5. `fe9a40e` add line annotation type and rendering
-6. `60fe602` add line tool button to editing toolbar
-7. `e82c0cd` wire line drawing interaction in annotation view
-8. `a6d7447` add ellipse annotation type and rendering
-9. `2cda927` add ellipse tool button to editing toolbar
-10. `7bfef61` add ellipse live preview during drag
-11. `1b090c1` add arrow annotation type and rendering with arrowhead
-12. `de9fdda` add arrow tool button to editing toolbar
-13. `1714dc6` wire arrow drawing interaction with live arrowhead preview
-14. `06bba36` add freehand annotation type and points field to data model
-15. `2b1aaf5` add freehand rendering with round line caps and joins
-16. `a50bb19` add freehand tool button to editing toolbar
-17. `3fdf7b8` wire freehand drawing interaction with point collection
-18. `d706be7` add freehand live preview during drag
-19. `ccc3e36` add text annotation type to data model
-20. `169ed24` add text annotation rendering in AnnotationManager
-21. `659e002` add text tool button to editing toolbar
-22. `3863752` add text input interaction to AnnotationView
-23. `ca8d080` add unit tests for text annotation
-24. `de41728` add blur case to AnnotationType enum
-25. `3d224d4` add blur rendering with CIPixellate filter to AnnotationManager
-26. `2ec6ad6` add blur tool button to editing toolbar
-27. `baca668` add blur preview and interaction to AnnotationView
-28. `26fbf7c` add unit tests for blur annotation
-
-### What's Implemented
-
-| Feature | Status | Notes |
-|---|---|---|
-| Annotation data model | Done | `Annotation` struct with type, rect, startPoint/endPoint, points, color, lineWidth |
-| Undo/redo stack | Done | Full state snapshot approach in `AnnotationManager` |
-| Annotation compositing | Done | Composites annotations onto CGImage for output |
-| Annotation window | Done | Floating borderless window with image canvas + toolbars |
-| Action toolbar | Done | Copy (⌘C), Save (⌘S), Save As (⌘⇧S), Close (Esc) |
-| Editing toolbar | Done | Tool selection buttons + color well + 4 color presets |
-| Rectangle tool | Done | Rect-based drag, outlined stroke |
-| Ellipse tool | Done | Rect-based drag, strokeEllipse rendering |
-| Line tool | Done | Point-based drag with start/end, live preview |
-| Arrow tool | Done | Line + filled triangular arrowhead (30° spread, atan2) |
-| Freehand tool | Done | Point-based drag, round caps/joins, live preview |
-| Text tool | Done | Click to place inline text field, Enter to commit, Esc to cancel |
-| Blur/pixelate tool | Done | Rect-based drag, CIPixellate filter on source image region, live preview |
-
-### Annotation File Structure
-```
-Snap/Annotation/
-├── Annotation.swift         # Data model (AnnotationType enum + Annotation struct)
-├── AnnotationManager.swift  # Undo/redo, rendering, compositing
-├── AnnotationView.swift     # Canvas view with mouse/key handling
-├── AnnotationWindow.swift   # Window layout (canvas + toolbars)
-├── EditingToolbar.swift     # Tool buttons + color picker (AnnotationTool enum)
-└── ActionToolbar.swift      # Output action buttons (copy/save/close)
-```
-
-### Technical Decisions
-- **Point-based vs rect-based annotations**: Lines and arrows use startPoint/endPoint fields; rectangles and ellipses use bounding rect. Both stored on `Annotation` struct with optional point fields.
-- **Live preview**: Separate drag state (dragOrigin/dragEndPoint/dragRect/dragPoints) drawn without modifying AnnotationManager until mouseUp.
-- **Coordinate system**: View coordinates (top-left origin) throughout annotation layer; CGContext flipped when compositing onto bottom-left origin CGImage.
-- **Arrowhead rendering**: Filled triangle using atan2 for angle, 30° spread, size scales with lineWidth.
-- **Freehand rendering**: Array of CGPoints with `addLine(to:)`, round line caps and joins for smooth appearance.
-- **Text rendering**: Uses NSAttributedString drawn via NSGraphicsContext pushed from CGContext (flipped). Inline NSTextField for input with Enter to commit, Escape to cancel.
-- **Blur/pixelate rendering**: Crops source image region, applies CIPixellate filter (scale = max(w,h)/10), draws pixelated result back. Render method accepts optional sourceImage parameter for blur support.
-
-### Remaining for M2
-- [x] Freehand / marker tool (array of points, round caps/joins)
-- [x] Text tool (inline text field, system font, click to place, Enter to commit)
-- [x] Blur / pixelate tool (Core Image CIPixellate filter on selected region)
-
-All M2 annotation tools are now complete.
-
-## Unit Tests
-
-### Commits (oldest → newest)
-1. `1d225bb` add SnapTests unit test target to project configuration
-2. `3d8692e` add unit tests for Annotation data model
-3. `c2ecc4d` add unit tests for AnnotationManager undo/redo and rendering
-4. `fa138c3` add unit tests for FileNaming utility
-5. `56ae4bc` add unit tests for OutputManager file saving
-6. `ca8d080` add unit tests for text annotation
-
-### Test Coverage
-
-| Test File | Tests | What's Covered |
-|---|---|---|
-| `AnnotationTests` | 21 | All 4 initializers (rect, point, freehand, text), blur type, bounding rect computation, unique IDs, default/custom lineWidth, field isolation, edge cases |
-| `AnnotationManagerTests` | 37 | Add, undo, redo, canUndo/canRedo, onChanged callback, rendering all 7 annotation types incl. blur with/without sourceImage, compositing |
-| `FileNamingTests` | 9 | Filename format/regex, default/custom extension, URL points to Desktop |
-| `OutputManagerTests` | 6 | Image caching, save to file, PNG round-trip validation, invalid path handling |
-
-### Test File Structure
-```
-SnapTests/
-├── AnnotationTests.swift
-├── AnnotationManagerTests.swift
-├── FileNamingTests.swift
-└── OutputManagerTests.swift
-```
-
-### Running Tests
-```bash
-xcodegen generate
+xcodebuild -scheme Snap -configuration Debug clean build
+xcodebuild analyze -scheme Snap -configuration Debug -destination 'platform=macOS'
 xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=macOS'
 ```
 
-### Not Yet Implemented (M3: Polish)
-- [ ] Print (⌘P)
-- [ ] Google reverse image search (⌘G)
-- [ ] Dark mode polish
-
-### Recent Updates (2026-02-20)
-- Output format now respects PNG/JPEG preferences and JPEG quality settings.
-- Retina downscaling is supported when enabled in preferences.
-- Auto-save and copy-to-clipboard preferences are applied on capture.
-- Launch at login preference is applied via `SMAppService` on macOS 13+.
-- Added tests for auto-save behavior, JPEG output detection, and downscale output.
-- Test runs failed in this environment due to sandbox restrictions (DerivedData and `com.apple.testmanagerd.control`).
-
-## Code Review (2026-02-20)
-
-### Findings
-1. **Save Last Screenshot never has data**: `OutputManager.lastCapturedImage` is only set by `saveImage(_:)`, but nothing calls it. As a result, menu actions "Save Last Screenshot" and "Save Last Screenshot As…" are no-ops in real usage. (`Snap/Output/OutputManager.swift`, `Snap/App/AppDelegate.swift`)
-2. **JPEG saves are actually PNG data**: `saveToFile` always encodes with `kUTTypePNG`, ignoring format/quality preferences. Saving as JPEG writes PNG bytes with a `.jpg/.jpeg` filename. (`Snap/Output/OutputManager.swift`, `Snap/Preferences/PreferencesManager.swift`)
-3. **Several preferences are persisted but unused**: `downscaleRetina`, `autoSaveAfterCapture`, `copyToClipboardAfterCapture`, and `launchAtLogin` are stored but not wired into capture flow. (`Snap/Preferences/PreferencesManager.swift`)
-
-### Notes
-- Tests not run for this review.
+The latest verification completed successfully in this workspace. Xcode 26
+emits toolchain-only notices for App Intents metadata (the app does not use App
+Intents) and for its XCTest libraries targeting macOS 14 while the application
+continues to target macOS 13.
