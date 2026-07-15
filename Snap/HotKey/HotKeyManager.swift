@@ -1,4 +1,5 @@
 import AppKit
+@preconcurrency import ApplicationServices
 import Carbon.HIToolbox
 
 @MainActor
@@ -43,9 +44,15 @@ final class HotKeyManager {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
+    var isRunning: Bool { eventTap != nil }
+
     init() {}
 
-    func start() {
+    @discardableResult
+    func start() -> Bool {
+        if eventTap != nil { return true }
+        guard Self.hasAccessibilityPermission else { return false }
+
         let eventMask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
 
         let userInfo = Unmanaged.passUnretained(self).toOpaque()
@@ -70,13 +77,27 @@ final class HotKeyManager {
             userInfo: userInfo
         ) else {
             NSLog("Snap: Failed to create event tap. Ensure accessibility permissions are granted.")
-            return
+            return false
         }
 
         eventTap = tap
         runLoopSource = CFMachPortCreateRunLoopSource(nil, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
+        return true
+    }
+
+    nonisolated static var hasAccessibilityPermission: Bool {
+        AXIsProcessTrusted()
+    }
+
+    /// Ask macOS to present its Accessibility trust prompt. The prompt is
+    /// asynchronous; applicationDidBecomeActive retries the event tap after
+    /// the user returns from System Settings.
+    @discardableResult
+    nonisolated static func requestAccessibilityPermission() -> Bool {
+        let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        return AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
 
     func stop() {

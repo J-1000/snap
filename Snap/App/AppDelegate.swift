@@ -46,13 +46,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeyManager.onFullScreenCapture = { [weak self] in
             self?.startFullScreenCapture()
         }
-        hotKeyManager.start()
+        if !hotKeyManager.start() {
+            HotKeyManager.requestAccessibilityPermission()
+        }
 
         // Prime Screen Recording permission on first launch so the system adds
         // Snap to the Privacy list before the first capture.
         if !ScreenCapture.hasScreenRecordingPermission() {
             ScreenCapture.requestScreenRecordingPermission()
         }
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil,
+              !hotKeyManager.isRunning,
+              HotKeyManager.hasAccessibilityPermission else {
+            return
+        }
+        hotKeyManager.start()
     }
 
     private func presentScreenRecordingPermissionAlert() {
