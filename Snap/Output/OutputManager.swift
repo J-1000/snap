@@ -199,22 +199,23 @@ final class OutputManager {
     }
 
     static func showNotification(title: String, text: String) {
-        showNotification(title: title, text: text, respectingPreference: true)
+        guard PreferencesManager.shared.showNotifications else { return }
+        showNotificationPanel(text: text)
     }
 
     /// Failures must remain visible even when optional success notifications
     /// are disabled; otherwise a failed output action appears to do nothing.
     static func showFailure(_ text: String) {
-        showNotification(title: "Snap", text: text, respectingPreference: false)
+        let alert = NSAlert()
+        alert.messageText = "Snap could not complete the action"
+        alert.informativeText = text
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
     }
 
-    private static func showNotification(
-        title: String,
-        text: String,
-        respectingPreference: Bool
-    ) {
-        guard !respectingPreference || PreferencesManager.shared.showNotifications else { return }
-
+    private static func showNotificationPanel(text: String) {
         // Use a transient floating panel as notification
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 280, height: 50),
