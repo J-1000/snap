@@ -62,13 +62,19 @@ final class HotKeyManager {
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: eventMask,
-            callback: { _, _, event, userInfo -> Unmanaged<CGEvent>? in
+            callback: { _, type, event, userInfo -> Unmanaged<CGEvent>? in
                 guard let userInfo else { return Unmanaged.passUnretained(event) }
+                let manager = Unmanaged<HotKeyManager>.fromOpaque(userInfo).takeUnretainedValue()
+                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    Task { @MainActor in
+                        manager.reenableTap()
+                    }
+                    return Unmanaged.passUnretained(event)
+                }
                 let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
                 guard let action = HotKeyManager.matchedAction(keyCode: keyCode, flags: event.flags) else {
                     return Unmanaged.passUnretained(event)
                 }
-                let manager = Unmanaged<HotKeyManager>.fromOpaque(userInfo).takeUnretainedValue()
                 Task { @MainActor in
                     manager.perform(action)
                 }
@@ -117,6 +123,12 @@ final class HotKeyManager {
             onAreaCapture?()
         case .fullScreen:
             onFullScreenCapture?()
+        }
+    }
+
+    private func reenableTap() {
+        if let eventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: true)
         }
     }
 
