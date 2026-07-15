@@ -210,9 +210,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showAnnotationWindow(image: CGImage, scaleFactor: CGFloat, selectionRect: NSRect? = nil) {
-        let screen = selectionRect.flatMap { rect in
+        let targetScreen = selectionRect.flatMap { rect in
             NSScreen.screens.first { $0.frame.intersects(rect) }
-        } ?? NSScreen.main ?? NSScreen.screens[0]
+        } ?? NSScreen.main ?? NSScreen.screens.first
+        guard let screen = targetScreen else {
+            OutputManager.showFailure("No display is available for the annotation editor")
+            return
+        }
         let editorScaleFactor = AnnotationWindow.fittedScaleFactor(
             for: image,
             captureScaleFactor: scaleFactor,
