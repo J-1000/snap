@@ -117,16 +117,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         lastCaptureScaleFactor = scaleFactor
         OutputManager.cacheLastCapture(image, scaleFactor: scaleFactor)
         let prefs = PreferencesManager.shared
-        var performedAutomaticOutput = false
 
         if prefs.copyToClipboardAfterCapture {
-            performedAutomaticOutput = OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) || performedAutomaticOutput
+            if OutputManager.copyToClipboard(image, scaleFactor: scaleFactor) {
+                if showUI { confirm("Copied to clipboard") }
+            } else if showUI {
+                OutputManager.showNotification(title: "Snap", text: "Copy failed")
+            }
         }
 
         if prefs.autoSaveAfterCapture {
             if let url = OutputManager.saveToDefaultLocation(image, scaleFactor: scaleFactor) {
-                performedAutomaticOutput = true
-                OutputManager.showNotification(title: "Snap", text: "Saved to \(url.lastPathComponent)")
+                if showUI { confirm("Saved to \(url.lastPathComponent)") }
             }
         }
         if showUI {
