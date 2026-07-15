@@ -73,6 +73,18 @@ final class AppDelegateTests: XCTestCase {
         XCTAssertEqual(scale, 2)
     }
 
+    func testSmallCaptureKeepsAllEditorControlsVisible() {
+        let image = createTestImage(width: 100, height: 80)
+
+        let size = AnnotationWindow.contentSize(for: image, scaleFactor: 2)
+
+        XCTAssertGreaterThanOrEqual(size.width, ActionToolbar.minimumWidth)
+        XCTAssertGreaterThanOrEqual(
+            size.height,
+            EditingToolbar.minimumHeight + ActionToolbar.height
+        )
+    }
+
     func testAnnotationFontPointsConvertToRetinaPixels() {
         XCTAssertEqual(AnnotationView.imageFontSize(pointSize: 16, captureScaleFactor: 2), 32)
         XCTAssertEqual(AnnotationView.imageFontSize(pointSize: 16, captureScaleFactor: 1), 16)

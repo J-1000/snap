@@ -10,6 +10,8 @@ final class ActionToolbar: NSView {
     var onClose: (() -> Void)?
 
     static let height: CGFloat = 40
+    /// Enough room for all seven actions at their intrinsic button widths.
+    static let minimumWidth: CGFloat = 560
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)

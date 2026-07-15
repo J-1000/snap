@@ -18,8 +18,14 @@ final class AnnotationWindow: NSWindow {
     static func contentSize(for image: CGImage, scaleFactor: CGFloat) -> NSSize {
         let s = max(scaleFactor, 1)
         return NSSize(
-            width: CGFloat(image.width) / s + EditingToolbar.width,
-            height: CGFloat(image.height) / s + ActionToolbar.height
+            width: max(
+                CGFloat(image.width) / s + EditingToolbar.width,
+                ActionToolbar.minimumWidth
+            ),
+            height: max(
+                CGFloat(image.height) / s,
+                EditingToolbar.minimumHeight
+            ) + ActionToolbar.height
         )
     }
 
@@ -56,8 +62,9 @@ final class AnnotationWindow: NSWindow {
         let s = max(displayScaleFactor, 1)
         let imageWidth = CGFloat(image.width) / s
         let imageHeight = CGFloat(image.height) / s
-        let windowWidth = imageWidth + EditingToolbar.width
-        let windowHeight = imageHeight + ActionToolbar.height
+        let editorHeight = max(imageHeight, EditingToolbar.minimumHeight)
+        let windowWidth = max(imageWidth + EditingToolbar.width, ActionToolbar.minimumWidth)
+        let windowHeight = editorHeight + ActionToolbar.height
         let contentRect = NSRect(origin: origin, size: NSSize(width: windowWidth, height: windowHeight))
 
         super.init(
@@ -89,7 +96,12 @@ final class AnnotationWindow: NSWindow {
         container.addSubview(annotationView)
 
         // Editing toolbar on the right
-        editingToolbar.frame = NSRect(x: imageWidth, y: ActionToolbar.height, width: EditingToolbar.width, height: imageHeight)
+        editingToolbar.frame = NSRect(
+            x: windowWidth - EditingToolbar.width,
+            y: ActionToolbar.height,
+            width: EditingToolbar.width,
+            height: editorHeight
+        )
         container.addSubview(editingToolbar)
 
         contentView = container

@@ -19,6 +19,8 @@ final class EditingToolbar: NSView {
     var onFontSizeChanged: ((CGFloat) -> Void)?
 
     static let width: CGFloat = 72
+    /// Eight tools, color controls, and both option popups without clipping.
+    static let minimumHeight: CGFloat = 440
 
     private var toolButtons: [AnnotationType: NSButton] = [:]
     private let colorWell = NSColorWell()
@@ -102,7 +104,7 @@ final class EditingToolbar: NSView {
 
         configureOptionPopup(
             fontSizePopup,
-            titles: ["12 pt", "16 pt", "20 pt", "24 pt", "32 pt", "48 pt"],
+            titles: ["8 pt", "12 pt", "16 pt", "20 pt", "24 pt", "32 pt", "48 pt", "64 pt", "72 pt"],
             selectedTitle: "\(Int(selectedFontSize)) pt",
             tooltip: "Text Size",
             action: #selector(fontSizeChanged)
