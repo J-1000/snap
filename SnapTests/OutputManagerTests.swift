@@ -122,6 +122,28 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertEqual(loadedImage.height, 50)
     }
 
+    @MainActor func testDefaultSavesDoNotOverwriteWithinSameSecond() {
+        let prefs = PreferencesManager.shared
+        let originalDirectory = prefs.saveDirectory
+        let originalFormat = prefs.imageFormat
+        defer {
+            prefs.saveDirectory = originalDirectory
+            prefs.imageFormat = originalFormat
+        }
+        prefs.saveDirectory = tempDir
+        prefs.imageFormat = "png"
+        let image = createTestImage(width: 20, height: 20)
+
+        let first = OutputManager.saveToDefaultLocation(image)
+        let second = OutputManager.saveToDefaultLocation(image)
+
+        XCTAssertNotNil(first)
+        XCTAssertNotNil(second)
+        XCTAssertNotEqual(first, second)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: first!.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: second!.path))
+    }
+
     // MARK: - Helpers
 
     private func createTestImage(width: Int, height: Int) -> CGImage {

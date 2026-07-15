@@ -99,8 +99,10 @@ final class OutputManager {
     @discardableResult
     static func saveToDefaultLocation(_ image: CGImage, scaleFactor: CGFloat? = nil) -> URL? {
         let prefs = PreferencesManager.shared
-        let url = prefs.saveDirectory.appendingPathComponent(
-            FileNaming.defaultFilename(extension: prefs.imageFormat))
+        let url = availableDefaultSaveURL(
+            directory: prefs.saveDirectory,
+            format: prefs.imageFormat
+        )
         guard saveToFile(
             image, url: url, scaleFactor: scaleFactor,
             format: prefs.imageFormat, jpegQuality: prefs.jpegQuality
@@ -108,6 +110,28 @@ final class OutputManager {
             return nil
         }
         return url
+    }
+
+    /// Avoid replacing a capture when multiple saves occur within the same
+    /// timestamp second. Subsequent collisions receive `_2`, `_3`, and so on.
+    private static func availableDefaultSaveURL(directory: URL, format: String) -> URL {
+        let first = directory.appendingPathComponent(
+            FileNaming.defaultFilename(extension: format)
+        )
+        guard FileManager.default.fileExists(atPath: first.path) else { return first }
+
+        let ext = first.pathExtension
+        let stem = first.deletingPathExtension().lastPathComponent
+        var suffix = 2
+        while true {
+            let candidate = directory
+                .appendingPathComponent("\(stem)_\(suffix)")
+                .appendingPathExtension(ext)
+            if !FileManager.default.fileExists(atPath: candidate.path) {
+                return candidate
+            }
+            suffix += 1
+        }
     }
 
     static func saveWithDialog(_ image: CGImage) {
