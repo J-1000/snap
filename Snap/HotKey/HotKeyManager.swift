@@ -1,6 +1,7 @@
 import AppKit
 import Carbon.HIToolbox
 
+@MainActor
 final class HotKeyManager {
     struct HotKey: Equatable {
         let keyCode: CGKeyCode
@@ -17,14 +18,14 @@ final class HotKeyManager {
         )
     }
 
-    enum Action: Equatable {
+    enum Action: Equatable, Sendable {
         case area
         case fullScreen
     }
 
     /// Pure modifier-match: which capture (if any) an event triggers. Requires an
     /// exact modifier match, so a superset (e.g. extra Control) is passed through.
-    static func matchedAction(keyCode: CGKeyCode, flags: CGEventFlags) -> Action? {
+    nonisolated static func matchedAction(keyCode: CGKeyCode, flags: CGEventFlags) -> Action? {
         let relevantFlags: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
         let maskedFlags = flags.intersection(relevantFlags)
         if keyCode == HotKey.areaCapture.keyCode, maskedFlags == HotKey.areaCapture.modifiers {
@@ -55,9 +56,16 @@ final class HotKeyManager {
             options: .defaultTap,
             eventsOfInterest: eventMask,
             callback: { _, _, event, userInfo -> Unmanaged<CGEvent>? in
-                guard let userInfo = userInfo else { return Unmanaged.passRetained(event) }
+                guard let userInfo else { return Unmanaged.passUnretained(event) }
+                let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
+                guard let action = HotKeyManager.matchedAction(keyCode: keyCode, flags: event.flags) else {
+                    return Unmanaged.passUnretained(event)
+                }
                 let manager = Unmanaged<HotKeyManager>.fromOpaque(userInfo).takeUnretainedValue()
-                return manager.handleEvent(event)
+                Task { @MainActor in
+                    manager.perform(action)
+                }
+                return nil
             },
             userInfo: userInfo
         ) else {
@@ -82,21 +90,18 @@ final class HotKeyManager {
         eventTap = nil
     }
 
-    private func handleEvent(_ event: CGEvent) -> Unmanaged<CGEvent>? {
-        let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
-        switch HotKeyManager.matchedAction(keyCode: keyCode, flags: event.flags) {
+    private func perform(_ action: Action) {
+        switch action {
         case .area:
-            DispatchQueue.main.async { [weak self] in self?.onAreaCapture?() }
-            return nil
+            onAreaCapture?()
         case .fullScreen:
-            DispatchQueue.main.async { [weak self] in self?.onFullScreenCapture?() }
-            return nil
-        case nil:
-            return Unmanaged.passRetained(event)
+            onFullScreenCapture?()
         }
     }
 
     deinit {
-        stop()
+        MainActor.assumeIsolated {
+            stop()
+        }
     }
 }
