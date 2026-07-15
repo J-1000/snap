@@ -73,6 +73,11 @@ final class AppDelegateTests: XCTestCase {
         XCTAssertEqual(scale, 2)
     }
 
+    func testAnnotationFontPointsConvertToRetinaPixels() {
+        XCTAssertEqual(AnnotationView.imageFontSize(pointSize: 16, captureScaleFactor: 2), 32)
+        XCTAssertEqual(AnnotationView.imageFontSize(pointSize: 16, captureScaleFactor: 1), 16)
+    }
+
     // MARK: - Helpers
 
     private func createTestImage(width: Int, height: Int) -> CGImage {

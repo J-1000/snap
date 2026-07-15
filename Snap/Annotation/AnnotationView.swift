@@ -2,6 +2,7 @@ import AppKit
 
 final class AnnotationView: NSView, NSTextFieldDelegate {
     private let image: CGImage
+    private let captureScaleFactor: CGFloat
     let annotationManager = AnnotationManager()
     var currentTool: AnnotationType?
     var currentColor: NSColor = .systemRed
@@ -16,8 +17,9 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     private var activeTextField: NSTextField?
     private var textInsertionPoint: NSPoint? // image coords (top-left origin)
     private var stepBadgeCounter = 0 // resets each time the editor opens
-    init(image: CGImage) {
+    init(image: CGImage, captureScaleFactor: CGFloat = 1) {
         self.image = image
+        self.captureScaleFactor = max(captureScaleFactor, 1)
         super.init(frame: NSRect(x: 0, y: 0, width: CGFloat(image.width), height: CGFloat(image.height)))
         annotationManager.onChanged = { [weak self] in
             self?.needsDisplay = true
@@ -80,7 +82,8 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
 
     private func placeStepBadge(at imagePoint: NSPoint) {
         stepBadgeCounter += 1
-        let diameter = max(currentFontSize * 1.6, 24)
+        let fontSize = imageFontSize
+        let diameter = max(fontSize * 1.6, 24 * captureScaleFactor)
         let annotation = Annotation(
             type: .stepBadge,
             badgeNumber: stepBadgeCounter,
@@ -251,10 +254,21 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
 
     // MARK: - Text input
 
+    /// Font controls are expressed in AppKit points, while annotations are
+    /// stored in image pixels. Convert at the original capture scale so text
+    /// exports at the selected point size on Retina displays.
+    static func imageFontSize(pointSize: CGFloat, captureScaleFactor: CGFloat) -> CGFloat {
+        pointSize * max(captureScaleFactor, 1)
+    }
+
+    private var imageFontSize: CGFloat {
+        Self.imageFontSize(pointSize: currentFontSize, captureScaleFactor: captureScaleFactor)
+    }
+
     private func showTextField(at viewPoint: NSPoint, imagePoint: NSPoint) {
         textInsertionPoint = imagePoint
         let textField = NSTextField()
-        textField.font = NSFont.systemFont(ofSize: currentFontSize)
+        textField.font = NSFont.systemFont(ofSize: imageFontSize)
         textField.textColor = currentColor
         textField.backgroundColor = NSColor.white.withAlphaComponent(0.8)
         textField.drawsBackground = true
@@ -263,8 +277,13 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         textField.isEditable = true
         textField.cell?.wraps = false
         textField.cell?.isScrollable = true
-        let fieldHeight = currentFontSize + 8
-        textField.frame = NSRect(x: viewPoint.x, y: viewPoint.y - fieldHeight, width: 200, height: fieldHeight)
+        let fieldHeight = imageFontSize + 8 * captureScaleFactor
+        textField.frame = NSRect(
+            x: viewPoint.x,
+            y: viewPoint.y - fieldHeight,
+            width: 200 * captureScaleFactor,
+            height: fieldHeight
+        )
         textField.delegate = self
         addSubview(textField)
         window?.makeFirstResponder(textField)
@@ -279,7 +298,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                 type: .text,
                 text: text,
                 position: insertionPoint,
-                fontSize: currentFontSize,
+                fontSize: imageFontSize,
                 color: currentColor
             )
             annotationManager.add(annotation)

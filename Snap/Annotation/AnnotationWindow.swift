@@ -40,15 +40,20 @@ final class AnnotationWindow: NSWindow {
         )
     }
 
-    init(image: CGImage, scaleFactor: CGFloat, origin: NSPoint) {
+    init(
+        image: CGImage,
+        captureScaleFactor: CGFloat,
+        displayScaleFactor: CGFloat,
+        origin: NSPoint
+    ) {
         self.capturedImage = image
-        self.annotationView = AnnotationView(image: image)
+        self.annotationView = AnnotationView(image: image, captureScaleFactor: captureScaleFactor)
         self.actionToolbar = ActionToolbar()
         self.editingToolbar = EditingToolbar()
 
         // The captured image is in physical pixels; lay the editor out in points
         // (pixels / scale) and let the Retina backing store render it crisply.
-        let s = max(scaleFactor, 1)
+        let s = max(displayScaleFactor, 1)
         let imageWidth = CGFloat(image.width) / s
         let imageHeight = CGFloat(image.height) / s
         let windowWidth = imageWidth + EditingToolbar.width

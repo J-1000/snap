@@ -196,7 +196,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let origin = Self.clampOrigin(proposed, size: size, into: screen.visibleFrame)
 
-        let window = AnnotationWindow(image: image, scaleFactor: editorScaleFactor, origin: origin)
+        let window = AnnotationWindow(
+            image: image,
+            captureScaleFactor: scaleFactor,
+            displayScaleFactor: editorScaleFactor,
+            origin: origin
+        )
 
         window.onCopy = { [weak self, weak window] in
             guard let self, let window else { return }
