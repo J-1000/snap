@@ -11,6 +11,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var pendingTextCapture = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // App-hosted unit tests launch Snap before loading the test bundle.
+        // Keep that host inert: tests must not install a global event tap,
+        // prompt for Screen Recording permission, or create menu-bar UI.
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else {
+            return
+        }
+
         statusBarController = StatusBarController()
 
         captureEngine.onImageCaptured = { [weak self] image, scaleFactor, selectionRect in
