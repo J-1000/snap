@@ -137,11 +137,13 @@ final class OutputManagerTests: XCTestCase {
         let first = OutputManager.saveToDefaultLocation(image)
         let second = OutputManager.saveToDefaultLocation(image)
 
-        XCTAssertNotNil(first)
-        XCTAssertNotNil(second)
+        guard let first, let second else {
+            XCTFail("Both default saves should succeed")
+            return
+        }
         XCTAssertNotEqual(first, second)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: first!.path))
-        XCTAssertTrue(FileManager.default.fileExists(atPath: second!.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: first.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: second.path))
     }
 
     // MARK: - Helpers
