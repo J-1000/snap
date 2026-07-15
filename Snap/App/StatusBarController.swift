@@ -1,5 +1,6 @@
 import AppKit
 
+@MainActor
 final class StatusBarController {
     private var statusItem: NSStatusItem
     private var preferencesWindow: PreferencesWindow?

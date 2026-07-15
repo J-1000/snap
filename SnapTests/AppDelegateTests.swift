@@ -1,6 +1,7 @@
 import XCTest
 @testable import Snap
 
+@MainActor
 final class AppDelegateTests: XCTestCase {
 
     func testHandleCapturedImageCachesLastImageWithoutUI() {
@@ -58,6 +59,61 @@ final class AppDelegateTests: XCTestCase {
         )!
         context.setFillColor(NSColor.blue.cgColor)
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        return context.makeImage()!
+    }
+}
+
+@MainActor
+final class CaptureEngineTests: XCTestCase {
+
+    func testFullScreenCaptureRejectsOverlapAndResetsAfterSuccess() async {
+        let image = createTestImage(width: 12, height: 8)
+        let started = expectation(description: "capture started")
+        let captured = expectation(description: "capture completed")
+        var invocationCount = 0
+        var pending: CheckedContinuation<CGImage, Never>?
+        let engine = CaptureEngine(fullScreenCapture: { _ in
+            invocationCount += 1
+            started.fulfill()
+            return await withCheckedContinuation { pending = $0 }
+        })
+        engine.onImageCaptured = { _, _, _ in captured.fulfill() }
+
+        engine.captureFullScreen(NSScreen.main!)
+        await fulfillment(of: [started])
+        XCTAssertTrue(engine.isActive)
+
+        engine.captureFullScreen(NSScreen.main!)
+        XCTAssertEqual(invocationCount, 1)
+
+        pending?.resume(returning: image)
+        await fulfillment(of: [captured])
+        XCTAssertFalse(engine.isActive)
+    }
+
+    func testFullScreenCaptureResetsAfterFailure() async {
+        let failed = expectation(description: "capture failed")
+        let engine = CaptureEngine(fullScreenCapture: { _ in
+            throw ScreenCapture.CaptureError.captureFailed
+        })
+        engine.onError = { _ in failed.fulfill() }
+
+        engine.captureFullScreen(NSScreen.main!)
+        await fulfillment(of: [failed])
+
+        XCTAssertFalse(engine.isActive)
+    }
+
+    private func createTestImage(width: Int, height: Int) -> CGImage {
+        let context = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        )!
         return context.makeImage()!
     }
 }

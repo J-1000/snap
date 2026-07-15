@@ -1,36 +1,65 @@
-import AppKit
+@preconcurrency import AppKit
 
+@MainActor
 final class CaptureEngine {
+    private enum State {
+        case idle
+        case selecting
+        case capturing
+    }
+
+    typealias RegionCapture = @MainActor (NSRect, NSScreen) async throws -> CGImage
+    typealias FullScreenCapture = @MainActor (NSScreen) async throws -> CGImage
+
     private var overlayWindows: [OverlayWindow] = []
-    private(set) var isActive = false
+    private var state: State = .idle
+    private let regionCapture: RegionCapture
+    private let fullScreenCapture: FullScreenCapture
+
+    var isActive: Bool { state != .idle }
 
     var onImageCaptured: ((CGImage, CGFloat, NSRect?) -> Void)?
     var onCancel: (() -> Void)?
     var onError: ((Error) -> Void)?
 
+    init(
+        regionCapture: @escaping RegionCapture = { rect, screen in
+            try await ScreenCapture.captureRegion(rect, screen: screen)
+        },
+        fullScreenCapture: @escaping FullScreenCapture = { screen in
+            try await ScreenCapture.captureFullScreen(screen)
+        }
+    ) {
+        self.regionCapture = regionCapture
+        self.fullScreenCapture = fullScreenCapture
+    }
+
     func startAreaSelection() {
-        guard !isActive else { return }
-        isActive = true
+        guard state == .idle else { return }
+        state = .selecting
         showOverlays()
     }
 
     func captureFullScreen(_ screen: NSScreen) {
+        guard state == .idle else { return }
+        state = .capturing
+        let scaleFactor = screen.backingScaleFactor
         Task {
             do {
-                let image = try await ScreenCapture.captureFullScreen(screen)
-                await MainActor.run {
-                    self.onImageCaptured?(image, screen.backingScaleFactor, nil)
-                }
+                let image = try await fullScreenCapture(screen)
+                state = .idle
+                onImageCaptured?(image, scaleFactor, nil)
             } catch {
-                await MainActor.run {
-                    self.onError?(error)
-                }
+                state = .idle
+                onError?(error)
             }
         }
     }
 
     func cancel() {
-        dismissOverlays()
+        guard state == .selecting else { return }
+        hideOverlays()
+        state = .idle
         onCancel?()
     }
 
@@ -61,26 +90,26 @@ final class CaptureEngine {
         overlayWindows.first?.makeKey()
     }
 
-    func dismissOverlays() {
+    private func hideOverlays() {
         for window in overlayWindows {
             window.orderOut(nil)
         }
         overlayWindows.removeAll()
-        isActive = false
     }
 
     private func handleSelectionComplete(rect: NSRect, screen: NSScreen) {
-        dismissOverlays()
+        guard state == .selecting else { return }
+        state = .capturing
+        hideOverlays()
+        let scaleFactor = screen.backingScaleFactor
         Task {
             do {
-                let image = try await ScreenCapture.captureRegion(rect, screen: screen)
-                await MainActor.run {
-                    self.onImageCaptured?(image, screen.backingScaleFactor, rect)
-                }
+                let image = try await regionCapture(rect, screen)
+                state = .idle
+                onImageCaptured?(image, scaleFactor, rect)
             } catch {
-                await MainActor.run {
-                    self.onError?(error)
-                }
+                state = .idle
+                onError?(error)
             }
         }
     }

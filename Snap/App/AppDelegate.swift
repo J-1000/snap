@@ -1,5 +1,6 @@
 import AppKit
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private let hotKeyManager = HotKeyManager()

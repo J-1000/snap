@@ -37,11 +37,13 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         .workingColorSpace: CGColorSpace(name: CGColorSpace.displayP3) ?? CGColorSpaceCreateDeviceRGB()
     ])
 
+    @MainActor
     static func captureRegion(_ rect: NSRect, screen: NSScreen) async throws -> CGImage {
         let capturer = ScreenCapture()
         return try await capturer.capture(rect: rect, screen: screen)
     }
 
+    @MainActor
     static func captureFullScreen(_ screen: NSScreen) async throws -> CGImage {
         return try await captureRegion(screen.frame, screen: screen)
     }
@@ -53,6 +55,7 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         return displays.first { $0.displayID == displayID }
     }
 
+    @MainActor
     private func capture(rect: NSRect, screen: NSScreen) async throws -> CGImage {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
 
