@@ -1,6 +1,7 @@
 import Foundation
 import ServiceManagement
 
+@MainActor
 final class PreferencesManager {
     static let shared = PreferencesManager()
 

@@ -1,6 +1,7 @@
 import AppKit
 import UniformTypeIdentifiers
 
+@MainActor
 final class OutputManager {
 
     private(set) static var lastCapturedImage: CGImage?
@@ -247,7 +248,11 @@ final class OutputManager {
                     context.duration = 0.3
                     panel.animator().alphaValue = 0.0
                 }) {
-                    panel.orderOut(nil)
+                    // AppKit invokes animation completions on the main thread,
+                    // but the legacy closure type does not carry that annotation.
+                    MainActor.assumeIsolated {
+                        panel.orderOut(nil)
+                    }
                 }
             }
         }

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Snap
 
+@MainActor
 final class PreferencesManagerTests: XCTestCase {
     private var suiteName: String!
     private var defaults: UserDefaults!

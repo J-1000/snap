@@ -2,6 +2,7 @@ import XCTest
 import UniformTypeIdentifiers
 @testable import Snap
 
+@MainActor
 final class OutputManagerTests: XCTestCase {
 
     private var tempDir: URL!
