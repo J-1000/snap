@@ -25,6 +25,27 @@ final class SelectionGeometryTests: XCTestCase {
         }
     }
 
+    func testDrawingRectClipsPointerOutsideDisplay() {
+        let rect = geo.drawingRect(
+            from: NSPoint(x: 100, y: 100),
+            to: NSPoint(x: 1200, y: -50),
+            constrained: false
+        )
+
+        XCTAssertEqual(rect, NSRect(x: 100, y: 0, width: 900, height: 100))
+    }
+
+    func testConstrainedDrawingStaysSquareInsideDisplay() {
+        let rect = geo.drawingRect(
+            from: NSPoint(x: 900, y: 700),
+            to: NSPoint(x: 1200, y: 1000),
+            constrained: true
+        )
+
+        XCTAssertEqual(rect, NSRect(x: 900, y: 700, width: 100, height: 100))
+        XCTAssertTrue(geo.bounds.contains(rect))
+    }
+
     func testClampedCapsSizeAndKeepsOnScreen() {
         let huge = geo.clamped(NSRect(x: -50, y: -50, width: 2000, height: 2000))
         XCTAssertEqual(huge, NSRect(x: 0, y: 0, width: 1000, height: 800))

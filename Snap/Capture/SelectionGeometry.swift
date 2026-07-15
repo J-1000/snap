@@ -35,6 +35,30 @@ struct SelectionGeometry {
         return NSRect(x: x, y: y, width: side, height: side)
     }
 
+    /// Selection created by a drag, kept inside the originating display. A
+    /// constrained drag remains square even when the pointer leaves the view.
+    func drawingRect(from origin: NSPoint, to current: NSPoint, constrained: Bool) -> NSRect {
+        let target = NSPoint(
+            x: min(max(current.x, bounds.minX), bounds.maxX),
+            y: min(max(current.y, bounds.minY), bounds.maxY)
+        )
+        guard constrained else {
+            return normalizedRect(from: origin, to: target)
+        }
+
+        let availableX = target.x >= origin.x
+            ? bounds.maxX - origin.x
+            : origin.x - bounds.minX
+        let availableY = target.y >= origin.y
+            ? bounds.maxY - origin.y
+            : origin.y - bounds.minY
+        let requestedSide = max(abs(target.x - origin.x), abs(target.y - origin.y))
+        let side = min(requestedSide, availableX, availableY)
+        let x = target.x >= origin.x ? origin.x : origin.x - side
+        let y = target.y >= origin.y ? origin.y : origin.y - side
+        return NSRect(x: x, y: y, width: side, height: side)
+    }
+
     func clamped(_ rect: NSRect) -> NSRect {
         var rect = rect
         rect.size.width = min(rect.width, bounds.width)

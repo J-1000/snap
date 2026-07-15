@@ -158,9 +158,11 @@ final class OverlayView: NSView {
         switch dragMode {
         case .drawing:
             guard let origin = selectionOrigin else { return }
-            currentSelection = event.modifierFlags.contains(.shift)
-                ? geometry.constrainedSquare(from: origin, to: current)
-                : geometry.normalizedRect(from: origin, to: current)
+            currentSelection = geometry.drawingRect(
+                from: origin,
+                to: current,
+                constrained: event.modifierFlags.contains(.shift)
+            )
         case .moving(let offset):
             guard let selection = currentSelection else { return }
             let origin = NSPoint(x: current.x - offset.x, y: current.y - offset.y)
