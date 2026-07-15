@@ -2,7 +2,6 @@ import XCTest
 import UniformTypeIdentifiers
 @testable import Snap
 
-@MainActor
 final class OutputManagerTests: XCTestCase {
 
     private var tempDir: URL!
@@ -20,7 +19,7 @@ final class OutputManagerTests: XCTestCase {
 
     // MARK: - cacheLastCapture
 
-    func testCacheLastCaptureCachesLastImage() {
+    @MainActor func testCacheLastCaptureCachesLastImage() {
         let image = createTestImage(width: 50, height: 50)
         OutputManager.cacheLastCapture(image)
         XCTAssertNotNil(OutputManager.lastCapturedImage)
@@ -28,7 +27,7 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertEqual(OutputManager.lastCapturedImage?.height, 50)
     }
 
-    func testCacheLastCaptureOverwritesPrevious() {
+    @MainActor func testCacheLastCaptureOverwritesPrevious() {
         let image1 = createTestImage(width: 50, height: 50)
         let image2 = createTestImage(width: 100, height: 100)
 
@@ -40,7 +39,7 @@ final class OutputManagerTests: XCTestCase {
 
     // MARK: - saveToFile
 
-    func testSaveToFileCreatesPNG() {
+    @MainActor func testSaveToFileCreatesPNG() {
         let image = createTestImage(width: 100, height: 100)
         let url = tempDir.appendingPathComponent("test.png")
 
@@ -50,7 +49,7 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
     }
 
-    func testSaveToFileWritesNonEmptyFile() {
+    @MainActor func testSaveToFileWritesNonEmptyFile() {
         let image = createTestImage(width: 100, height: 100)
         let url = tempDir.appendingPathComponent("test.png")
 
@@ -61,7 +60,7 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertGreaterThan(data?.count ?? 0, 0)
     }
 
-    func testSaveToFileProducesValidPNG() {
+    @MainActor func testSaveToFileProducesValidPNG() {
         let image = createTestImage(width: 64, height: 64)
         let url = tempDir.appendingPathComponent("test.png")
 
@@ -78,7 +77,7 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertEqual(loadedImage.height, 64)
     }
 
-    func testSaveToFileInvalidPathReturnsFalse() {
+    @MainActor func testSaveToFileInvalidPathReturnsFalse() {
         let image = createTestImage(width: 10, height: 10)
         let url = URL(fileURLWithPath: "/nonexistent/path/test.png")
 
@@ -86,7 +85,7 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertFalse(success)
     }
 
-    func testSaveToFileUsesJPEGWhenExtensionIsJPEG() {
+    @MainActor func testSaveToFileUsesJPEGWhenExtensionIsJPEG() {
         let image = createTestImage(width: 20, height: 20)
         let url = tempDir.appendingPathComponent("test.jpeg")
 
@@ -102,7 +101,7 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertEqual(UTType(type), .jpeg)
     }
 
-    func testSaveToFileDownscalesWhenEnabled() {
+    @MainActor func testSaveToFileDownscalesWhenEnabled() {
         let prefs = PreferencesManager.shared
         let originalDownscale = prefs.downscaleRetina
         defer { prefs.downscaleRetina = originalDownscale }

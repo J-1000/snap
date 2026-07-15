@@ -1,17 +1,14 @@
 import XCTest
 @testable import Snap
 
-@MainActor
 final class PreferencesManagerTests: XCTestCase {
     private var suiteName: String!
     private var defaults: UserDefaults!
-    private var prefs: PreferencesManager!
 
     override func setUp() {
         super.setUp()
         suiteName = "SnapTests.\(UUID().uuidString)"
         defaults = UserDefaults(suiteName: suiteName)
-        prefs = PreferencesManager(defaults: defaults)
     }
 
     override func tearDown() {
@@ -19,7 +16,8 @@ final class PreferencesManagerTests: XCTestCase {
         super.tearDown()
     }
 
-    func testRegisteredDefaults() {
+    @MainActor func testRegisteredDefaults() {
+        let prefs = PreferencesManager(defaults: defaults)
         XCTAssertEqual(prefs.imageFormat, "png")
         XCTAssertEqual(prefs.jpegQuality, 0.85, accuracy: 0.0001)
         XCTAssertEqual(prefs.lastLineWidth, 2.0, accuracy: 0.0001)
@@ -28,7 +26,8 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertFalse(prefs.autoSaveAfterCapture)
     }
 
-    func testValuesRoundTrip() {
+    @MainActor func testValuesRoundTrip() {
+        let prefs = PreferencesManager(defaults: defaults)
         prefs.imageFormat = "jpeg"
         prefs.jpegQuality = 0.6
         prefs.lastLineWidth = 4
@@ -46,7 +45,8 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertEqual(reloaded.lastAnnotationColorHex, "#00FF00FF")
     }
 
-    func testSaveDirectoryRoundTrips() {
+    @MainActor func testSaveDirectoryRoundTrips() {
+        let prefs = PreferencesManager(defaults: defaults)
         let url = URL(fileURLWithPath: "/tmp/snap-test-dir")
         prefs.saveDirectory = url
         XCTAssertEqual(prefs.saveDirectory.path, url.path)
