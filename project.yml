@@ -8,6 +8,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
+    SWIFT_STRICT_CONCURRENCY: complete
     MACOSX_DEPLOYMENT_TARGET: "13.0"
 targets:
   Snap:
