@@ -23,6 +23,23 @@ final class AnnotationWindow: NSWindow {
         )
     }
 
+    /// Pixels-per-point scale that keeps the complete editor, including both
+    /// toolbars, inside the available screen area. It never enlarges a capture
+    /// beyond its native capture scale; oversized captures are zoomed out.
+    static func fittedScaleFactor(
+        for image: CGImage,
+        captureScaleFactor: CGFloat,
+        availableSize: NSSize
+    ) -> CGFloat {
+        let canvasWidth = max(availableSize.width - EditingToolbar.width, 1)
+        let canvasHeight = max(availableSize.height - ActionToolbar.height, 1)
+        return max(
+            max(captureScaleFactor, 1),
+            CGFloat(image.width) / canvasWidth,
+            CGFloat(image.height) / canvasHeight
+        )
+    }
+
     init(image: CGImage, scaleFactor: CGFloat, origin: NSPoint) {
         self.capturedImage = image
         self.annotationView = AnnotationView(image: image)

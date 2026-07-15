@@ -45,6 +45,34 @@ final class AppDelegateTests: XCTestCase {
         XCTAssertFalse(contents.isEmpty)
     }
 
+    func testEditorScaleKeepsOversizedCaptureAndToolbarsVisible() {
+        let image = createTestImage(width: 3000, height: 2000)
+        let available = NSSize(width: 1200, height: 800)
+
+        let scale = AnnotationWindow.fittedScaleFactor(
+            for: image,
+            captureScaleFactor: 2,
+            availableSize: available
+        )
+        let editorSize = AnnotationWindow.contentSize(for: image, scaleFactor: scale)
+
+        XCTAssertGreaterThan(scale, 2)
+        XCTAssertLessThanOrEqual(editorSize.width, available.width + 0.001)
+        XCTAssertLessThanOrEqual(editorSize.height, available.height + 0.001)
+    }
+
+    func testEditorScaleDoesNotEnlargeCaptureThatAlreadyFits() {
+        let image = createTestImage(width: 800, height: 600)
+
+        let scale = AnnotationWindow.fittedScaleFactor(
+            for: image,
+            captureScaleFactor: 2,
+            availableSize: NSSize(width: 1200, height: 900)
+        )
+
+        XCTAssertEqual(scale, 2)
+    }
+
     // MARK: - Helpers
 
     private func createTestImage(width: Int, height: Int) -> CGImage {

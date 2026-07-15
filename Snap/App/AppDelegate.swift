@@ -175,10 +175,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showAnnotationWindow(image: CGImage, scaleFactor: CGFloat, selectionRect: NSRect? = nil) {
-        let size = AnnotationWindow.contentSize(for: image, scaleFactor: scaleFactor)
         let screen = selectionRect.flatMap { rect in
             NSScreen.screens.first { $0.frame.intersects(rect) }
         } ?? NSScreen.main ?? NSScreen.screens[0]
+        let editorScaleFactor = AnnotationWindow.fittedScaleFactor(
+            for: image,
+            captureScaleFactor: scaleFactor,
+            availableSize: screen.visibleFrame.size
+        )
+        let size = AnnotationWindow.contentSize(for: image, scaleFactor: editorScaleFactor)
 
         let proposed: NSPoint
         if let sel = selectionRect {
@@ -191,7 +196,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let origin = Self.clampOrigin(proposed, size: size, into: screen.visibleFrame)
 
-        let window = AnnotationWindow(image: image, scaleFactor: scaleFactor, origin: origin)
+        let window = AnnotationWindow(image: image, scaleFactor: editorScaleFactor, origin: origin)
 
         window.onCopy = { [weak self, weak window] in
             guard let self, let window else { return }
