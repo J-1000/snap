@@ -140,9 +140,8 @@ final class PreferencesManager {
             }
         } catch {
             NSLog("Snap: Failed to update launch-at-login setting: \(error.localizedDescription)")
-            OutputManager.showNotification(
-                title: "Snap",
-                text: "Could not update Launch at Login. Approve it in System Settings > General > Login Items."
+            OutputManager.showFailure(
+                "Could not update Launch at Login. Approve it in System Settings > General > Login Items."
             )
         }
     }

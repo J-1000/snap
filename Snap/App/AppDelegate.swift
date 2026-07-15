@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if !ScreenCapture.hasScreenRecordingPermission() {
                 self?.presentScreenRecordingPermissionAlert()
             } else {
-                OutputManager.showNotification(title: "Snap", text: "Capture failed: \(error.localizedDescription)")
+                OutputManager.showFailure("Capture failed: \(error.localizedDescription)")
             }
         }
 
@@ -122,13 +122,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func recognizeText(in image: CGImage) {
         TextRecognizer.recognize(in: image) { [weak self] text in
             guard let text, !text.isEmpty else {
-                OutputManager.showNotification(title: "Snap", text: "No text found")
+                OutputManager.showFailure("No text found")
                 return
             }
             let pasteboard = NSPasteboard.general
             pasteboard.clearContents()
-            pasteboard.setString(text, forType: .string)
-            self?.confirm("Text copied to clipboard")
+            if pasteboard.setString(text, forType: .string) {
+                self?.confirm("Text copied to clipboard")
+            } else {
+                OutputManager.showFailure("Could not copy recognized text")
+            }
         }
     }
 
