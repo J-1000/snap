@@ -1,11 +1,16 @@
 import AppKit
-import Vision
+@preconcurrency import Vision
 
 /// On-device text recognition (Vision). Fully local — no network, no telemetry.
 enum TextRecognizer {
-    static func recognize(in image: CGImage, completion: @escaping (String?) -> Void) {
-        func finish(_ result: String?) {
-            DispatchQueue.main.async { completion(result) }
+    static func recognize(
+        in image: CGImage,
+        completion: @escaping @MainActor @Sendable (String?) -> Void
+    ) {
+        let finish: @Sendable (String?) -> Void = { result in
+            Task { @MainActor in
+                completion(result)
+            }
         }
 
         let request = VNRecognizeTextRequest { request, error in
