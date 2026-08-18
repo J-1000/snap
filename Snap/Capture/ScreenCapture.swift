@@ -4,14 +4,11 @@ import ScreenCaptureKit
 final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Sendable {
 
     enum CaptureError: Error, LocalizedError {
-        case permissionDenied
         case noDisplayFound
         case captureFailed
 
         var errorDescription: String? {
             switch self {
-            case .permissionDenied:
-                return "Screen recording permission is required. Please enable it in System Settings > Privacy & Security > Screen Recording."
             case .noDisplayFound:
                 return "No display found for the selected screen."
             case .captureFailed:
@@ -184,15 +181,6 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         finish(.failure(error))
-    }
-
-    static func requestPermission() async -> Bool {
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-            return true
-        } catch {
-            return false
-        }
     }
 
     /// Whether Snap currently has Screen Recording permission (does not prompt).
