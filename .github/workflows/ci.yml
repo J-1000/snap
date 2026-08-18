@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Xcode 26.6 tests
+    runs-on: macos-26
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26.6
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app/Contents/Developer
+
+      - name: Install XcodeGen 2.46
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip \
+            --output "$RUNNER_TEMP/xcodegen.zip"
+          ditto -x -k "$RUNNER_TEMP/xcodegen.zip" "$RUNNER_TEMP/xcodegen"
+          echo "$RUNNER_TEMP/xcodegen/bin" >> "$GITHUB_PATH"
+
+      - name: Verify generated project is current
+        run: |
+          xcodegen --version
+          xcodegen generate
+          git diff --exit-code -- Snap.xcodeproj
+
+      - name: Run unit and UI tests
+        run: |
+          xcodebuild \
+            -project Snap.xcodeproj \
+            -scheme Snap \
+            -configuration Debug \
+            -destination 'platform=macOS,arch=arm64' \
+            -resultBundlePath TestResults.xcresult \
+            test
+
+      - name: Enforce production coverage floor
+        run: |
+          COVERAGE=$(xcrun xccov view --report TestResults.xcresult | \
+            awk '$1 == "Snap.app" { gsub(/%.*/, "", $2); print $2; exit }')
+          test -n "$COVERAGE"
+          echo "Snap production line coverage: ${COVERAGE}%"
+          awk -v coverage="$COVERAGE" 'BEGIN { exit !(coverage >= 40.0) }'
+
+      - name: Upload test result bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Snap-TestResults
+          path: TestResults.xcresult
+          if-no-files-found: ignore
+          retention-days: 14
