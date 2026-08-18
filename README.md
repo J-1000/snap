@@ -92,7 +92,7 @@ Snap/
 
 ```bash
 xcodegen generate
-xcodebuild test -scheme SnapTests -configuration Debug -destination 'platform=macOS'
+xcodebuild test -scheme Snap -configuration Debug -destination 'platform=macOS'
 ```
 
 104 unit tests covering the Annotation data model (including text and blur), AnnotationManager (undo/redo, rendering, pixel-level compositing), FileNaming, OutputManager, capture serialization and editor sizing, SelectionGeometry (selection/resize math), HotKeyManager modifier matching, and PreferencesManager round-trips.
