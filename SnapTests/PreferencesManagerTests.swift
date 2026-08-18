@@ -24,6 +24,8 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertEqual(prefs.lastFontSize, 16.0, accuracy: 0.0001)
         XCTAssertTrue(prefs.copyToClipboardAfterCapture)
         XCTAssertFalse(prefs.autoSaveAfterCapture)
+        XCTAssertTrue(prefs.windowCaptureIncludesShadow)
+        XCTAssertEqual(prefs.windowCaptureBackground, WindowCaptureBackground.transparent.rawValue)
     }
 
     @MainActor func testValuesRoundTrip() {
@@ -34,6 +36,8 @@ final class PreferencesManagerTests: XCTestCase {
         prefs.lastFontSize = 24
         prefs.lastTool = "arrow"
         prefs.lastAnnotationColorHex = "#00FF00FF"
+        prefs.windowCaptureIncludesShadow = false
+        prefs.windowCaptureBackground = WindowCaptureBackground.black.rawValue
 
         // A fresh instance over the same suite must read back the stored values.
         let reloaded = PreferencesManager(defaults: defaults)
@@ -43,6 +47,8 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertEqual(reloaded.lastFontSize, 24, accuracy: 0.0001)
         XCTAssertEqual(reloaded.lastTool, "arrow")
         XCTAssertEqual(reloaded.lastAnnotationColorHex, "#00FF00FF")
+        XCTAssertFalse(reloaded.windowCaptureIncludesShadow)
+        XCTAssertEqual(reloaded.windowCaptureBackground, WindowCaptureBackground.black.rawValue)
     }
 
     @MainActor func testSaveDirectoryRoundTrips() {

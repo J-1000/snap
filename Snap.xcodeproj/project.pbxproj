@@ -24,6 +24,7 @@
 		6BD8440058ABE6E36EF1F810 /* SelectionGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2599E6E929327FD56F494677 /* SelectionGeometry.swift */; };
 		6C891CBF52E2844317A0D174 /* ScreenCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE59A51072F022580B112D23 /* ScreenCapture.swift */; };
 		6D61F4F987D76EE18B27E684 /* AnnotationWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3B81D5973A4B25F14E9740 /* AnnotationWindow.swift */; };
+		770F70A7F38101EEFC255F25 /* WindowCapturePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390385DF9C2C73BFE240F25F /* WindowCapturePicker.swift */; };
 		86A2398FAC8115AEB79ED89D /* AnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3241EF0FB1D6AB98FA3966CE /* AnnotationView.swift */; };
 		8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE03DA4BC43FD68524DC4D2 /* CaptureEngine.swift */; };
 		944DE3102215E1B62FB8C5F6 /* FileNamingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD6FABC7DCFB63F9B66FD5A /* FileNamingTests.swift */; };
@@ -59,6 +60,7 @@
 		256B24AD58DBE7513428AE8F /* SnapTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SnapTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2599E6E929327FD56F494677 /* SelectionGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometry.swift; sourceTree = "<group>"; };
 		3241EF0FB1D6AB98FA3966CE /* AnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationView.swift; sourceTree = "<group>"; };
+		390385DF9C2C73BFE240F25F /* WindowCapturePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCapturePicker.swift; sourceTree = "<group>"; };
 		3BC5BC322A05E4F0343BA8C9 /* Snap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Snap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CFDEDDCBC2137F9F6D493F6 /* AnnotationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationManager.swift; sourceTree = "<group>"; };
 		3DE3583780BCCDE89242E6C6 /* PreferencesManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManagerTests.swift; sourceTree = "<group>"; };
@@ -139,6 +141,7 @@
 				573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */,
 				CE59A51072F022580B112D23 /* ScreenCapture.swift */,
 				2599E6E929327FD56F494677 /* SelectionGeometry.swift */,
+				390385DF9C2C73BFE240F25F /* WindowCapturePicker.swift */,
 			);
 			path = Capture;
 			sourceTree = "<group>";
@@ -330,6 +333,7 @@
 				6BD8440058ABE6E36EF1F810 /* SelectionGeometry.swift in Sources */,
 				A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */,
 				0998169224D59850E4A9E7F0 /* TextRecognizer.swift in Sources */,
+				770F70A7F38101EEFC255F25 /* WindowCapturePicker.swift in Sources */,
 				0BB1787C393BB8913E4E25CC /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

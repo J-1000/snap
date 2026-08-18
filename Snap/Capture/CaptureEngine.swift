@@ -1,4 +1,5 @@
 @preconcurrency import AppKit
+import ScreenCaptureKit
 
 @MainActor
 final class CaptureEngine {
@@ -10,11 +11,13 @@ final class CaptureEngine {
 
     typealias RegionCapture = @MainActor (NSRect, NSScreen) async throws -> CGImage
     typealias FullScreenCapture = @MainActor (NSScreen) async throws -> CGImage
+    typealias WindowCapture = @MainActor (SCWindow, WindowCaptureOptions) async throws -> CGImage
 
     private var overlayWindows: [OverlayWindow] = []
     private var state: State = .idle
     private let regionCapture: RegionCapture
     private let fullScreenCapture: FullScreenCapture
+    private let windowCapture: WindowCapture
 
     var isActive: Bool { state != .idle }
 
@@ -28,10 +31,14 @@ final class CaptureEngine {
         },
         fullScreenCapture: @escaping FullScreenCapture = { screen in
             try await ScreenCapture.captureFullScreen(screen)
+        },
+        windowCapture: @escaping WindowCapture = { window, options in
+            try await ScreenCapture.captureWindow(window, options: options)
         }
     ) {
         self.regionCapture = regionCapture
         self.fullScreenCapture = fullScreenCapture
+        self.windowCapture = windowCapture
     }
 
     func startAreaSelection() {
@@ -47,6 +54,22 @@ final class CaptureEngine {
         Task {
             do {
                 let image = try await fullScreenCapture(screen)
+                state = .idle
+                onImageCaptured?(image, scaleFactor, nil)
+            } catch {
+                state = .idle
+                onError?(error)
+            }
+        }
+    }
+
+    func captureWindow(_ window: SCWindow, options: WindowCaptureOptions) {
+        guard state == .idle else { return }
+        state = .capturing
+        let scaleFactor = ScreenCapture.scaleFactor(for: window)
+        Task {
+            do {
+                let image = try await windowCapture(window, options)
                 state = .idle
                 onImageCaptured?(image, scaleFactor, nil)
             } catch {

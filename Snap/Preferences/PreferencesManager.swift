@@ -21,7 +21,19 @@ final class PreferencesManager {
         static let lastAnnotationColor = "lastAnnotationColor"
         static let lastLineWidth = "lastLineWidth"
         static let lastFontSize = "lastFontSize"
+        static let windowCaptureIncludesShadow = "windowCaptureIncludesShadow"
+        static let windowCaptureBackground = "windowCaptureBackground"
         static let lastTool = "lastTool"
+    }
+
+    var windowCaptureIncludesShadow: Bool {
+        get { defaults.object(forKey: Keys.windowCaptureIncludesShadow) as? Bool ?? true }
+        set { defaults.set(newValue, forKey: Keys.windowCaptureIncludesShadow) }
+    }
+
+    var windowCaptureBackground: String {
+        get { defaults.string(forKey: Keys.windowCaptureBackground) ?? WindowCaptureBackground.transparent.rawValue }
+        set { defaults.set(newValue, forKey: Keys.windowCaptureBackground) }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -44,6 +56,8 @@ final class PreferencesManager {
             Keys.lastAnnotationColor: "#FF3B30",
             Keys.lastLineWidth: 2.0,
             Keys.lastFontSize: 16.0,
+            Keys.windowCaptureIncludesShadow: true,
+            Keys.windowCaptureBackground: WindowCaptureBackground.transparent.rawValue,
         ])
     }
 

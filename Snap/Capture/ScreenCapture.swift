@@ -45,6 +45,61 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         return try await captureRegion(screen.frame, screen: screen)
     }
 
+    @MainActor
+    static func availableWindows() async throws -> [SCWindow] {
+        let content = try await SCShareableContent.excludingDesktopWindows(
+            true,
+            onScreenWindowsOnly: true
+        )
+        return content.windows
+    }
+
+    @MainActor
+    static func captureWindow(_ window: SCWindow, options: WindowCaptureOptions) async throws -> CGImage {
+        let capturer = ScreenCapture()
+        let filter = SCContentFilter(desktopIndependentWindow: window)
+        let scaleFactor = scaleFactor(for: window)
+        let config = SCStreamConfiguration()
+        config.width = Int((window.frame.width * scaleFactor).rounded())
+        config.height = Int((window.frame.height * scaleFactor).rounded())
+        config.scalesToFit = false
+        config.showsCursor = PreferencesManager.shared.includeMouseCursor
+        config.capturesAudio = false
+        config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
+        config.pixelFormat = kCVPixelFormatType_32BGRA
+        config.backgroundColor = options.background.color
+
+        if #available(macOS 14.0, *) {
+            config.width = Int((filter.contentRect.width * CGFloat(filter.pointPixelScale)).rounded())
+            config.height = Int((filter.contentRect.height * CGFloat(filter.pointPixelScale)).rounded())
+            config.ignoreShadowsSingleWindow = !options.includesShadow
+            config.ignoreGlobalClipSingleWindow = true
+            config.shouldBeOpaque = options.background != .transparent
+            if #available(macOS 14.2, *) {
+                config.includeChildWindows = true
+            }
+        }
+
+        let colorSpace = CGColorSpace(name: CGColorSpace.displayP3) ?? CGColorSpaceCreateDeviceRGB()
+        if let name = colorSpace.name {
+            config.colorSpaceName = name
+        }
+        return try await capturer.capture(filter: filter, config: config, colorSpace: colorSpace)
+    }
+
+    static func scaleFactor(for window: SCWindow) -> CGFloat {
+        var displayCount: UInt32 = 0
+        var displayID = CGMainDisplayID()
+        if CGGetDisplaysWithRect(window.frame, 1, &displayID, &displayCount) == .success,
+           displayCount > 0,
+           let screen = NSScreen.screens.first(where: { screen in
+               (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == displayID
+           }) {
+            return screen.backingScaleFactor
+        }
+        return NSScreen.screens.first?.backingScaleFactor ?? 1
+    }
+
     /// Find the SCDisplay matching an NSScreen by CGDirectDisplayID
     static func findDisplay(for screen: NSScreen, in displays: [SCDisplay]) -> SCDisplay? {
         let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
@@ -91,6 +146,15 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         }
         config.pixelFormat = kCVPixelFormatType_32BGRA
 
+        return try await capture(filter: filter, config: config, colorSpace: colorSpace)
+    }
+
+    @MainActor
+    private func capture(
+        filter: SCContentFilter,
+        config: SCStreamConfiguration,
+        colorSpace: CGColorSpace
+    ) async throws -> CGImage {
         // macOS 14+: one-shot capture returns a CGImage directly, skipping the
         // stream / continuation / delegate / timeout plumbing entirely.
         if #available(macOS 14.0, *) {

@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isShowingPermissionAlert = false
     private var pendingTextCapture = false
     private var delayedCaptureWorkItem: DispatchWorkItem?
+    private var isPresentingWindowPicker = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // App-hosted unit tests launch Snap before loading the test bundle.
@@ -85,13 +86,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func startAreaCapture() {
-        guard !captureEngine.isActive else { return }
+        guard !captureEngine.isActive, !isPresentingWindowPicker else { return }
         cancelDelayedCapture()
         captureEngine.startAreaSelection()
     }
 
     func startFullScreenCapture() {
-        guard let screen = NSScreen.screens.first else { return }
+        guard !isPresentingWindowPicker, let screen = NSScreen.screens.first else { return }
         cancelDelayedCapture()
         captureEngine.captureFullScreen(screen)
     }
@@ -108,10 +109,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func startTextCapture() {
-        guard !captureEngine.isActive else { return }
+        guard !captureEngine.isActive, !isPresentingWindowPicker else { return }
         cancelDelayedCapture()
         pendingTextCapture = true
         captureEngine.startAreaSelection()
+    }
+
+    func startWindowCapture() {
+        guard !captureEngine.isActive, !isPresentingWindowPicker else { return }
+        cancelDelayedCapture()
+        isPresentingWindowPicker = true
+        Task {
+            defer { isPresentingWindowPicker = false }
+            do {
+                let windows = try await ScreenCapture.availableWindows()
+                guard let selection = WindowCapturePicker.chooseWindow(from: windows) else { return }
+                captureEngine.captureWindow(selection.window, options: selection.options)
+            } catch {
+                if !ScreenCapture.hasScreenRecordingPermission() {
+                    presentScreenRecordingPermissionAlert()
+                } else {
+                    OutputManager.showFailure("Could not list windows: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     private func cancelDelayedCapture() {
