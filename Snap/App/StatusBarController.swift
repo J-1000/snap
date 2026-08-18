@@ -4,6 +4,7 @@ import AppKit
 final class StatusBarController {
     private var statusItem: NSStatusItem
     private var preferencesWindow: PreferencesWindow?
+    private var captureHistoryWindow: CaptureHistoryWindowController?
     private var successFlashWorkItem: DispatchWorkItem?
 
     init() {
@@ -55,6 +56,7 @@ final class StatusBarController {
         menu.addItem(saveAsItem)
 
         menu.addItem(NSMenuItem(title: "Pin Last Screenshot", action: #selector(pinLastScreenshot), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Capture History…", action: #selector(openCaptureHistory), keyEquivalent: ""))
 
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Preferences…", action: #selector(openPreferences), keyEquivalent: ","))
@@ -122,6 +124,14 @@ final class StatusBarController {
     @objc private func pinLastScreenshot() {
         guard let delegate = NSApp.delegate as? AppDelegate else { return }
         delegate.pinLastScreenshot()
+    }
+
+    @objc private func openCaptureHistory() {
+        if captureHistoryWindow == nil {
+            captureHistoryWindow = CaptureHistoryWindowController()
+        }
+        captureHistoryWindow?.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func openPreferences() {

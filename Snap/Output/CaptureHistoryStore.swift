@@ -34,12 +34,22 @@ final class CaptureHistoryStore {
         self.maximumEntryCount = max(maximumEntryCount, 1)
         self.fileManager = fileManager
         self.isEnabled = isEnabled
-        loadIndex()
+        if isEnabled() {
+            loadIndex()
+        } else {
+            // Disabled means no retained screenshot data, including anything
+            // left behind if the preference was changed outside the UI.
+            try? fileManager.removeItem(at: directory)
+        }
     }
 
     @discardableResult
     func record(_ image: CGImage, scaleFactor: CGFloat) -> CaptureHistoryEntry? {
-        guard isEnabled(), let data = OutputManager.pngData(from: image) else { return nil }
+        guard isEnabled() else {
+            clear()
+            return nil
+        }
+        guard let data = OutputManager.pngData(from: image) else { return nil }
         do {
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
             let id = UUID()

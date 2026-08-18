@@ -235,6 +235,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         lastCaptureScaleFactor = scaleFactor
         OutputManager.cacheLastCapture(image, scaleFactor: scaleFactor)
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            CaptureHistoryStore.shared.record(image, scaleFactor: scaleFactor)
+        }
         let prefs = PreferencesManager.shared
         var automaticConfirmations: [String] = []
 
@@ -445,7 +448,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    private func pinScreenshot(_ image: CGImage, scaleFactor: CGFloat, screen: NSScreen?) {
+    func pinScreenshot(_ image: CGImage, scaleFactor: CGFloat, screen: NSScreen?) {
         let id = UUID()
         let window = PinnedScreenshotWindow(image: image, scaleFactor: scaleFactor, screen: screen)
         window.onCopy = { [weak self, weak window] in

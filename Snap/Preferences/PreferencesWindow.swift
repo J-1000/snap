@@ -18,10 +18,12 @@ final class PreferencesWindow: NSWindowController {
     private var areaShortcutRecorder: ShortcutRecorder!
     private var fullScreenShortcutRecorder: ShortcutRecorder!
     private var shortcutErrorLabel: NSTextField!
+    private var historyCheckbox: NSButton!
+    private var clearHistoryButton: NSButton!
 
     convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 580),
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 650),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -152,6 +154,19 @@ final class PreferencesWindow: NSWindowController {
             action: #selector(autoSaveToggled)
         )
         stack.addArrangedSubview(autoSaveCheckbox)
+
+        historyCheckbox = makeCheckbox(
+            title: "Keep up to 20 recent captures in local history",
+            state: prefs.captureHistoryEnabled,
+            action: #selector(historyToggled)
+        )
+        historyCheckbox.toolTip = "Off by default. History is stored only on this Mac."
+        stack.addArrangedSubview(historyCheckbox)
+
+        clearHistoryButton = NSButton(title: "Clear Capture History…", target: self, action: #selector(clearHistoryTapped))
+        clearHistoryButton.bezelStyle = .rounded
+        clearHistoryButton.isEnabled = !CaptureHistoryStore.shared.entries.isEmpty
+        stack.addArrangedSubview(clearHistoryButton)
         return stack
     }
 
@@ -288,6 +303,27 @@ final class PreferencesWindow: NSWindowController {
 
     @objc private func autoSaveToggled() {
         prefs.autoSaveAfterCapture = autoSaveCheckbox.state == .on
+    }
+
+    @objc private func historyToggled() {
+        let enabled = historyCheckbox.state == .on
+        prefs.captureHistoryEnabled = enabled
+        if !enabled {
+            CaptureHistoryStore.shared.clear()
+        }
+        clearHistoryButton.isEnabled = enabled && !CaptureHistoryStore.shared.entries.isEmpty
+    }
+
+    @objc private func clearHistoryTapped() {
+        let alert = NSAlert()
+        alert.messageText = "Clear capture history?"
+        alert.informativeText = "This permanently deletes all screenshots stored by Snap history."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Clear History")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        CaptureHistoryStore.shared.clear()
+        clearHistoryButton.isEnabled = false
     }
 
     @objc private func openEditorToggled() {

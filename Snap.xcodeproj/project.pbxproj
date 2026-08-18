@@ -15,6 +15,7 @@
 		145B6EBC7173B3A86348FDB1 /* HotKeyManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61FD9FC74C55BAB9EB70BEE /* HotKeyManagerTests.swift */; };
 		20E61F4A59ACE5D917AACCD1 /* OutputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0BBCDCF2FCA03D97E67B169 /* OutputManager.swift */; };
 		21857DB0E1E6B72395421056 /* AnnotationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDEDDCBC2137F9F6D493F6 /* AnnotationManager.swift */; };
+		278DD5BBFAC7810D25E2966F /* CaptureHistoryWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48963A45B2F8C37DDFF49B7A /* CaptureHistoryWindow.swift */; };
 		2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */; };
 		3CDFD581E6E53E73BBE783A1 /* ScrollingCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE8F2994C0CEB01FBA00C0A /* ScrollingCaptureTests.swift */; };
 		49F0ED4AE05791155E546519 /* CaptureHistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E883BF84179D07D1BA9698E4 /* CaptureHistoryStoreTests.swift */; };
@@ -72,6 +73,7 @@
 		3CFDEDDCBC2137F9F6D493F6 /* AnnotationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationManager.swift; sourceTree = "<group>"; };
 		3DE3583780BCCDE89242E6C6 /* PreferencesManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManagerTests.swift; sourceTree = "<group>"; };
 		4506329C6000E69CDAA97BEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		48963A45B2F8C37DDFF49B7A /* CaptureHistoryWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureHistoryWindow.swift; sourceTree = "<group>"; };
 		573BF2A4C8A26A615D465FB1 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
 		69B328534970A999544C1547 /* AnnotationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationTests.swift; sourceTree = "<group>"; };
 		78F9118D2746AD93F2833213 /* AnnotationManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationManagerTests.swift; sourceTree = "<group>"; };
@@ -195,6 +197,7 @@
 			isa = PBXGroup;
 			children = (
 				F617C359D78D4A086EA747A6 /* AppDelegate.swift */,
+				48963A45B2F8C37DDFF49B7A /* CaptureHistoryWindow.swift */,
 				CAE2035133E2B6F9384EB338 /* CaptureHUD.swift */,
 				14193A4FC394A707FD29428A /* main.swift */,
 				00A190EAEC5E3446F0FE7D4A /* PinnedScreenshotWindow.swift */,
@@ -339,6 +342,7 @@
 				8F25EF02B42FCFCB2EFBCC8D /* CaptureEngine.swift in Sources */,
 				524F3A4E2AFD12D30E8A94D4 /* CaptureHUD.swift in Sources */,
 				64647814D61B4BA9D2D638EB /* CaptureHistoryStore.swift in Sources */,
+				278DD5BBFAC7810D25E2966F /* CaptureHistoryWindow.swift in Sources */,
 				EE3521E319A6CBC91F1A385A /* EditingToolbar.swift in Sources */,
 				A0F63E161BF9B0FC3C0647D2 /* FileNaming.swift in Sources */,
 				2E8AA54F44F423593E175670 /* HotKeyManager.swift in Sources */,

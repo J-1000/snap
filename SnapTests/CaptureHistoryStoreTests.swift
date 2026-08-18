@@ -24,6 +24,17 @@ final class CaptureHistoryStoreTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.path))
     }
 
+    func testOpeningDisabledStoreRemovesPreviouslyRetainedHistory() {
+        let enabled = CaptureHistoryStore(directory: directory, isEnabled: { true })
+        enabled.record(makeImage(width: 12, height: 8), scaleFactor: 1)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: directory.path))
+
+        let disabled = CaptureHistoryStore(directory: directory, isEnabled: { false })
+
+        XCTAssertTrue(disabled.entries.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.path))
+    }
+
     func testHistoryPersistsImagesAndEnforcesLimit() {
         let store = CaptureHistoryStore(
             directory: directory,
