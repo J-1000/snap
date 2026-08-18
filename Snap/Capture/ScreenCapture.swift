@@ -102,9 +102,12 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
 
     /// Find the SCDisplay matching an NSScreen by CGDirectDisplayID
     static func findDisplay(for screen: NSScreen, in displays: [SCDisplay]) -> SCDisplay? {
-        let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
-        guard let displayID = screenNumber else { return nil }
+        guard let displayID = displayID(for: screen) else { return nil }
         return displays.first { $0.displayID == displayID }
+    }
+
+    static func displayID(for screen: NSScreen) -> CGDirectDisplayID? {
+        screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
     }
 
     @MainActor

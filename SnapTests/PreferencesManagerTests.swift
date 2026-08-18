@@ -38,6 +38,11 @@ final class PreferencesManagerTests: XCTestCase {
         prefs.lastAnnotationColorHex = "#00FF00FF"
         prefs.windowCaptureIncludesShadow = false
         prefs.windowCaptureBackground = WindowCaptureBackground.black.rawValue
+        let area = SavedCaptureArea(
+            rect: NSRect(x: -20, y: 40, width: 640, height: 480),
+            displayID: 42
+        )
+        prefs.lastAreaCapture = area
 
         // A fresh instance over the same suite must read back the stored values.
         let reloaded = PreferencesManager(defaults: defaults)
@@ -49,6 +54,7 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertEqual(reloaded.lastAnnotationColorHex, "#00FF00FF")
         XCTAssertFalse(reloaded.windowCaptureIncludesShadow)
         XCTAssertEqual(reloaded.windowCaptureBackground, WindowCaptureBackground.black.rawValue)
+        XCTAssertEqual(reloaded.lastAreaCapture, area)
     }
 
     @MainActor func testSaveDirectoryRoundTrips() {

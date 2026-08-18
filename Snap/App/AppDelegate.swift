@@ -135,6 +135,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func repeatLastAreaCapture() {
+        guard !isPresentingWindowPicker else { return }
+        cancelDelayedCapture()
+        if !captureEngine.repeatLastAreaCapture() {
+            OutputManager.showFailure("Capture an area once before using Repeat Last Area")
+        }
+    }
+
     private func cancelDelayedCapture() {
         delayedCaptureWorkItem?.cancel()
         delayedCaptureWorkItem = nil

@@ -1,5 +1,11 @@
 import Foundation
+import CoreGraphics
 import ServiceManagement
+
+struct SavedCaptureArea: Equatable {
+    let rect: NSRect
+    let displayID: CGDirectDisplayID
+}
 
 @MainActor
 final class PreferencesManager {
@@ -23,6 +29,8 @@ final class PreferencesManager {
         static let lastFontSize = "lastFontSize"
         static let windowCaptureIncludesShadow = "windowCaptureIncludesShadow"
         static let windowCaptureBackground = "windowCaptureBackground"
+        static let lastAreaCaptureRect = "lastAreaCaptureRect"
+        static let lastAreaCaptureDisplayID = "lastAreaCaptureDisplayID"
         static let lastTool = "lastTool"
     }
 
@@ -34,6 +42,32 @@ final class PreferencesManager {
     var windowCaptureBackground: String {
         get { defaults.string(forKey: Keys.windowCaptureBackground) ?? WindowCaptureBackground.transparent.rawValue }
         set { defaults.set(newValue, forKey: Keys.windowCaptureBackground) }
+    }
+
+    var lastAreaCapture: SavedCaptureArea? {
+        get {
+            guard let values = defaults.array(forKey: Keys.lastAreaCaptureRect) as? [Double],
+                  values.count == 4,
+                  let displayNumber = defaults.object(forKey: Keys.lastAreaCaptureDisplayID) as? NSNumber else {
+                return nil
+            }
+            return SavedCaptureArea(
+                rect: NSRect(x: values[0], y: values[1], width: values[2], height: values[3]),
+                displayID: displayNumber.uint32Value
+            )
+        }
+        set {
+            guard let newValue else {
+                defaults.removeObject(forKey: Keys.lastAreaCaptureRect)
+                defaults.removeObject(forKey: Keys.lastAreaCaptureDisplayID)
+                return
+            }
+            defaults.set(
+                [newValue.rect.origin.x, newValue.rect.origin.y, newValue.rect.width, newValue.rect.height],
+                forKey: Keys.lastAreaCaptureRect
+            )
+            defaults.set(NSNumber(value: newValue.displayID), forKey: Keys.lastAreaCaptureDisplayID)
+        }
     }
 
     init(defaults: UserDefaults = .standard) {

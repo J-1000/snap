@@ -111,6 +111,24 @@ final class AppDelegateTests: XCTestCase {
 @MainActor
 final class CaptureEngineTests: XCTestCase {
 
+    func testRepeatAreaClampKeepsRegionInsideChangedDisplay() {
+        let rect = NSRect(x: 900, y: 700, width: 400, height: 300)
+        let screen = NSRect(x: 0, y: 0, width: 1000, height: 800)
+
+        let clamped = CaptureEngine.clampedCaptureRect(rect, to: screen)
+
+        XCTAssertEqual(clamped, NSRect(x: 600, y: 500, width: 400, height: 300))
+    }
+
+    func testRepeatAreaClampShrinksRegionLargerThanDisplay() {
+        let rect = NSRect(x: -100, y: -100, width: 1600, height: 1200)
+        let screen = NSRect(x: 20, y: 30, width: 1000, height: 800)
+
+        let clamped = CaptureEngine.clampedCaptureRect(rect, to: screen)
+
+        XCTAssertEqual(clamped, screen)
+    }
+
     func testFullScreenCaptureRejectsOverlapAndResetsAfterSuccess() async {
         let image = createTestImage(width: 12, height: 8)
         let started = expectation(description: "capture started")

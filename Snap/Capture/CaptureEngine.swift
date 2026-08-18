@@ -79,6 +79,40 @@ final class CaptureEngine {
         }
     }
 
+    @discardableResult
+    func repeatLastAreaCapture() -> Bool {
+        guard state == .idle,
+              let savedArea = PreferencesManager.shared.lastAreaCapture,
+              let screen = Self.screen(for: savedArea, in: NSScreen.screens),
+              let rect = Self.clampedCaptureRect(savedArea.rect, to: screen.frame) else {
+            return false
+        }
+        captureRegion(rect, screen: screen)
+        return true
+    }
+
+    static func clampedCaptureRect(_ rect: NSRect, to screenFrame: NSRect) -> NSRect? {
+        guard rect.width > 1, rect.height > 1,
+              screenFrame.width > 1, screenFrame.height > 1 else {
+            return nil
+        }
+        let size = NSSize(
+            width: min(rect.width, screenFrame.width),
+            height: min(rect.height, screenFrame.height)
+        )
+        let origin = NSPoint(
+            x: min(max(rect.minX, screenFrame.minX), screenFrame.maxX - size.width),
+            y: min(max(rect.minY, screenFrame.minY), screenFrame.maxY - size.height)
+        )
+        return NSRect(origin: origin, size: size)
+    }
+
+    private static func screen(for savedArea: SavedCaptureArea, in screens: [NSScreen]) -> NSScreen? {
+        screens.first { ScreenCapture.displayID(for: $0) == savedArea.displayID }
+            ?? screens.first { $0.frame.intersects(savedArea.rect) }
+            ?? screens.first
+    }
+
     func cancel() {
         guard state == .selecting else { return }
         hideOverlays()
@@ -122,12 +156,23 @@ final class CaptureEngine {
 
     private func handleSelectionComplete(rect: NSRect, screen: NSScreen) {
         guard state == .selecting else { return }
-        state = .capturing
         hideOverlays()
+        captureRegion(rect, screen: screen)
+    }
+
+    private func captureRegion(_ rect: NSRect, screen: NSScreen) {
+        guard state == .idle || state == .selecting else { return }
+        state = .capturing
         let scaleFactor = screen.backingScaleFactor
         Task {
             do {
                 let image = try await regionCapture(rect, screen)
+                if let displayID = ScreenCapture.displayID(for: screen) {
+                    PreferencesManager.shared.lastAreaCapture = SavedCaptureArea(
+                        rect: rect,
+                        displayID: displayID
+                    )
+                }
                 state = .idle
                 onImageCaptured?(image, scaleFactor, rect)
             } catch {
