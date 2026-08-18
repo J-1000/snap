@@ -6,9 +6,9 @@
 |-------|--------|
 | Document | Product Requirements Document (PRD) |
 | Product name | Snap |
-| Version | 1.0 |
-| Date | July 2026 |
-| Status | Implemented |
+| Version | 1.1 |
+| Date | August 2026 |
+| Status | Implemented and expanded |
 | Platform | macOS 13 Ventura and later (Intel + Apple Silicon) |
 
 ---
@@ -43,14 +43,13 @@ The design philosophy is opinionated minimalism: only the features that get used
 - Deliver a native macOS screenshot tool optimized for a single power-user's daily workflow.
 - Activation-to-save in under 2 seconds for the common case (capture → clipboard).
 - Smooth Retina rendering, dark mode support, and minimal resource consumption.
-- Support PNG and JPEG local saves with a configurable default save directory.
+- Support PNG, JPEG, and optional macOS 26 HEIC local saves with a configurable default save directory.
 - Provide essential annotation tools including blur/pixelate for redacting sensitive content.
 - Ship a single self-contained .app bundle with no external runtime dependencies.
 
 ### 2.2 Non-Goals
 
 - Video or screen recording.
-- Scrolling/long-page capture.
 - Automatic window-snap detection.
 - iOS or cross-platform support.
 - Monetization, analytics, or telemetry of any kind.
@@ -80,6 +79,12 @@ On activation, all connected displays dim simultaneously. Each selection is cons
 
 The Capture Text menu action reuses area selection, recognizes text on-device with Vision, and copies the result to the pasteboard. No image or recognized text leaves the Mac.
 
+#### 3.1.5 Expanded Capture Modes
+
+Snap supports window capture with shadow/background controls, repeat-last-area capture, scrolling-region stitching, and QR payload recognition. Window selection uses ScreenCaptureKit's shareable-window list. OCR and QR recognition run entirely on-device.
+
+On supported Apple-silicon Macs running macOS 26, users may opt into HDR capture and HEIC output. The compatible SDR pipeline remains the default.
+
 ---
 
 ### 3.2 Annotation Toolbar
@@ -96,10 +101,11 @@ After capture, a compact HUD offers Copy, Save, and Annotate. Choosing Annotate�
 | 4 | Rectangle | Draws outlined rectangles. Color selectable. |
 | 5 | Ellipse | Draws outlined ellipses. Color selectable. |
 | 6 | Text | Adds typed text annotations. Color selectable. Font size adjustable (8–72 pt). |
-| 7 | Blur / Pixelate | Applies pixelation to a selected rectangular region for redacting passwords, tokens, emails, and PII. |
-| 8 | Color Picker | Preset swatches plus a custom color dialog. |
-| 9 | Undo / Redo | ⌘Z undoes the most recent annotation. ⌘⇧Z redoes. Supports full undo/redo stack. |
-| 10 | Close (X) | Closes the editor and returns to the desktop. |
+| 7 | Blur / Pixelate | Applies pixelation to a selected rectangular region for obscuring content. |
+| 8 | Solid Redaction | Exports a fully opaque black region for sensitive values. |
+| 9 | Selection | Moves, resizes, recolors, duplicates, deletes, and reorders existing annotations. |
+| 10 | Color Picker | Preset swatches plus a custom color dialog. |
+| 11 | Undo / Redo | Visible controls plus ⌘Z/⌘⇧Z with a full history stack. |
 
 #### 3.2.2 Action Toolbar (Bottom)
 
@@ -110,6 +116,7 @@ After capture, a compact HUD offers Copy, Save, and Annotate. Choosing Annotate�
 | 3 | Google Image Search | ⌘G | Copies the image and opens Google Images for the user to paste. |
 | 4 | Print | ⌘P | Opens the macOS system print dialog. |
 | 5 | Share | — | Opens the native macOS share sheet. |
+| 6 | Crop / Zoom | — | Non-destructive crop plus zoom and panning controls. |
 
 ---
 
@@ -151,6 +158,8 @@ The preferences window is accessible from the menu bar icon's context menu. It i
 - **Automatic clipboard copy and save** toggles.
 - **Open editor after capture** toggle; otherwise the post-capture HUD is shown.
 - **Launch at login** (toggle, default: off).
+- **Custom global shortcuts** with duplicate and common system-conflict detection.
+- **Capture history** (toggle, default: off): retains at most 20 local PNG captures and permanently clears stored files when disabled.
 
 ---
 
@@ -177,7 +186,7 @@ The preferences window is accessible from the menu bar icon's context menu. It i
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
-| Language | Swift 5.9+ | Native performance, first-class macOS API access |
+| Language | Swift 6 | Native performance, strict concurrency, first-class macOS API access |
 | UI framework | AppKit (NSWindow, NSView) | Full control over overlay windows and screen capture |
 | Screen capture | ScreenCaptureKit (macOS 13+) | Apple's modern, permission-aware capture API |
 | Image processing | Core Image / Core Graphics | Hardware-accelerated annotation and blur rendering |
@@ -188,9 +197,9 @@ The preferences window is accessible from the menu bar icon's context menu. It i
 
 The application follows a modular architecture with three core subsystems:
 
-- **CaptureEngine:** Manages per-display dimming overlays, user selection interaction, serialized capture modes, and pixel capture via ScreenCaptureKit. Handles Retina scaling and display color spaces.
-- **AnnotationEngine:** Renders annotation tools (line, arrow, freehand, rectangle, ellipse, text, blur, and step badges) through Core Graphics onto the captured image. Maintains a full undo/redo stack.
-- **OutputManager:** Handles save-to-file (PNG/JPEG conversion), clipboard copy, print dispatch, and reverse image search. Generates filenames from the timestamp pattern.
+- **CaptureEngine:** Manages per-display dimming overlays, user selection interaction, serialized capture modes, repeat-area state, provider seams, and pixel capture via ScreenCaptureKit.
+- **AnnotationEngine:** Renders and edits annotations through Core Graphics, with selection transforms, solid redaction, crop, zoom/pan, and full undo/redo.
+- **OutputManager:** Handles PNG/JPEG/HEIC saves, clipboard, print, reverse search, pinning, and opt-in bounded local history.
 
 ### 5.3 macOS Permissions
 
@@ -225,6 +234,7 @@ The app requires Screen Recording permission (Privacy & Security → Screen Reco
 - No telemetry, analytics, or usage tracking of any kind.
 - No data is transmitted by Snap. Reverse image search opens Google Images and leaves the upload/paste action to the user.
 - All data stays local on disk.
+- Capture history is disabled by default, capped at 20 entries, and deleted when the user disables or clears it.
 
 ### 6.4 macOS Integration
 
@@ -245,7 +255,6 @@ The app requires Screen Recording permission (Privacy & Security → Screen Reco
 
 ## 8. Future Considerations (Post v1.0)
 
-- Window-snap capture: automatically detect window boundaries on hover.
-- Scrolling capture: capture content beyond the visible viewport.
+- Window-boundary detection on hover as a faster alternative to the current window picker.
 - Video / GIF recording of a selected screen region.
 - Cloud upload to S3-compatible bucket with shareable links (if clipboard-paste workflow proves insufficient).
