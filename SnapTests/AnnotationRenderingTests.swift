@@ -54,4 +54,28 @@ final class AnnotationRenderingTests: XCTestCase {
         XCTAssertEqual(output?.width, 10)
         XCTAssertEqual(output?.height, 10)
     }
+
+    func testSolidRedactionExportsOpaqueBlackPixels() {
+        let source = whiteImage(width: 40, height: 40)
+        let manager = AnnotationManager()
+        manager.add(
+            Annotation(
+                type: .redact,
+                rect: NSRect(x: 10, y: 12, width: 20, height: 16),
+                color: .systemPink
+            )
+        )
+
+        let output = manager.composite(onto: source)!
+        let covered = pixel(output, x: 20, y: 20)
+        XCTAssertLessThan(covered.0, 5)
+        XCTAssertLessThan(covered.1, 5)
+        XCTAssertLessThan(covered.2, 5)
+        XCTAssertEqual(covered.3, 255)
+
+        let uncovered = pixel(output, x: 4, y: 4)
+        XCTAssertGreaterThan(uncovered.0, 245)
+        XCTAssertGreaterThan(uncovered.1, 245)
+        XCTAssertGreaterThan(uncovered.2, 245)
+    }
 }

@@ -123,7 +123,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         case .line, .arrow:
             guard let start = dragOrigin, let end = dragEndPoint else { return nil }
             return Annotation(type: tool, start: start, end: end, color: currentColor, lineWidth: currentLineWidth)
-        case .rectangle, .ellipse, .blur:
+        case .rectangle, .ellipse, .blur, .redact:
             guard let rect = dragRect, rect.width > 0, rect.height > 0 else { return nil }
             return Annotation(type: tool, rect: rect, color: currentColor, lineWidth: currentLineWidth)
         case .text, .stepBadge:

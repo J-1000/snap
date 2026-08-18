@@ -152,8 +152,10 @@ final class AnnotationTests: XCTestCase {
     // MARK: - AnnotationType cases
 
     func testAllAnnotationTypesExist() {
-        let types: [AnnotationType] = [.rectangle, .ellipse, .line, .arrow, .freehand, .text, .blur]
-        XCTAssertEqual(types.count, 7)
+        XCTAssertEqual(
+            Set(AnnotationType.allCases),
+            Set([.rectangle, .ellipse, .line, .arrow, .freehand, .text, .blur, .redact, .stepBadge])
+        )
     }
 
     // MARK: - Blur initializer

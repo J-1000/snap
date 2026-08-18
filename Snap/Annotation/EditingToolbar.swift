@@ -22,7 +22,7 @@ final class EditingToolbar: NSView {
 
     static let width: CGFloat = 72
     /// Selection, eight tools, color controls, and both option popups without clipping.
-    static let minimumHeight: CGFloat = 520
+    static let minimumHeight: CGFloat = 556
 
     private var toolButtons: [AnnotationType: NSButton] = [:]
     private let colorWell = NSColorWell()

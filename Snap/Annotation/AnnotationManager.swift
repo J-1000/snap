@@ -206,6 +206,11 @@ final class AnnotationManager {
             NSGraphicsContext.restoreGraphicsState()
         case .blur:
             renderBlur(annotation, in: context, sourceImage: sourceImage)
+        case .redact:
+            // Redactions must remain fully opaque in every output format. Do
+            // not derive this color from the annotation palette or source.
+            context.setFillColor(NSColor.black.cgColor)
+            context.fill(annotation.rect)
         case .stepBadge:
             guard let text = annotation.text else { return }
             context.setFillColor(annotation.color.cgColor)

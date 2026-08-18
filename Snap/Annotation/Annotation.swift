@@ -10,6 +10,7 @@ enum AnnotationType: String, CaseIterable {
     case ellipse
     case text
     case blur
+    case redact
     case stepBadge
 
     var toolbarSymbol: String {
@@ -21,6 +22,7 @@ enum AnnotationType: String, CaseIterable {
         case .ellipse: return "oval"
         case .text: return "textformat"
         case .blur: return "square.grid.3x3"
+        case .redact: return "rectangle.fill"
         case .stepBadge: return "1.circle.fill"
         }
     }
@@ -34,6 +36,7 @@ enum AnnotationType: String, CaseIterable {
         case .ellipse: return "Ellipse"
         case .text: return "Text"
         case .blur: return "Blur / Pixelate"
+        case .redact: return "Solid Redaction"
         case .stepBadge: return "Step Badge"
         }
     }
