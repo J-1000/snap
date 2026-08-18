@@ -14,7 +14,7 @@ final class CaptureHUD: NSPanel {
     private static let thumbWidth: CGFloat = 220
     private static let autoDismissDelay: TimeInterval = 6
 
-    init(image: CGImage) {
+    init(image: CGImage, screen: NSScreen? = NSScreen.screens.first) {
         let aspect = CGFloat(image.height) / CGFloat(max(image.width, 1))
         let thumbHeight = min(max(CaptureHUD.thumbWidth * aspect, 70), 180)
         let padding: CGFloat = 10
@@ -78,7 +78,7 @@ final class CaptureHUD: NSPanel {
         container.addSubview(row)
 
         contentView = container
-        positionInBottomRight()
+        positionInBottomRight(of: screen)
         scheduleAutoDismiss()
     }
 
@@ -94,8 +94,8 @@ final class CaptureHUD: NSPanel {
         return b
     }
 
-    private func positionInBottomRight() {
-        guard let screen = NSScreen.main else { return }
+    private func positionInBottomRight(of screen: NSScreen?) {
+        guard let screen else { return }
         let vf = screen.visibleFrame
         let margin: CGFloat = 16
         setFrameOrigin(NSPoint(x: vf.maxX - frame.width - margin, y: vf.minY + margin))

@@ -91,7 +91,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func startFullScreenCapture() {
-        guard let screen = NSScreen.main else { return }
+        guard let screen = NSScreen.screens.first else { return }
         cancelDelayedCapture()
         captureEngine.captureFullScreen(screen)
     }
@@ -176,7 +176,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showCaptureHUD(image: CGImage, scaleFactor: CGFloat, selectionRect: NSRect?) {
-        let hud = CaptureHUD(image: image)
+        let captureScreen = selectionRect.flatMap { rect in
+            NSScreen.screens.first { $0.frame.intersects(rect) }
+        } ?? NSScreen.screens.first
+        let hud = CaptureHUD(image: image, screen: captureScreen)
         hud.onAnnotate = { [weak self] in
             self?.showAnnotationWindow(image: image, scaleFactor: scaleFactor, selectionRect: selectionRect)
         }
