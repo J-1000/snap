@@ -15,10 +15,13 @@ final class PreferencesWindow: NSWindowController {
     private var notificationCheckbox: NSButton!
     private var launchAtLoginCheckbox: NSButton!
     private var hdrCheckbox: NSButton?
+    private var areaShortcutRecorder: ShortcutRecorder!
+    private var fullScreenShortcutRecorder: ShortcutRecorder!
+    private var shortcutErrorLabel: NSTextField!
 
     convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 550),
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 580),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -56,8 +59,30 @@ final class PreferencesWindow: NSWindowController {
 
     private func makeCaptureSection() -> NSView {
         let stack = makeSection(title: "Capture")
-        stack.addArrangedSubview(makeInfoRow(label: "Area capture", value: "Command-Shift-Option-4"))
-        stack.addArrangedSubview(makeInfoRow(label: "Full screen", value: "Command-Shift-Option-3"))
+        areaShortcutRecorder = ShortcutRecorder(shortcut: prefs.areaCaptureShortcut)
+        areaShortcutRecorder.onShortcutRecorded = { [weak self] shortcut in
+            self?.saveShortcut(shortcut, forAreaCapture: true)
+        }
+        stack.addArrangedSubview(
+            makeControlRow(label: "Area capture", controls: [areaShortcutRecorder])
+        )
+
+        fullScreenShortcutRecorder = ShortcutRecorder(shortcut: prefs.fullScreenCaptureShortcut)
+        fullScreenShortcutRecorder.onShortcutRecorded = { [weak self] shortcut in
+            self?.saveShortcut(shortcut, forAreaCapture: false)
+        }
+        stack.addArrangedSubview(
+            makeControlRow(label: "Full screen", controls: [fullScreenShortcutRecorder])
+        )
+
+        shortcutErrorLabel = NSTextField(wrappingLabelWithString: "")
+        shortcutErrorLabel.textColor = .systemRed
+        shortcutErrorLabel.font = .systemFont(ofSize: 11)
+        shortcutErrorLabel.maximumNumberOfLines = 2
+        shortcutErrorLabel.isHidden = true
+        shortcutErrorLabel.setAccessibilityLabel("Shortcut conflict")
+        shortcutErrorLabel.widthAnchor.constraint(equalToConstant: 430).isActive = true
+        stack.addArrangedSubview(shortcutErrorLabel)
 
         cursorCheckbox = makeCheckbox(
             title: "Include mouse cursor",
@@ -179,6 +204,30 @@ final class PreferencesWindow: NSWindowController {
         return makeControlRow(label: label, controls: [valueLabel])
     }
 
+    private func saveShortcut(_ shortcut: HotKeyManager.HotKey, forAreaCapture: Bool) {
+        let other = forAreaCapture ? prefs.fullScreenCaptureShortcut : prefs.areaCaptureShortcut
+        if let error = HotKeyManager.validationError(for: shortcut, conflictingWith: other) {
+            shortcutErrorLabel.stringValue = error
+            shortcutErrorLabel.isHidden = false
+            NSSound.beep()
+            if forAreaCapture {
+                areaShortcutRecorder.shortcut = prefs.areaCaptureShortcut
+            } else {
+                fullScreenShortcutRecorder.shortcut = prefs.fullScreenCaptureShortcut
+            }
+            return
+        }
+
+        shortcutErrorLabel.isHidden = true
+        if forAreaCapture {
+            prefs.areaCaptureShortcut = shortcut
+            areaShortcutRecorder.shortcut = shortcut
+        } else {
+            prefs.fullScreenCaptureShortcut = shortcut
+            fullScreenShortcutRecorder.shortcut = shortcut
+        }
+    }
+
     private func makeControlRow(label: String, controls: [NSView]) -> NSView {
         let row = NSStackView()
         row.orientation = .horizontal
@@ -259,5 +308,67 @@ final class PreferencesWindow: NSWindowController {
 
     @objc private func launchAtLoginToggled() {
         prefs.launchAtLogin = launchAtLoginCheckbox.state == .on
+    }
+}
+
+/// Keyboard-first shortcut recorder used by Preferences. Clicking it focuses
+/// the control; the next key-down plus modifiers becomes the candidate binding.
+private final class ShortcutRecorder: NSButton {
+    var shortcut: HotKeyManager.HotKey {
+        didSet { updateTitle() }
+    }
+    var onShortcutRecorded: ((HotKeyManager.HotKey) -> Void)?
+
+    init(shortcut: HotKeyManager.HotKey) {
+        self.shortcut = shortcut
+        super.init(frame: .zero)
+        bezelStyle = .rounded
+        setButtonType(.momentaryPushIn)
+        toolTip = "Click, then press a new keyboard shortcut"
+        setAccessibilityLabel("Keyboard shortcut")
+        widthAnchor.constraint(equalToConstant: 150).isActive = true
+        updateTitle()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.makeFirstResponder(self)
+        title = "Press shortcut…"
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 {
+            window?.makeFirstResponder(nil)
+            return
+        }
+
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        var modifiers: CGEventFlags = []
+        if flags.contains(.command) { modifiers.insert(.maskCommand) }
+        if flags.contains(.shift) { modifiers.insert(.maskShift) }
+        if flags.contains(.option) { modifiers.insert(.maskAlternate) }
+        if flags.contains(.control) { modifiers.insert(.maskControl) }
+
+        onShortcutRecorded?(
+            HotKeyManager.HotKey(
+                keyCode: CGKeyCode(event.keyCode),
+                modifiers: modifiers
+            )
+        )
+        window?.makeFirstResponder(nil)
+    }
+
+    override func resignFirstResponder() -> Bool {
+        updateTitle()
+        return super.resignFirstResponder()
+    }
+
+    private func updateTitle() {
+        title = shortcut.displayString
+        setAccessibilityValue("Current shortcut: \(shortcut.displayString)")
     }
 }

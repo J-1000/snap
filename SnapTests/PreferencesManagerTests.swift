@@ -1,4 +1,5 @@
 import XCTest
+import Carbon.HIToolbox
 @testable import Snap
 
 final class PreferencesManagerTests: XCTestCase {
@@ -27,6 +28,8 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertFalse(prefs.captureHDR)
         XCTAssertTrue(prefs.windowCaptureIncludesShadow)
         XCTAssertEqual(prefs.windowCaptureBackground, WindowCaptureBackground.transparent.rawValue)
+        XCTAssertEqual(prefs.areaCaptureShortcut, .areaCapture)
+        XCTAssertEqual(prefs.fullScreenCaptureShortcut, .fullScreenCapture)
     }
 
     @MainActor func testValuesRoundTrip() {
@@ -45,6 +48,16 @@ final class PreferencesManagerTests: XCTestCase {
         )
         prefs.lastAreaCapture = area
         prefs.captureHDR = true
+        let areaShortcut = HotKeyManager.HotKey(
+            keyCode: CGKeyCode(kVK_ANSI_A),
+            modifiers: [.maskCommand, .maskControl]
+        )
+        let fullScreenShortcut = HotKeyManager.HotKey(
+            keyCode: CGKeyCode(kVK_ANSI_F),
+            modifiers: [.maskAlternate, .maskControl]
+        )
+        prefs.areaCaptureShortcut = areaShortcut
+        prefs.fullScreenCaptureShortcut = fullScreenShortcut
 
         // A fresh instance over the same suite must read back the stored values.
         let reloaded = PreferencesManager(defaults: defaults)
@@ -58,6 +71,8 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertEqual(reloaded.windowCaptureBackground, WindowCaptureBackground.black.rawValue)
         XCTAssertEqual(reloaded.lastAreaCapture, area)
         XCTAssertTrue(reloaded.captureHDR)
+        XCTAssertEqual(reloaded.areaCaptureShortcut, areaShortcut)
+        XCTAssertEqual(reloaded.fullScreenCaptureShortcut, fullScreenShortcut)
     }
 
     @MainActor func testSaveDirectoryRoundTrips() {

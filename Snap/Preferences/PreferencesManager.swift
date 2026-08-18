@@ -33,6 +33,10 @@ final class PreferencesManager {
         static let lastAreaCaptureDisplayID = "lastAreaCaptureDisplayID"
         static let captureHDR = "captureHDR"
         static let lastTool = "lastTool"
+        static let areaShortcutKeyCode = "areaShortcutKeyCode"
+        static let areaShortcutModifiers = "areaShortcutModifiers"
+        static let fullScreenShortcutKeyCode = "fullScreenShortcutKeyCode"
+        static let fullScreenShortcutModifiers = "fullScreenShortcutModifiers"
     }
 
     var windowCaptureIncludesShadow: Bool {
@@ -76,6 +80,40 @@ final class PreferencesManager {
         set { defaults.set(newValue, forKey: Keys.captureHDR) }
     }
 
+    var areaCaptureShortcut: HotKeyManager.HotKey {
+        get {
+            shortcut(
+                keyCodeKey: Keys.areaShortcutKeyCode,
+                modifiersKey: Keys.areaShortcutModifiers,
+                fallback: .areaCapture
+            )
+        }
+        set {
+            setShortcut(
+                newValue,
+                keyCodeKey: Keys.areaShortcutKeyCode,
+                modifiersKey: Keys.areaShortcutModifiers
+            )
+        }
+    }
+
+    var fullScreenCaptureShortcut: HotKeyManager.HotKey {
+        get {
+            shortcut(
+                keyCodeKey: Keys.fullScreenShortcutKeyCode,
+                modifiersKey: Keys.fullScreenShortcutModifiers,
+                fallback: .fullScreenCapture
+            )
+        }
+        set {
+            setShortcut(
+                newValue,
+                keyCodeKey: Keys.fullScreenShortcutKeyCode,
+                modifiersKey: Keys.fullScreenShortcutModifiers
+            )
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         registerDefaults()
@@ -99,7 +137,35 @@ final class PreferencesManager {
             Keys.windowCaptureIncludesShadow: true,
             Keys.windowCaptureBackground: WindowCaptureBackground.transparent.rawValue,
             Keys.captureHDR: false,
+            Keys.areaShortcutKeyCode: Int(HotKeyManager.HotKey.areaCapture.keyCode),
+            Keys.areaShortcutModifiers: HotKeyManager.HotKey.areaCapture.modifiers.rawValue,
+            Keys.fullScreenShortcutKeyCode: Int(HotKeyManager.HotKey.fullScreenCapture.keyCode),
+            Keys.fullScreenShortcutModifiers: HotKeyManager.HotKey.fullScreenCapture.modifiers.rawValue,
         ])
+    }
+
+    private func shortcut(
+        keyCodeKey: String,
+        modifiersKey: String,
+        fallback: HotKeyManager.HotKey
+    ) -> HotKeyManager.HotKey {
+        guard let keyCode = defaults.object(forKey: keyCodeKey) as? NSNumber,
+              let modifiers = defaults.object(forKey: modifiersKey) as? NSNumber else {
+            return fallback
+        }
+        return HotKeyManager.HotKey(
+            keyCode: CGKeyCode(keyCode.uint16Value),
+            modifiers: CGEventFlags(rawValue: modifiers.uint64Value)
+        )
+    }
+
+    private func setShortcut(
+        _ shortcut: HotKeyManager.HotKey,
+        keyCodeKey: String,
+        modifiersKey: String
+    ) {
+        defaults.set(Int(shortcut.keyCode), forKey: keyCodeKey)
+        defaults.set(shortcut.modifiers.rawValue, forKey: modifiersKey)
     }
 
     var saveDirectory: URL {
