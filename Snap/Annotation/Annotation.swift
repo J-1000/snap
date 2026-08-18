@@ -40,7 +40,7 @@ enum AnnotationType: String, CaseIterable {
 }
 
 struct Annotation {
-    let id: UUID
+    private(set) var id: UUID
     let type: AnnotationType
     var rect: NSRect
     var startPoint: NSPoint?
@@ -111,5 +111,43 @@ struct Annotation {
         self.color = color
         self.lineWidth = 1.0
         self.rect = NSRect(x: center.x - diameter / 2, y: center.y - diameter / 2, width: diameter, height: diameter)
+    }
+
+    func translatedBy(x: CGFloat, y: CGFloat) -> Annotation {
+        var copy = self
+        copy.rect = rect.offsetBy(dx: x, dy: y)
+        copy.startPoint = startPoint.map { NSPoint(x: $0.x + x, y: $0.y + y) }
+        copy.endPoint = endPoint.map { NSPoint(x: $0.x + x, y: $0.y + y) }
+        copy.points = points?.map { NSPoint(x: $0.x + x, y: $0.y + y) }
+        return copy
+    }
+
+    func resized(to newRect: NSRect) -> Annotation {
+        var copy = self
+        let normalizedRect = newRect.standardized
+        let oldRect = rect.standardized
+        let scaleX = oldRect.width > 0 ? normalizedRect.width / oldRect.width : 1
+        let scaleY = oldRect.height > 0 ? normalizedRect.height / oldRect.height : 1
+        func mapped(_ point: NSPoint) -> NSPoint {
+            NSPoint(
+                x: normalizedRect.minX + (point.x - oldRect.minX) * scaleX,
+                y: normalizedRect.minY + (point.y - oldRect.minY) * scaleY
+            )
+        }
+
+        copy.rect = normalizedRect
+        copy.startPoint = startPoint.map(mapped)
+        copy.endPoint = endPoint.map(mapped)
+        copy.points = points?.map(mapped)
+        if type == .text, let fontSize {
+            copy.fontSize = fontSize * min(scaleX, scaleY)
+        }
+        return copy
+    }
+
+    func duplicated(offset: CGFloat = 12) -> Annotation {
+        var copy = translatedBy(x: offset, y: offset)
+        copy.id = UUID()
+        return copy
     }
 }

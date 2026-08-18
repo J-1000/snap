@@ -178,6 +178,60 @@ final class AnnotationManagerTests: XCTestCase {
         XCTAssertFalse(manager.canRedo)
     }
 
+    // MARK: - Editing
+
+    func testReplaceIsUndoable() {
+        let original = Annotation(type: .rectangle, rect: NSRect(x: 0, y: 0, width: 20, height: 20), color: .red)
+        manager.add(original)
+        manager.replace(original.translatedBy(x: 30, y: 40))
+
+        XCTAssertEqual(manager.annotations[0].rect.origin, NSPoint(x: 30, y: 40))
+        manager.undo()
+        XCTAssertEqual(manager.annotations[0].rect.origin, .zero)
+    }
+
+    func testTransactionCoalescesMultipleReplacementsIntoOneUndo() {
+        let original = Annotation(type: .rectangle, rect: NSRect(x: 0, y: 0, width: 20, height: 20), color: .red)
+        manager.add(original)
+        manager.beginTransaction()
+        manager.replace(original.translatedBy(x: 10, y: 0))
+        manager.replace(original.translatedBy(x: 20, y: 0))
+        manager.commitTransaction()
+
+        manager.undo()
+
+        XCTAssertEqual(manager.annotations[0].rect.origin, .zero)
+    }
+
+    func testDuplicateAndReorderAnnotations() {
+        let first = Annotation(type: .rectangle, rect: .zero, color: .red)
+        let second = Annotation(type: .ellipse, rect: .zero, color: .blue)
+        manager.add(first)
+        manager.add(second)
+
+        let duplicateID = manager.duplicate(id: first.id, offset: 5)
+        guard let duplicateID else {
+            XCTFail("Duplicate should return its new identifier")
+            return
+        }
+        XCTAssertEqual(manager.annotations.count, 3)
+        XCTAssertEqual(manager.annotations.last?.id, duplicateID)
+
+        XCTAssertTrue(manager.sendBackward(id: duplicateID))
+        XCTAssertEqual(manager.annotations[1].id, duplicateID)
+        XCTAssertTrue(manager.bringForward(id: duplicateID))
+        XCTAssertEqual(manager.annotations.last?.id, duplicateID)
+    }
+
+    func testHitTestingReturnsTopmostAnnotation() {
+        let back = Annotation(type: .rectangle, rect: NSRect(x: 0, y: 0, width: 50, height: 50), color: .red)
+        let front = Annotation(type: .ellipse, rect: NSRect(x: 10, y: 10, width: 50, height: 50), color: .blue)
+        manager.add(back)
+        manager.add(front)
+
+        XCTAssertEqual(manager.annotation(at: NSPoint(x: 20, y: 20))?.id, front.id)
+    }
+
     // MARK: - Rendering
 
     func testRenderDoesNotCrashWithNoAnnotations() {

@@ -179,4 +179,45 @@ final class AnnotationTests: XCTestCase {
         XCTAssertNil(annotation.points)
         XCTAssertNil(annotation.text)
     }
+
+    func testTranslationMovesAllFreehandPointsAndBounds() {
+        let annotation = Annotation(
+            type: .freehand,
+            points: [NSPoint(x: 10, y: 20), NSPoint(x: 30, y: 40)],
+            color: .red
+        )
+
+        let moved = annotation.translatedBy(x: 5, y: -8)
+
+        XCTAssertEqual(moved.rect, NSRect(x: 15, y: 12, width: 20, height: 20))
+        XCTAssertEqual(moved.points, [NSPoint(x: 15, y: 12), NSPoint(x: 35, y: 32)])
+        XCTAssertEqual(moved.id, annotation.id)
+    }
+
+    func testResizeMapsLineEndpoints() {
+        let annotation = Annotation(
+            type: .line,
+            start: NSPoint(x: 10, y: 20),
+            end: NSPoint(x: 30, y: 40),
+            color: .blue
+        )
+
+        let resized = annotation.resized(to: NSRect(x: 100, y: 200, width: 40, height: 60))
+
+        XCTAssertEqual(resized.startPoint, NSPoint(x: 100, y: 200))
+        XCTAssertEqual(resized.endPoint, NSPoint(x: 140, y: 260))
+    }
+
+    func testDuplicateGetsNewIDAndOffset() {
+        let annotation = Annotation(
+            type: .rectangle,
+            rect: NSRect(x: 10, y: 20, width: 30, height: 40),
+            color: .green
+        )
+
+        let copy = annotation.duplicated(offset: 15)
+
+        XCTAssertNotEqual(copy.id, annotation.id)
+        XCTAssertEqual(copy.rect, NSRect(x: 25, y: 35, width: 30, height: 40))
+    }
 }

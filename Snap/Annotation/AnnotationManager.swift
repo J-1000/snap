@@ -7,6 +7,7 @@ final class AnnotationManager {
     private var undoStack: [[Annotation]] = []
     private var redoStack: [[Annotation]] = []
     private var compositeCache: CGImage?
+    private var transactionSnapshot: [Annotation]?
 
     /// Shared Core Image context — expensive to construct, so reuse one across
     /// blur renders and live previews instead of allocating per frame.
@@ -30,7 +31,97 @@ final class AnnotationManager {
         onChanged?()
     }
 
+    func annotation(withID id: UUID) -> Annotation? {
+        annotations.first { $0.id == id }
+    }
+
+    func annotation(at point: NSPoint, tolerance: CGFloat = 6) -> Annotation? {
+        annotations.reversed().first {
+            $0.rect.insetBy(dx: -tolerance, dy: -tolerance).contains(point)
+        }
+    }
+
+    func beginTransaction() {
+        guard transactionSnapshot == nil else { return }
+        transactionSnapshot = annotations
+    }
+
+    func commitTransaction() {
+        guard let snapshot = transactionSnapshot else { return }
+        transactionSnapshot = nil
+        undoStack.append(snapshot)
+        redoStack.removeAll()
+    }
+
+    func cancelTransaction() {
+        guard let snapshot = transactionSnapshot else { return }
+        transactionSnapshot = nil
+        annotations = snapshot
+        onChanged?()
+    }
+
+    @discardableResult
+    func replace(_ annotation: Annotation) -> Bool {
+        guard let index = annotations.firstIndex(where: { $0.id == annotation.id }) else { return false }
+        recordUndoForMutation()
+        annotations[index] = annotation
+        onChanged?()
+        return true
+    }
+
+    @discardableResult
+    func remove(id: UUID) -> Bool {
+        guard let index = annotations.firstIndex(where: { $0.id == id }) else { return false }
+        recordUndoForMutation()
+        annotations.remove(at: index)
+        onChanged?()
+        return true
+    }
+
+    @discardableResult
+    func recolor(id: UUID, color: NSColor) -> Bool {
+        guard var annotation = annotation(withID: id) else { return false }
+        annotation.color = color
+        return replace(annotation)
+    }
+
+    @discardableResult
+    func duplicate(id: UUID, offset: CGFloat = 12) -> UUID? {
+        guard let annotation = annotation(withID: id) else { return nil }
+        let copy = annotation.duplicated(offset: offset)
+        recordUndoForMutation()
+        annotations.append(copy)
+        onChanged?()
+        return copy.id
+    }
+
+    @discardableResult
+    func bringForward(id: UUID) -> Bool {
+        guard let index = annotations.firstIndex(where: { $0.id == id }),
+              index < annotations.count - 1 else { return false }
+        recordUndoForMutation()
+        annotations.swapAt(index, index + 1)
+        onChanged?()
+        return true
+    }
+
+    @discardableResult
+    func sendBackward(id: UUID) -> Bool {
+        guard let index = annotations.firstIndex(where: { $0.id == id }), index > 0 else { return false }
+        recordUndoForMutation()
+        annotations.swapAt(index, index - 1)
+        onChanged?()
+        return true
+    }
+
+    private func recordUndoForMutation() {
+        guard transactionSnapshot == nil else { return }
+        undoStack.append(annotations)
+        redoStack.removeAll()
+    }
+
     func undo() {
+        transactionSnapshot = nil
         guard let previous = undoStack.popLast() else { return }
         redoStack.append(annotations)
         annotations = previous
@@ -38,6 +129,7 @@ final class AnnotationManager {
     }
 
     func redo() {
+        transactionSnapshot = nil
         guard let next = redoStack.popLast() else { return }
         undoStack.append(annotations)
         annotations = next
