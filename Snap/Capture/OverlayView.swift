@@ -103,24 +103,28 @@ final class OverlayView: NSView {
     }
 
     private func cursor(for handle: ResizeHandle) -> NSCursor {
+        if #available(macOS 15.0, *) {
+            let position: NSCursor.FrameResizePosition = switch handle {
+            case .top: .top
+            case .bottom: .bottom
+            case .left: .left
+            case .right: .right
+            case .topLeft: .topLeft
+            case .topRight: .topRight
+            case .bottomLeft: .bottomLeft
+            case .bottomRight: .bottomRight
+            }
+            return NSCursor.frameResize(
+                position: position,
+                directions: [.inward, .outward]
+            )
+        }
+
         switch handle {
         case .top, .bottom: return .resizeUpDown
         case .left, .right: return .resizeLeftRight
-        case .topLeft, .bottomRight: return OverlayView.diagonalResizeCursor(nwse: true)
-        case .topRight, .bottomLeft: return OverlayView.diagonalResizeCursor(nwse: false)
+        case .topLeft, .topRight, .bottomLeft, .bottomRight: return .crosshair
         }
-    }
-
-    /// AppKit only exposes axis resize cursors publicly; use the system's
-    /// diagonal cursors when available, falling back to the crosshair.
-    private static func diagonalResizeCursor(nwse: Bool) -> NSCursor {
-        let name = nwse ? "_windowResizeNorthWestSouthEastCursor" : "_windowResizeNorthEastSouthWestCursor"
-        let selector = NSSelectorFromString(name)
-        if NSCursor.responds(to: selector),
-           let value = NSCursor.perform(selector)?.takeUnretainedValue() as? NSCursor {
-            return value
-        }
-        return .crosshair
     }
 
     override func mouseDown(with event: NSEvent) {
