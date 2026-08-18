@@ -31,6 +31,7 @@ final class PreferencesManager {
         static let windowCaptureBackground = "windowCaptureBackground"
         static let lastAreaCaptureRect = "lastAreaCaptureRect"
         static let lastAreaCaptureDisplayID = "lastAreaCaptureDisplayID"
+        static let captureHDR = "captureHDR"
         static let lastTool = "lastTool"
     }
 
@@ -70,6 +71,11 @@ final class PreferencesManager {
         }
     }
 
+    var captureHDR: Bool {
+        get { defaults.bool(forKey: Keys.captureHDR) }
+        set { defaults.set(newValue, forKey: Keys.captureHDR) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         registerDefaults()
@@ -92,6 +98,7 @@ final class PreferencesManager {
             Keys.lastFontSize: 16.0,
             Keys.windowCaptureIncludesShadow: true,
             Keys.windowCaptureBackground: WindowCaptureBackground.transparent.rawValue,
+            Keys.captureHDR: false,
         ])
     }
 

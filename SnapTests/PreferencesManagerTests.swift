@@ -24,6 +24,7 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertEqual(prefs.lastFontSize, 16.0, accuracy: 0.0001)
         XCTAssertTrue(prefs.copyToClipboardAfterCapture)
         XCTAssertFalse(prefs.autoSaveAfterCapture)
+        XCTAssertFalse(prefs.captureHDR)
         XCTAssertTrue(prefs.windowCaptureIncludesShadow)
         XCTAssertEqual(prefs.windowCaptureBackground, WindowCaptureBackground.transparent.rawValue)
     }
@@ -43,6 +44,7 @@ final class PreferencesManagerTests: XCTestCase {
             displayID: 42
         )
         prefs.lastAreaCapture = area
+        prefs.captureHDR = true
 
         // A fresh instance over the same suite must read back the stored values.
         let reloaded = PreferencesManager(defaults: defaults)
@@ -55,6 +57,7 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertFalse(reloaded.windowCaptureIncludesShadow)
         XCTAssertEqual(reloaded.windowCaptureBackground, WindowCaptureBackground.black.rawValue)
         XCTAssertEqual(reloaded.lastAreaCapture, area)
+        XCTAssertTrue(reloaded.captureHDR)
     }
 
     @MainActor func testSaveDirectoryRoundTrips() {

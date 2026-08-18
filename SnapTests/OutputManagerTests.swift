@@ -101,6 +101,26 @@ final class OutputManagerTests: XCTestCase {
         XCTAssertEqual(UTType(type), .jpeg)
     }
 
+    @MainActor func testSaveToFileUsesHEICWhenExtensionIsHEIC() throws {
+        let supportedTypes = CGImageDestinationCopyTypeIdentifiers() as? [String] ?? []
+        guard supportedTypes.contains(UTType.heic.identifier) else {
+            throw XCTSkip("HEIC encoding is unavailable on this system")
+        }
+        let image = createTestImage(width: 20, height: 20)
+        let url = tempDir.appendingPathComponent("test.heic")
+
+        let success = OutputManager.saveToFile(image, url: url)
+
+        XCTAssertTrue(success)
+        guard let data = try? Data(contentsOf: url),
+              let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let type = CGImageSourceGetType(source) as String? else {
+            XCTFail("Could not load saved HEIC image")
+            return
+        }
+        XCTAssertEqual(UTType(type), .heic)
+    }
+
     @MainActor func testSaveToFileDownscalesWhenEnabled() {
         let prefs = PreferencesManager.shared
         let originalDownscale = prefs.downscaleRetina

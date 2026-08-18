@@ -1,5 +1,6 @@
 import AppKit
 import ScreenCaptureKit
+import UniformTypeIdentifiers
 
 final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Sendable {
 
@@ -84,7 +85,12 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         if let name = colorSpace.name {
             config.colorSpaceName = name
         }
-        return try await capturer.capture(filter: filter, config: config, colorSpace: colorSpace)
+        return try await capturer.capture(
+            filter: filter,
+            config: config,
+            colorSpace: colorSpace,
+            windowOptions: options
+        )
     }
 
     static func scaleFactor(for window: SCWindow) -> CGFloat {
@@ -149,15 +155,47 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         }
         config.pixelFormat = kCVPixelFormatType_32BGRA
 
-        return try await capture(filter: filter, config: config, colorSpace: colorSpace)
+        return try await capture(
+            filter: filter,
+            config: config,
+            colorSpace: colorSpace,
+            windowOptions: nil
+        )
     }
 
     @MainActor
     private func capture(
         filter: SCContentFilter,
         config: SCStreamConfiguration,
-        colorSpace: CGColorSpace
+        colorSpace: CGColorSpace,
+        windowOptions: WindowCaptureOptions?
     ) async throws -> CGImage {
+        #if arch(arm64)
+        if #available(macOS 26.0, *), PreferencesManager.shared.captureHDR {
+            let screenshotConfig = SCScreenshotConfiguration()
+            screenshotConfig.width = config.width
+            screenshotConfig.height = config.height
+            screenshotConfig.showsCursor = config.showsCursor
+            screenshotConfig.sourceRect = config.sourceRect
+            screenshotConfig.destinationRect = config.destinationRect
+            screenshotConfig.dynamicRange = .hdr
+            screenshotConfig.displayIntent = .local
+            screenshotConfig.contentType = UTType.heic as UTTypeReference
+            if let windowOptions {
+                screenshotConfig.ignoreShadows = !windowOptions.includesShadow
+                screenshotConfig.includeChildWindows = true
+            }
+            let output = try await SCScreenshotManager.captureScreenshot(
+                contentFilter: filter,
+                configuration: screenshotConfig
+            )
+            guard let image = output.hdrImage else {
+                throw CaptureError.captureFailed
+            }
+            return image
+        }
+        #endif
+
         // macOS 14+: one-shot capture returns a CGImage directly, skipping the
         // stream / continuation / delegate / timeout plumbing entirely.
         if #available(macOS 14.0, *) {

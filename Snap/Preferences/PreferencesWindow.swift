@@ -14,10 +14,11 @@ final class PreferencesWindow: NSWindowController {
     private var cursorCheckbox: NSButton!
     private var notificationCheckbox: NSButton!
     private var launchAtLoginCheckbox: NSButton!
+    private var hdrCheckbox: NSButton?
 
     convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 520),
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 550),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -64,6 +65,15 @@ final class PreferencesWindow: NSWindowController {
             action: #selector(cursorToggled)
         )
         stack.addArrangedSubview(cursorCheckbox)
+        if #available(macOS 26.0, *) {
+            let checkbox = makeCheckbox(
+                title: "Capture HDR on supported displays",
+                state: prefs.captureHDR,
+                action: #selector(hdrToggled)
+            )
+            hdrCheckbox = checkbox
+            stack.addArrangedSubview(checkbox)
+        }
         return stack
     }
 
@@ -80,7 +90,11 @@ final class PreferencesWindow: NSWindowController {
         directoryLabel.widthAnchor.constraint(equalToConstant: 280).isActive = true
 
         formatPopup = NSPopUpButton()
-        formatPopup.addItems(withTitles: ["PNG", "JPEG"])
+        var formats = ["PNG", "JPEG"]
+        if #available(macOS 26.0, *) {
+            formats.append("HEIC")
+        }
+        formatPopup.addItems(withTitles: formats)
         formatPopup.selectItem(withTitle: prefs.imageFormat.uppercased())
         formatPopup.target = self
         formatPopup.action = #selector(formatChanged)
@@ -233,6 +247,10 @@ final class PreferencesWindow: NSWindowController {
 
     @objc private func cursorToggled() {
         prefs.includeMouseCursor = cursorCheckbox.state == .on
+    }
+
+    @objc private func hdrToggled() {
+        prefs.captureHDR = hdrCheckbox?.state == .on
     }
 
     @objc private func notificationToggled() {

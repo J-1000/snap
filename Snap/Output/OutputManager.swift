@@ -138,7 +138,7 @@ final class OutputManager {
         let panel = NSSavePanel()
         let prefs = PreferencesManager.shared
         panel.nameFieldStringValue = FileNaming.defaultFilename(extension: prefs.imageFormat)
-        panel.allowedContentTypes = [.png, .jpeg]
+        panel.allowedContentTypes = [.png, .jpeg, .heic]
         panel.canCreateDirectories = true
 
         panel.begin { response in
@@ -185,7 +185,11 @@ final class OutputManager {
         if let type = UTType(filenameExtension: url.pathExtension) {
             return type
         }
-        return preferredFormat == "jpeg" ? .jpeg : .png
+        switch preferredFormat {
+        case "jpeg", "jpg": return .jpeg
+        case "heic", "heif": return .heic
+        default: return .png
+        }
     }
 
     private static func destinationProperties(for type: UTType, jpegQuality: Double) -> CFDictionary? {
