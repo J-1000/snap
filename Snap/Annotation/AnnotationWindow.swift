@@ -130,6 +130,18 @@ final class AnnotationWindow: NSWindow {
             self?.annotationView.currentFontSize = fontSize
             PreferencesManager.shared.lastFontSize = Double(fontSize)
         }
+        editingToolbar.onUndo = { [weak self] in
+            self?.annotationView.annotationManager.undo()
+        }
+        editingToolbar.onRedo = { [weak self] in
+            self?.annotationView.annotationManager.redo()
+        }
+        annotationView.onHistoryChanged = { [weak self] canUndo, canRedo in
+            self?.editingToolbar.setHistoryAvailability(
+                canUndo: canUndo,
+                canRedo: canRedo
+            )
+        }
 
         seedAnnotationStyle()
     }

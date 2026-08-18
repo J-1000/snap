@@ -8,6 +8,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     var currentColor: NSColor = .systemRed
     var currentLineWidth: CGFloat = 2
     var currentFontSize: CGFloat = 16
+    var onHistoryChanged: ((Bool, Bool) -> Void)?
 
     private var dragOrigin: NSPoint?
     private var dragRect: NSRect?
@@ -22,7 +23,12 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         self.captureScaleFactor = max(captureScaleFactor, 1)
         super.init(frame: NSRect(x: 0, y: 0, width: CGFloat(image.width), height: CGFloat(image.height)))
         annotationManager.onChanged = { [weak self] in
-            self?.needsDisplay = true
+            guard let self else { return }
+            self.needsDisplay = true
+            self.onHistoryChanged?(
+                self.annotationManager.canUndo,
+                self.annotationManager.canRedo
+            )
         }
     }
 

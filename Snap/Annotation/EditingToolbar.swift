@@ -17,15 +17,19 @@ final class EditingToolbar: NSView {
     var onColorChanged: ((NSColor) -> Void)?
     var onLineWidthChanged: ((CGFloat) -> Void)?
     var onFontSizeChanged: ((CGFloat) -> Void)?
+    var onUndo: (() -> Void)?
+    var onRedo: (() -> Void)?
 
     static let width: CGFloat = 72
     /// Eight tools, color controls, and both option popups without clipping.
-    static let minimumHeight: CGFloat = 440
+    static let minimumHeight: CGFloat = 480
 
     private var toolButtons: [AnnotationType: NSButton] = [:]
     private let colorWell = NSColorWell()
     private let lineWidthPopup = NSPopUpButton()
     private let fontSizePopup = NSPopUpButton()
+    private let undoButton = NSButton()
+    private let redoButton = NSButton()
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -54,6 +58,25 @@ final class EditingToolbar: NSView {
             toolButtons[tool] = button
             stack.addArrangedSubview(button)
         }
+
+        let historyStack = NSStackView()
+        historyStack.orientation = .horizontal
+        historyStack.spacing = 4
+        configureHistoryButton(
+            undoButton,
+            symbol: "arrow.uturn.backward",
+            label: "Undo",
+            action: #selector(undoTapped)
+        )
+        configureHistoryButton(
+            redoButton,
+            symbol: "arrow.uturn.forward",
+            label: "Redo",
+            action: #selector(redoTapped)
+        )
+        historyStack.addArrangedSubview(undoButton)
+        historyStack.addArrangedSubview(redoButton)
+        stack.addArrangedSubview(historyStack)
 
         // Divider
         let divider = NSBox()
@@ -155,6 +178,32 @@ final class EditingToolbar: NSView {
         return button
     }
 
+    private func configureHistoryButton(
+        _ button: NSButton,
+        symbol: String,
+        label: String,
+        action: Selector
+    ) {
+        button.bezelStyle = .recessed
+        button.isBordered = true
+        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: label)
+        button.imagePosition = .imageOnly
+        button.toolTip = label
+        button.target = self
+        button.action = action
+        button.isEnabled = false
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 28),
+            button.heightAnchor.constraint(equalToConstant: 28),
+        ])
+    }
+
+    func setHistoryAvailability(canUndo: Bool, canRedo: Bool) {
+        undoButton.isEnabled = canUndo
+        redoButton.isEnabled = canRedo
+    }
+
     private func configureOptionPopup(
         _ popup: NSPopUpButton,
         titles: [String],
@@ -218,6 +267,9 @@ final class EditingToolbar: NSView {
         selectedFontSize = CGFloat(value)
         onFontSizeChanged?(selectedFontSize)
     }
+
+    @objc private func undoTapped() { onUndo?() }
+    @objc private func redoTapped() { onRedo?() }
 
     private func updateSelection() {
         for (tool, button) in toolButtons {
