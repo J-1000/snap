@@ -53,6 +53,8 @@ final class StatusBarController {
         saveAsItem.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(saveAsItem)
 
+        menu.addItem(NSMenuItem(title: "Pin Last Screenshot", action: #selector(pinLastScreenshot), keyEquivalent: ""))
+
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Preferences…", action: #selector(openPreferences), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
@@ -109,6 +111,11 @@ final class StatusBarController {
     @objc private func saveScreenshotAs() {
         guard let delegate = NSApp.delegate as? AppDelegate else { return }
         delegate.saveScreenshotAs()
+    }
+
+    @objc private func pinLastScreenshot() {
+        guard let delegate = NSApp.delegate as? AppDelegate else { return }
+        delegate.pinLastScreenshot()
     }
 
     @objc private func openPreferences() {

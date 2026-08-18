@@ -90,6 +90,24 @@ final class AppDelegateTests: XCTestCase {
         XCTAssertEqual(AnnotationView.imageFontSize(pointSize: 16, captureScaleFactor: 1), 16)
     }
 
+    func testPinnedScreenshotSizePreservesAspectAndFitsAvailableArea() {
+        let image = createTestImage(width: 2400, height: 1600)
+
+        let size = PinnedScreenshotWindow.preferredContentSize(
+            for: image,
+            scaleFactor: 2,
+            availableSize: NSSize(width: 1000, height: 700)
+        )
+
+        XCTAssertLessThanOrEqual(size.width, 700)
+        XCTAssertLessThanOrEqual(size.height, 490)
+        XCTAssertEqual(
+            size.width / (size.height - 36),
+            1.5,
+            accuracy: 0.01
+        )
+    }
+
     // MARK: - Helpers
 
     private func createTestImage(width: Int, height: Int) -> CGImage {

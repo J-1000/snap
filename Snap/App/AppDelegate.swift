@@ -7,6 +7,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let captureEngine = CaptureEngine()
     private var annotationWindow: AnnotationWindow?
     private var captureHUD: CaptureHUD?
+    private var pinnedScreenshotWindows: [UUID: PinnedScreenshotWindow] = [:]
     private var lastCaptureScaleFactor: CGFloat = 1.0
     private var isShowingPermissionAlert = false
     private var pendingTextCapture = false
@@ -257,6 +258,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 OutputManager.showFailure("Save failed")
             }
         }
+        hud.onPin = { [weak self] in
+            self?.pinScreenshot(image, scaleFactor: scaleFactor, screen: captureScreen)
+        }
         hud.onDismiss = { [weak self] in self?.captureHUD = nil }
         captureHUD = hud
         hud.present()
@@ -396,5 +400,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func saveScreenshotAs() {
         guard let image = OutputManager.lastCapturedImage else { return }
         OutputManager.saveWithDialog(image)
+    }
+
+    @objc func pinLastScreenshot() {
+        guard let image = OutputManager.lastCapturedImage else {
+            OutputManager.showFailure("Take a screenshot before pinning it")
+            return
+        }
+        pinScreenshot(
+            image,
+            scaleFactor: OutputManager.lastCapturedScaleFactor,
+            screen: NSScreen.main ?? NSScreen.screens.first
+        )
+    }
+
+    private func pinScreenshot(_ image: CGImage, scaleFactor: CGFloat, screen: NSScreen?) {
+        let id = UUID()
+        let window = PinnedScreenshotWindow(image: image, scaleFactor: scaleFactor, screen: screen)
+        window.onCopy = { [weak self, weak window] in
+            guard let self, let window else { return }
+            if OutputManager.copyToClipboard(window.capturedImage, scaleFactor: window.captureScaleFactor) {
+                self.confirm("Pinned screenshot copied")
+            } else {
+                OutputManager.showFailure("Copy failed")
+            }
+        }
+        window.onSave = { [weak self, weak window] in
+            guard let self, let window else { return }
+            if let url = OutputManager.saveToDefaultLocation(
+                window.capturedImage,
+                scaleFactor: window.captureScaleFactor
+            ) {
+                self.confirm("Saved to \(url.lastPathComponent)")
+            } else {
+                OutputManager.showFailure("Save failed")
+            }
+        }
+        window.onClose = { [weak self] in self?.pinnedScreenshotWindows[id] = nil }
+        pinnedScreenshotWindows[id] = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }

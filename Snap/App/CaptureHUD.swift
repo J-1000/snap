@@ -8,6 +8,7 @@ final class CaptureHUD: NSPanel {
     var onAnnotate: (() -> Void)?
     var onCopy: (() -> Void)?
     var onSave: (() -> Void)?
+    var onPin: (() -> Void)?
     var onDismiss: (() -> Void)?
 
     private var dismissWorkItem: DispatchWorkItem?
@@ -78,6 +79,7 @@ final class CaptureHUD: NSPanel {
         row.addArrangedSubview(makeButton("pencil.tip.crop.circle", "Annotate", #selector(annotateTapped)))
         row.addArrangedSubview(makeButton("doc.on.clipboard", "Copy", #selector(copyTapped)))
         row.addArrangedSubview(makeButton("square.and.arrow.down", "Save", #selector(saveTapped)))
+        row.addArrangedSubview(makeButton("pin", "Pin Screenshot", #selector(pinTapped)))
         row.addArrangedSubview(makeButton("xmark", "Dismiss", #selector(closeTapped)))
         container.addSubview(row)
 
@@ -131,6 +133,7 @@ final class CaptureHUD: NSPanel {
     @objc private func annotateTapped() { dismissHUD(); onAnnotate?() }
     @objc private func copyTapped() { dismissHUD(); onCopy?() }
     @objc private func saveTapped() { dismissHUD(); onSave?() }
+    @objc private func pinTapped() { dismissHUD(); onPin?() }
     @objc private func closeTapped() { dismissHUD() }
 }
 
