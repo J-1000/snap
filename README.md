@@ -99,7 +99,7 @@ xcodebuild test -scheme Snap -configuration Debug -destination 'platform=macOS'
 
 ## Tech Stack
 
-Swift 5.9+, AppKit, ScreenCaptureKit, Core Image/Core Graphics. Single `.app` bundle with no external dependencies.
+Swift 6.0+, AppKit, ScreenCaptureKit, Core Image/Core Graphics. Single `.app` bundle with no external dependencies.
 
 ## License
 

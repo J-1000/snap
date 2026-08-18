@@ -21,6 +21,6 @@ xcodebuild -scheme Snap -configuration Debug build
 - **OutputManager**: Save (PNG/JPEG), clipboard, print, reverse image search
 
 ## Tech Stack
-- Swift 5.9+, AppKit, ScreenCaptureKit, Core Image/Core Graphics
+- Swift 6.0+, AppKit, ScreenCaptureKit, Core Image/Core Graphics
 - UserDefaults for preferences
 - Single .app bundle, no external dependencies
