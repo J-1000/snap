@@ -256,6 +256,7 @@ final class OutputManager {
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.isReleasedWhenClosed = false
+        panel.isMovableByWindowBackground = true
 
         let visualEffect = NSVisualEffectView(frame: panel.contentView!.bounds)
         visualEffect.material = .hudWindow

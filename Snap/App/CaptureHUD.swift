@@ -38,6 +38,7 @@ final class CaptureHUD: NSPanel {
         hasShadow = true
         isReleasedWhenClosed = false
         hidesOnDeactivate = false
+        isMovableByWindowBackground = true
 
         let container = HoverView(frame: NSRect(x: 0, y: 0, width: width, height: height))
         container.material = .hudWindow
