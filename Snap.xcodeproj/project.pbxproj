@@ -323,7 +323,6 @@
 				};
 			};
 			buildConfigurationList = E594C201BD05FC224CF387FF /* Build configuration list for PBXProject "Snap" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -333,6 +332,7 @@
 			mainGroup = 321E601EBDBDC27DE73F8A0A;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 22F4CBFDE4552B74F35AC155 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
