@@ -37,6 +37,7 @@ final class PreferencesManager {
         static let areaShortcutModifiers = "areaShortcutModifiers"
         static let fullScreenShortcutKeyCode = "fullScreenShortcutKeyCode"
         static let fullScreenShortcutModifiers = "fullScreenShortcutModifiers"
+        static let captureHistoryEnabled = "captureHistoryEnabled"
     }
 
     var windowCaptureIncludesShadow: Bool {
@@ -114,6 +115,11 @@ final class PreferencesManager {
         }
     }
 
+    var captureHistoryEnabled: Bool {
+        get { defaults.bool(forKey: Keys.captureHistoryEnabled) }
+        set { defaults.set(newValue, forKey: Keys.captureHistoryEnabled) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         registerDefaults()
@@ -141,6 +147,7 @@ final class PreferencesManager {
             Keys.areaShortcutModifiers: HotKeyManager.HotKey.areaCapture.modifiers.rawValue,
             Keys.fullScreenShortcutKeyCode: Int(HotKeyManager.HotKey.fullScreenCapture.keyCode),
             Keys.fullScreenShortcutModifiers: HotKeyManager.HotKey.fullScreenCapture.modifiers.rawValue,
+            Keys.captureHistoryEnabled: false,
         ])
     }
 

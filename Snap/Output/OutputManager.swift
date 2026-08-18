@@ -51,7 +51,7 @@ final class OutputManager {
         return pasteboard.writeObjects([item])
     }
 
-    private static func pngData(from image: CGImage) -> Data? {
+    static func pngData(from image: CGImage) -> Data? {
         let data = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(
             data, UTType.png.identifier as CFString, 1, nil

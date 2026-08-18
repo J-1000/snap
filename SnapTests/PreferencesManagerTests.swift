@@ -30,6 +30,7 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertEqual(prefs.windowCaptureBackground, WindowCaptureBackground.transparent.rawValue)
         XCTAssertEqual(prefs.areaCaptureShortcut, .areaCapture)
         XCTAssertEqual(prefs.fullScreenCaptureShortcut, .fullScreenCapture)
+        XCTAssertFalse(prefs.captureHistoryEnabled)
     }
 
     @MainActor func testValuesRoundTrip() {
@@ -58,6 +59,7 @@ final class PreferencesManagerTests: XCTestCase {
         )
         prefs.areaCaptureShortcut = areaShortcut
         prefs.fullScreenCaptureShortcut = fullScreenShortcut
+        prefs.captureHistoryEnabled = true
 
         // A fresh instance over the same suite must read back the stored values.
         let reloaded = PreferencesManager(defaults: defaults)
@@ -73,6 +75,7 @@ final class PreferencesManagerTests: XCTestCase {
         XCTAssertTrue(reloaded.captureHDR)
         XCTAssertEqual(reloaded.areaCaptureShortcut, areaShortcut)
         XCTAssertEqual(reloaded.fullScreenCaptureShortcut, fullScreenShortcut)
+        XCTAssertTrue(reloaded.captureHistoryEnabled)
     }
 
     @MainActor func testSaveDirectoryRoundTrips() {
