@@ -92,6 +92,7 @@ final class EditingToolbar: NSView {
         colorWell.translatesAutoresizingMaskIntoConstraints = false
         colorWell.target = self
         colorWell.action = #selector(colorChanged)
+        colorWell.setAccessibilityLabel("Custom annotation color")
         if #available(macOS 13.0, *) {
             colorWell.colorWellStyle = .minimal
         }
@@ -102,9 +103,14 @@ final class EditingToolbar: NSView {
         ])
 
         // Color presets
-        let presetColors: [NSColor] = [.systemRed, .systemYellow, .systemGreen, .systemBlue]
-        for color in presetColors {
-            let swatch = makeColorSwatch(color: color)
+        let presetColors: [(NSColor, String)] = [
+            (.systemRed, "Red annotation color"),
+            (.systemYellow, "Yellow annotation color"),
+            (.systemGreen, "Green annotation color"),
+            (.systemBlue, "Blue annotation color"),
+        ]
+        for (color, label) in presetColors {
+            let swatch = makeColorSwatch(color: color, label: label)
             stack.addArrangedSubview(swatch)
         }
 
@@ -159,7 +165,7 @@ final class EditingToolbar: NSView {
         return button
     }
 
-    private func makeColorSwatch(color: NSColor) -> NSView {
+    private func makeColorSwatch(color: NSColor, label: String) -> NSView {
         let button = NSButton()
         button.bezelStyle = .recessed
         button.isBordered = false
@@ -168,6 +174,8 @@ final class EditingToolbar: NSView {
         button.layer?.cornerRadius = 4
         button.target = self
         button.action = #selector(swatchTapped(_:))
+        button.toolTip = label
+        button.setAccessibilityLabel(label)
         button.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             button.widthAnchor.constraint(equalToConstant: 20),
@@ -214,6 +222,7 @@ final class EditingToolbar: NSView {
         popup.addItems(withTitles: titles)
         popup.selectItem(withTitle: selectedTitle)
         popup.toolTip = tooltip
+        popup.setAccessibilityLabel(tooltip)
         popup.target = self
         popup.action = action
         popup.controlSize = .small

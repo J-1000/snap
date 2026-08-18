@@ -18,6 +18,18 @@ final class OverlayView: NSView {
     private let dimColor = NSColor.black.withAlphaComponent(0.3)
     private let handleSize: CGFloat = 8
 
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        setAccessibilityElement(true)
+        setAccessibilityRole(.group)
+        setAccessibilityLabel("Screen capture area selector")
+        setAccessibilityHelp("Drag to select an area. Use arrow keys to move it, Return to capture, or Escape to cancel.")
+        setAccessibilityValue("No area selected")
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
     private var geometry: SelectionGeometry {
         SelectionGeometry(bounds: bounds, handleSize: handleSize)
     }
@@ -235,6 +247,19 @@ final class OverlayView: NSView {
     private func updateLabels() {
         updateDimensionLabel()
         updateHintLabel()
+        updateAccessibilitySelection()
+    }
+
+    private func updateAccessibilitySelection() {
+        guard let selection = currentSelection else {
+            setAccessibilityValue("No area selected")
+            return
+        }
+        let scaleFactor = window?.backingScaleFactor ?? 1
+        let width = Int((selection.width * scaleFactor).rounded())
+        let height = Int((selection.height * scaleFactor).rounded())
+        setAccessibilityValue("Selected area, \(width) by \(height) pixels")
+        NSAccessibility.post(element: self, notification: .valueChanged)
     }
 
     private func updateDimensionLabel() {
@@ -292,6 +317,7 @@ final class OverlayView: NSView {
         resizeOriginalSelection = nil
         dimensionLabel.isHidden = true
         hintLabel.isHidden = true
+        updateAccessibilitySelection()
         needsDisplay = true
         refreshCursorRects()
     }

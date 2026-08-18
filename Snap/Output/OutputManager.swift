@@ -259,6 +259,10 @@ final class OutputManager {
         visualEffect.wantsLayer = true
         visualEffect.layer?.cornerRadius = 10
         visualEffect.autoresizingMask = [.width, .height]
+        visualEffect.setAccessibilityElement(true)
+        visualEffect.setAccessibilityRole(.group)
+        visualEffect.setAccessibilityLabel("Snap notification")
+        visualEffect.setAccessibilityValue(text)
         panel.contentView?.addSubview(visualEffect)
 
         let label = NSTextField(labelWithString: text)
@@ -279,6 +283,15 @@ final class OutputManager {
 
         panel.alphaValue = 0
         panel.orderFrontRegardless()
+        NSAccessibility.post(
+            element: NSApplication.shared,
+            notification: .announcementRequested,
+            userInfo:
+            [
+                .announcement: text,
+                .priority: NSAccessibilityPriorityLevel.medium.rawValue,
+            ]
+        )
 
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.2

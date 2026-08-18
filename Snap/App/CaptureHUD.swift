@@ -44,6 +44,9 @@ final class CaptureHUD: NSPanel {
         container.wantsLayer = true
         container.layer?.cornerRadius = 12
         container.layer?.masksToBounds = true
+        container.setAccessibilityElement(true)
+        container.setAccessibilityRole(.group)
+        container.setAccessibilityLabel("Screenshot actions")
         container.onHoverChange = { [weak self] hovering in
             if hovering { self?.cancelAutoDismiss() } else { self?.scheduleAutoDismiss() }
         }
@@ -61,6 +64,7 @@ final class CaptureHUD: NSPanel {
         thumb.target = self
         thumb.action = #selector(annotateTapped)
         thumb.toolTip = "Annotate"
+        thumb.setAccessibilityLabel("Annotate captured screenshot")
         thumb.wantsLayer = true
         thumb.layer?.cornerRadius = 6
         thumb.layer?.masksToBounds = true
@@ -89,6 +93,7 @@ final class CaptureHUD: NSPanel {
         b.image = NSImage(systemSymbolName: symbol, accessibilityDescription: tooltip)
         b.imagePosition = .imageOnly
         b.toolTip = tooltip
+        b.setAccessibilityLabel(tooltip)
         b.target = self
         b.action = action
         return b
