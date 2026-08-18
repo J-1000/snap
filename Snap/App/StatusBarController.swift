@@ -39,6 +39,7 @@ final class StatusBarController {
         menu.addItem(NSMenuItem(title: "Capture Area", action: #selector(captureArea), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Capture Window…", action: #selector(captureWindow), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Repeat Last Area", action: #selector(repeatLastArea), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Capture Scrolling Area…", action: #selector(captureScrollingArea), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Capture Full Screen", action: #selector(captureFullScreen), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Capture Full Screen (5s delay)", action: #selector(captureFullScreenDelayed), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Capture Text (OCR)", action: #selector(captureText), keyEquivalent: ""))
@@ -78,6 +79,11 @@ final class StatusBarController {
     @objc private func repeatLastArea() {
         guard let delegate = NSApp.delegate as? AppDelegate else { return }
         delegate.repeatLastAreaCapture()
+    }
+
+    @objc private func captureScrollingArea() {
+        guard let delegate = NSApp.delegate as? AppDelegate else { return }
+        delegate.startScrollingCapture()
     }
 
     @objc private func captureFullScreen() {

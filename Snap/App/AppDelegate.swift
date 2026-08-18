@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastCaptureScaleFactor: CGFloat = 1.0
     private var isShowingPermissionAlert = false
     private var pendingTextCapture = false
+    private var pendingScrollingCapture = false
     private var delayedCaptureWorkItem: DispatchWorkItem?
     private var isPresentingWindowPicker = false
 
@@ -30,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         captureEngine.onError = { [weak self] error in
             NSLog("Snap capture error: \(error.localizedDescription)")
             self?.pendingTextCapture = false
+            self?.pendingScrollingCapture = false
             if !ScreenCapture.hasScreenRecordingPermission() {
                 self?.presentScreenRecordingPermissionAlert()
             } else {
@@ -39,6 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         captureEngine.onCancel = { [weak self] in
             self?.pendingTextCapture = false
+            self?.pendingScrollingCapture = false
         }
 
         hotKeyManager.onAreaCapture = { [weak self] in
@@ -115,6 +118,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         captureEngine.startAreaSelection()
     }
 
+    func startScrollingCapture() {
+        guard !captureEngine.isActive, !isPresentingWindowPicker else { return }
+        cancelDelayedCapture()
+        pendingScrollingCapture = true
+        captureEngine.startAreaSelection()
+    }
+
     func startWindowCapture() {
         guard !captureEngine.isActive, !isPresentingWindowPicker else { return }
         cancelDelayedCapture()
@@ -168,6 +178,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if pendingTextCapture {
             pendingTextCapture = false
             recognizeText(in: image)
+            return
+        }
+        if pendingScrollingCapture {
+            pendingScrollingCapture = false
+            guard let selectionRect,
+                  let screen = NSScreen.screens.first(where: { $0.frame.intersects(selectionRect) }) else {
+                OutputManager.showFailure("The scrolling capture area is no longer on a display")
+                return
+            }
+            Task {
+                do {
+                    let stitched = try await ScrollingCapture.capture(
+                        initialImage: image,
+                        rect: selectionRect,
+                        screen: screen
+                    )
+                    handleCapturedImage(stitched, scaleFactor: scaleFactor, showUI: showUI)
+                } catch {
+                    OutputManager.showFailure("Scrolling capture failed: \(error.localizedDescription)")
+                }
+            }
             return
         }
         lastCaptureScaleFactor = scaleFactor
