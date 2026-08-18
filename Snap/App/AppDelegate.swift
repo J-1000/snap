@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastCaptureScaleFactor: CGFloat = 1.0
     private var isShowingPermissionAlert = false
     private var pendingTextCapture = false
+    private var pendingQRCodeCapture = false
     private var pendingScrollingCapture = false
     private var delayedCaptureWorkItem: DispatchWorkItem?
     private var isPresentingWindowPicker = false
@@ -32,6 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         captureEngine.onError = { [weak self] error in
             NSLog("Snap capture error: \(error.localizedDescription)")
             self?.pendingTextCapture = false
+            self?.pendingQRCodeCapture = false
             self?.pendingScrollingCapture = false
             if !ScreenCapture.hasScreenRecordingPermission() {
                 self?.presentScreenRecordingPermissionAlert()
@@ -42,6 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         captureEngine.onCancel = { [weak self] in
             self?.pendingTextCapture = false
+            self?.pendingQRCodeCapture = false
             self?.pendingScrollingCapture = false
         }
 
@@ -119,6 +122,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         captureEngine.startAreaSelection()
     }
 
+    func startQRCodeCapture() {
+        guard !captureEngine.isActive, !isPresentingWindowPicker else { return }
+        cancelDelayedCapture()
+        pendingQRCodeCapture = true
+        captureEngine.startAreaSelection()
+    }
+
     func startScrollingCapture() {
         guard !captureEngine.isActive, !isPresentingWindowPicker else { return }
         cancelDelayedCapture()
@@ -175,10 +185,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func recognizeQRCode(in image: CGImage) {
+        QRCodeRecognizer.recognize(in: image) { [weak self] payload in
+            guard let payload else {
+                OutputManager.showFailure("No QR code found")
+                return
+            }
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            if pasteboard.setString(payload, forType: .string) {
+                self?.confirm("QR code payload copied")
+            } else {
+                OutputManager.showFailure("Could not copy the QR code payload")
+            }
+        }
+    }
+
     func handleCapturedImage(_ image: CGImage, scaleFactor: CGFloat = 1.0, showUI: Bool = true, selectionRect: NSRect? = nil) {
         if pendingTextCapture {
             pendingTextCapture = false
             recognizeText(in: image)
+            return
+        }
+        if pendingQRCodeCapture {
+            pendingQRCodeCapture = false
+            recognizeQRCode(in: image)
             return
         }
         if pendingScrollingCapture {

@@ -198,3 +198,16 @@ final class CaptureEngineTests: XCTestCase {
         return context.makeImage()!
     }
 }
+
+final class QRCodeRecognizerTests: XCTestCase {
+    func testPreferredPayloadSkipsWhitespaceOnlyCandidates() {
+        XCTAssertEqual(
+            QRCodeRecognizer.preferredPayload(from: ["  ", "\nhttps://example.com/path  ", "later"]),
+            "https://example.com/path"
+        )
+    }
+
+    func testPreferredPayloadReturnsNilForEmptyCandidates() {
+        XCTAssertNil(QRCodeRecognizer.preferredPayload(from: ["", " \n "]))
+    }
+}
