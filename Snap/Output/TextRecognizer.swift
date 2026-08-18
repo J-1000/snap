@@ -20,7 +20,7 @@ enum TextRecognizer {
                 return
             }
             let lines = observations.compactMap { $0.topCandidates(1).first?.string }
-            finish(lines.isEmpty ? nil : lines.joined(separator: "\n"))
+            finish(preferredText(from: lines))
         }
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
@@ -33,6 +33,13 @@ enum TextRecognizer {
                 finish(nil)
             }
         }
+    }
+
+    static func preferredText(from lines: [String]) -> String? {
+        let cleaned = lines
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return cleaned.isEmpty ? nil : cleaned.joined(separator: "\n")
     }
 }
 

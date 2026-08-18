@@ -211,3 +211,37 @@ final class QRCodeRecognizerTests: XCTestCase {
         XCTAssertNil(QRCodeRecognizer.preferredPayload(from: ["", " \n "]))
     }
 }
+
+final class CaptureAndRecognitionGeometryTests: XCTestCase {
+    func testScreenCaptureConvertsGlobalRectToDisplayLocalTopLeftCoordinates() {
+        let screen = NSRect(x: -1440, y: 100, width: 1440, height: 900)
+        let selection = NSRect(x: -1340, y: 250, width: 500, height: 300)
+
+        let source = ScreenCapture.sourceRect(for: selection, in: screen)
+
+        XCTAssertEqual(source, CGRect(x: 100, y: 450, width: 500, height: 300))
+    }
+
+    func testScreenCaptureRoundsRetinaPixelDimensions() {
+        let size = ScreenCapture.pixelSize(
+            for: NSRect(x: 0, y: 0, width: 100.25, height: 50.75),
+            scaleFactor: 2
+        )
+
+        XCTAssertEqual(size.width, 201)
+        XCTAssertEqual(size.height, 102)
+    }
+
+    func testTextRecognitionCleansAndJoinsLines() {
+        XCTAssertEqual(
+            TextRecognizer.preferredText(from: [" first ", "", "\nsecond\n"]),
+            "first\nsecond"
+        )
+        XCTAssertNil(TextRecognizer.preferredText(from: ["", " \n "]))
+    }
+
+    func testScreenCaptureErrorsHaveActionableDescriptions() {
+        XCTAssertNotNil(ScreenCapture.CaptureError.noDisplayFound.errorDescription)
+        XCTAssertNotNil(ScreenCapture.CaptureError.captureFailed.errorDescription)
+    }
+}

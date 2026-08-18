@@ -116,6 +116,24 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
         screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
     }
 
+    /// Convert an AppKit global selection (bottom-left origin) into the
+    /// display-local, top-left-origin coordinates expected by ScreenCaptureKit.
+    static func sourceRect(for rect: NSRect, in screenFrame: NSRect) -> CGRect {
+        CGRect(
+            x: rect.origin.x - screenFrame.origin.x,
+            y: screenFrame.height - (rect.origin.y - screenFrame.origin.y) - rect.height,
+            width: rect.width,
+            height: rect.height
+        )
+    }
+
+    static func pixelSize(for rect: NSRect, scaleFactor: CGFloat) -> (width: Int, height: Int) {
+        (
+            width: Int((rect.width * scaleFactor).rounded()),
+            height: Int((rect.height * scaleFactor).rounded())
+        )
+    }
+
     @MainActor
     private func capture(rect: NSRect, screen: NSScreen) async throws -> CGImage {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
@@ -129,18 +147,14 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate, @unchecke
 
         // Convert from AppKit coordinates (origin bottom-left of primary) to
         // display-local Core Graphics coordinates (origin top-left of this display)
-        let sourceRect = CGRect(
-            x: rect.origin.x - screenFrame.origin.x,
-            y: screenFrame.height - (rect.origin.y - screenFrame.origin.y) - rect.height,
-            width: rect.width,
-            height: rect.height
-        )
+        let sourceRect = Self.sourceRect(for: rect, in: screenFrame)
+        let pixelSize = Self.pixelSize(for: rect, scaleFactor: scaleFactor)
 
         let filter = SCContentFilter(display: display, excludingWindows: [])
         let config = SCStreamConfiguration()
         config.sourceRect = sourceRect
-        config.width = Int((rect.width * scaleFactor).rounded())
-        config.height = Int((rect.height * scaleFactor).rounded())
+        config.width = pixelSize.width
+        config.height = pixelSize.height
         config.showsCursor = PreferencesManager.shared.includeMouseCursor
         config.capturesAudio = false
         config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
