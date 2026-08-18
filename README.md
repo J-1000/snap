@@ -113,7 +113,7 @@ xcodegen generate
 xcodebuild test -scheme Snap -configuration Debug -destination 'platform=macOS'
 ```
 
-The suite contains 137 tests: 133 permission-free unit/integration tests and four UI smoke tests covering Preferences, both editor toolbars, the capture HUD, and the VoiceOver capture overlay. The shared scheme records production coverage; current Snap line coverage is 43.23% (up from 21.13%), and CI enforces a 40% floor on GitHub's macOS 26 / Xcode 26.6 runner.
+The suite contains 137 tests: 133 permission-free unit/integration tests and four UI smoke tests covering Preferences, both editor toolbars, the capture HUD, and the VoiceOver capture overlay. The shared scheme records production coverage; current Snap line coverage is 43.64% (up from 21.13%), and CI enforces a 40% floor on GitHub's macOS 26 / Xcode 26.6 runner.
 
 ## Tech Stack
 
