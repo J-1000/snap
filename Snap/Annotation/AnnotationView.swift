@@ -7,15 +7,28 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     var currentTool: AnnotationType? {
         didSet {
             if currentTool != nil {
+                isCropping = false
                 selectAnnotation(nil)
             }
         }
     }
+    var isCropping = false {
+        didSet {
+            if isCropping {
+                currentTool = nil
+                selectAnnotation(nil)
+            }
+            onCropChanged?(cropRect, isCropping)
+            needsDisplay = true
+        }
+    }
+    private(set) var cropRect: NSRect?
     var currentColor: NSColor = .systemRed
     var currentLineWidth: CGFloat = 2
     var currentFontSize: CGFloat = 16
     var onHistoryChanged: ((Bool, Bool) -> Void)?
     var onSelectionChanged: ((Annotation?) -> Void)?
+    var onCropChanged: ((NSRect?, Bool) -> Void)?
 
     private(set) var selectedAnnotationID: UUID?
 
@@ -30,6 +43,8 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     private var dragPoints: [NSPoint] = []
     private var selectionInteraction: SelectionInteraction?
     private var selectionDidChange = false
+    private var cropDragOrigin: NSPoint?
+    private var cropDragRect: NSRect?
 
     private var activeTextField: NSTextField?
     private var textInsertionPoint: NSPoint? // image coords (top-left origin)
@@ -80,6 +95,7 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             annotationManager.render(preview, in: context, size: bounds.size, sourceImage: image)
         }
         drawSelection(in: context)
+        drawCrop(in: context)
         context.restoreGState()
     }
 
@@ -105,6 +121,20 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             context.fill(handle)
             context.stroke(handle)
         }
+    }
+
+    private func drawCrop(in context: CGContext) {
+        guard let rect = cropDragRect ?? cropRect else { return }
+        context.saveGState()
+        context.addRect(bounds)
+        context.addRect(rect)
+        context.setFillColor(NSColor.black.withAlphaComponent(0.42).cgColor)
+        context.drawPath(using: .eoFill)
+        context.setStrokeColor(NSColor.white.cgColor)
+        context.setLineWidth(max(captureScaleFactor, 1))
+        context.setLineDash(phase: 0, lengths: [6 * captureScaleFactor, 3 * captureScaleFactor])
+        context.stroke(rect)
+        context.restoreGState()
     }
 
     private func applyTopLeftFlip(_ context: CGContext) {
@@ -157,6 +187,13 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         // Convert from AppKit (bottom-left origin) to image coords (top-left origin)
         let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
 
+        if isCropping {
+            cropDragOrigin = imagePoint
+            cropDragRect = NSRect(origin: imagePoint, size: .zero)
+            needsDisplay = true
+            return
+        }
+
         guard currentTool != nil else {
             beginSelectionInteraction(at: imagePoint)
             return
@@ -183,6 +220,17 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     override func mouseDragged(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
         var imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+
+        if let cropDragOrigin {
+            cropDragRect = NSRect(
+                x: min(cropDragOrigin.x, imagePoint.x),
+                y: min(cropDragOrigin.y, imagePoint.y),
+                width: abs(imagePoint.x - cropDragOrigin.x),
+                height: abs(imagePoint.y - cropDragOrigin.y)
+            ).intersection(bounds)
+            needsDisplay = true
+            return
+        }
 
         if updateSelectionInteraction(to: imagePoint) {
             return
@@ -231,6 +279,17 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     }
 
     override func mouseUp(with event: NSEvent) {
+        if cropDragOrigin != nil {
+            if let cropDragRect, cropDragRect.width > 2, cropDragRect.height > 2 {
+                cropRect = cropDragRect.integral.intersection(bounds)
+            }
+            cropDragOrigin = nil
+            cropDragRect = nil
+            isCropping = false
+            needsDisplay = true
+            return
+        }
+
         if selectionInteraction != nil {
             if selectionDidChange {
                 annotationManager.commitTransaction()
@@ -357,6 +416,14 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     func recolorSelectedAnnotation(_ color: NSColor) {
         guard let selectedAnnotationID else { return }
         annotationManager.recolor(id: selectedAnnotationID, color: color)
+    }
+
+    func clearCrop() {
+        cropRect = nil
+        cropDragOrigin = nil
+        cropDragRect = nil
+        isCropping = false
+        needsDisplay = true
     }
 
     @objc func duplicateSelectedAnnotation() {

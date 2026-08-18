@@ -5,6 +5,9 @@ final class AnnotationWindow: NSWindow {
     let annotationView: AnnotationView
     let actionToolbar: ActionToolbar
     let editingToolbar: EditingToolbar
+    let canvasScrollView: NSScrollView
+
+    private let initialMagnification: CGFloat
 
     var onCopy: (() -> Void)?
     var onSave: (() -> Void)?
@@ -56,10 +59,12 @@ final class AnnotationWindow: NSWindow {
         self.annotationView = AnnotationView(image: image, captureScaleFactor: captureScaleFactor)
         self.actionToolbar = ActionToolbar()
         self.editingToolbar = EditingToolbar()
+        self.canvasScrollView = NSScrollView()
 
         // The captured image is in physical pixels; lay the editor out in points
         // (pixels / scale) and let the Retina backing store render it crisply.
         let s = max(displayScaleFactor, 1)
+        self.initialMagnification = 1 / s
         let imageWidth = CGFloat(image.width) / s
         let imageHeight = CGFloat(image.height) / s
         let editorHeight = max(imageHeight, EditingToolbar.minimumHeight)
@@ -91,9 +96,25 @@ final class AnnotationWindow: NSWindow {
         // Image canvas on the left, sized in points but with a pixel-resolution
         // coordinate system so drawing maps 1 image pixel to 1 device pixel and
         // mouse points convert straight to image-pixel coordinates.
-        annotationView.frame = NSRect(x: 0, y: ActionToolbar.height, width: imageWidth, height: imageHeight)
-        annotationView.setBoundsSize(NSSize(width: CGFloat(image.width), height: CGFloat(image.height)))
-        container.addSubview(annotationView)
+        annotationView.frame = NSRect(x: 0, y: 0, width: image.width, height: image.height)
+        canvasScrollView.frame = NSRect(
+            x: 0,
+            y: ActionToolbar.height,
+            width: windowWidth - EditingToolbar.width,
+            height: editorHeight
+        )
+        canvasScrollView.autoresizingMask = [.width, .height]
+        canvasScrollView.documentView = annotationView
+        canvasScrollView.drawsBackground = true
+        canvasScrollView.backgroundColor = .black
+        canvasScrollView.hasHorizontalScroller = true
+        canvasScrollView.hasVerticalScroller = true
+        canvasScrollView.autohidesScrollers = true
+        canvasScrollView.allowsMagnification = true
+        canvasScrollView.minMagnification = min(0.05, initialMagnification)
+        canvasScrollView.maxMagnification = 8
+        canvasScrollView.magnification = initialMagnification
+        container.addSubview(canvasScrollView)
 
         // Editing toolbar on the right
         editingToolbar.frame = NSRect(
@@ -112,6 +133,17 @@ final class AnnotationWindow: NSWindow {
         actionToolbar.onReverseSearch = { [weak self] in self?.onReverseSearch?() }
         actionToolbar.onPrint = { [weak self] in self?.onPrint?() }
         actionToolbar.onShare = { [weak self] in self?.onShare?() }
+        actionToolbar.onCrop = { [weak self] in
+            guard let self else { return }
+            if !self.annotationView.isCropping {
+                self.editingToolbar.selectedTool = nil
+            }
+            self.annotationView.isCropping.toggle()
+        }
+        actionToolbar.onClearCrop = { [weak self] in self?.annotationView.clearCrop() }
+        actionToolbar.onZoomOut = { [weak self] in self?.zoom(by: 0.8) }
+        actionToolbar.onZoomToFit = { [weak self] in self?.zoomToFit() }
+        actionToolbar.onZoomIn = { [weak self] in self?.zoom(by: 1.25) }
         actionToolbar.onClose = { [weak self] in self?.onClose?() }
 
         editingToolbar.onToolChanged = { [weak self] tool in
@@ -147,8 +179,37 @@ final class AnnotationWindow: NSWindow {
             guard let annotation else { return }
             self?.editingToolbar.selectedColor = annotation.color
         }
+        annotationView.onCropChanged = { [weak self] cropRect, isActive in
+            self?.actionToolbar.setCropState(active: isActive, hasCrop: cropRect != nil)
+        }
 
         seedAnnotationStyle()
+    }
+
+    func outputImage() -> CGImage {
+        annotationView.annotationManager.composite(
+            onto: capturedImage,
+            croppedTo: annotationView.cropRect
+        ) ?? capturedImage
+    }
+
+    private func zoom(by factor: CGFloat) {
+        let target = min(
+            max(canvasScrollView.magnification * factor, canvasScrollView.minMagnification),
+            canvasScrollView.maxMagnification
+        )
+        let visible = canvasScrollView.documentVisibleRect
+        canvasScrollView.setMagnification(
+            target,
+            centeredAt: NSPoint(x: visible.midX, y: visible.midY)
+        )
+    }
+
+    private func zoomToFit() {
+        canvasScrollView.setMagnification(
+            initialMagnification,
+            centeredAt: NSPoint(x: annotationView.bounds.midX, y: annotationView.bounds.midY)
+        )
     }
 
     /// Restore the last-used color, stroke width, font size, and tool so the

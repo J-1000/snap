@@ -364,8 +364,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Composite the editor's annotations onto the capture (or return the
     /// capture unchanged) and refresh the last-capture cache once.
     private func flattenedOutput(from window: AnnotationWindow) -> CGImage {
-        let output = window.annotationView.annotationManager.composite(onto: window.capturedImage)
-            ?? window.capturedImage
+        let output = window.outputImage()
         OutputManager.cacheLastCapture(output, scaleFactor: lastCaptureScaleFactor)
         return output
     }

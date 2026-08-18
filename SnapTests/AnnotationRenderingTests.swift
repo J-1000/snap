@@ -13,6 +13,20 @@ final class AnnotationRenderingTests: XCTestCase {
         return ctx.makeImage()!
     }
 
+    private func stripedImage(width: Int, height: Int) -> CGImage {
+        let cs = CGColorSpace(name: CGColorSpace.sRGB)!
+        let ctx = CGContext(
+            data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+            space: cs, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        )!
+        for y in 0..<height {
+            let fraction = CGFloat(y) / CGFloat(max(height - 1, 1))
+            ctx.setFillColor(CGColor(red: fraction, green: 0.25, blue: 1 - fraction, alpha: 1))
+            ctx.fill(CGRect(x: 0, y: y, width: width, height: 1))
+        }
+        return ctx.makeImage()!
+    }
+
     /// (r,g,b,a) 0–255 at image pixel (x, y) in top-left-origin coordinates.
     private func pixel(_ image: CGImage, x: Int, y: Int) -> (UInt8, UInt8, UInt8, UInt8) {
         let width = image.width
@@ -77,5 +91,22 @@ final class AnnotationRenderingTests: XCTestCase {
         XCTAssertGreaterThan(uncovered.0, 245)
         XCTAssertGreaterThan(uncovered.1, 245)
         XCTAssertGreaterThan(uncovered.2, 245)
+    }
+
+    func testCropUsesTopLeftImageCoordinates() {
+        let source = stripedImage(width: 40, height: 30)
+        let manager = AnnotationManager()
+        let crop = NSRect(x: 7, y: 3, width: 18, height: 11)
+
+        let output = manager.composite(onto: source, croppedTo: crop)!
+
+        XCTAssertEqual(output.width, 18)
+        XCTAssertEqual(output.height, 11)
+        let expected = pixel(source, x: 12, y: 8)
+        let actual = pixel(output, x: 5, y: 5)
+        XCTAssertLessThanOrEqual(abs(Int(actual.0) - Int(expected.0)), 2)
+        XCTAssertLessThanOrEqual(abs(Int(actual.1) - Int(expected.1)), 2)
+        XCTAssertLessThanOrEqual(abs(Int(actual.2) - Int(expected.2)), 2)
+        XCTAssertEqual(actual.3, expected.3)
     }
 }

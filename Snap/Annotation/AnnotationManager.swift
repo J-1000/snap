@@ -320,4 +320,21 @@ final class AnnotationManager {
         compositeCache = result
         return result
     }
+
+    /// Applies a top-left-origin crop after annotations are flattened. The
+    /// original capture and annotation model remain unchanged.
+    func composite(onto image: CGImage, croppedTo cropRect: NSRect?) -> CGImage? {
+        guard let flattened = composite(onto: image) else { return nil }
+        guard let cropRect else { return flattened }
+        let imageBounds = NSRect(x: 0, y: 0, width: image.width, height: image.height)
+        let rect = cropRect.standardized.integral.intersection(imageBounds)
+        guard rect.width > 0, rect.height > 0 else { return flattened }
+        let bottomLeftRect = CGRect(
+            x: rect.minX,
+            y: CGFloat(image.height) - rect.maxY,
+            width: rect.width,
+            height: rect.height
+        )
+        return flattened.cropping(to: bottomLeftRect) ?? flattened
+    }
 }
