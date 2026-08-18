@@ -37,3 +37,32 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.snap.tests
         GENERATE_INFOPLIST_FILE: YES
+  SnapUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - SnapUITests
+    dependencies:
+      - target: Snap
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.snap.uitests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Snap:
+    build:
+      targets:
+        Snap: all
+        SnapTests: [test]
+        SnapUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - Snap
+      targets:
+        - name: SnapTests
+        - name: SnapUITests
+          parallelizable: false

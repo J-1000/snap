@@ -38,6 +38,7 @@
 		A9C9B1890E9B0853EF8AD82C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C1198A2FEFDD3895D44765 /* StatusBarController.swift */; };
 		B247B42E39FAF6567892C13F /* AnnotationRenderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D040B886F33EDA351E93EE4D /* AnnotationRenderingTests.swift */; };
 		B6C667FE7828E4DE7BDDF602 /* PreferencesManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE3583780BCCDE89242E6C6 /* PreferencesManagerTests.swift */; };
+		BF0B3D802D6814785592F7BE /* SnapUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA1965BA7AD17E7E52BCEFD /* SnapUITests.swift */; };
 		C840A4009F19E0EC3590EEB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4506329C6000E69CDAA97BEA /* Assets.xcassets */; };
 		D848F4034772AC921006EED7 /* PreferencesWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A572F31244CA8AC57FF14A86 /* PreferencesWindow.swift */; };
 		E6C00C5D1566C87E3E9E447E /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F8B89C3756D75AD6C326A3 /* PreferencesManager.swift */; };
@@ -49,6 +50,13 @@
 
 /* Begin PBXContainerItemProxy section */
 		455E1829D147477ED5B83F60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 48378A11929BBF0B04294F87 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C242E9E1176C872683855893;
+			remoteInfo = Snap;
+		};
+		CEE2D221126F471CD8D40151 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 48378A11929BBF0B04294F87 /* Project object */;
 			proxyType = 1;
@@ -71,6 +79,7 @@
 		390385DF9C2C73BFE240F25F /* WindowCapturePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCapturePicker.swift; sourceTree = "<group>"; };
 		3BC5BC322A05E4F0343BA8C9 /* Snap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Snap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CFDEDDCBC2137F9F6D493F6 /* AnnotationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationManager.swift; sourceTree = "<group>"; };
+		3DA1965BA7AD17E7E52BCEFD /* SnapUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapUITests.swift; sourceTree = "<group>"; };
 		3DE3583780BCCDE89242E6C6 /* PreferencesManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManagerTests.swift; sourceTree = "<group>"; };
 		4506329C6000E69CDAA97BEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		48963A45B2F8C37DDFF49B7A /* CaptureHistoryWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureHistoryWindow.swift; sourceTree = "<group>"; };
@@ -78,6 +87,7 @@
 		69B328534970A999544C1547 /* AnnotationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationTests.swift; sourceTree = "<group>"; };
 		78F9118D2746AD93F2833213 /* AnnotationManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationManagerTests.swift; sourceTree = "<group>"; };
 		8DFF0C348D72EE200C021EAB /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		9045B17A8C7B9F9A6E782A3E /* SnapUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SnapUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		914A12AB0C57F12378E3EF43 /* OutputManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputManagerTests.swift; sourceTree = "<group>"; };
 		9310F95D52EF3E2DFF4267C7 /* ActionToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionToolbar.swift; sourceTree = "<group>"; };
 		99912E5EA38BB16EDF3286FA /* TextRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognizer.swift; sourceTree = "<group>"; };
@@ -108,6 +118,7 @@
 			children = (
 				3BC5BC322A05E4F0343BA8C9 /* Snap.app */,
 				256B24AD58DBE7513428AE8F /* SnapTests.xctest */,
+				9045B17A8C7B9F9A6E782A3E /* SnapUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -117,6 +128,7 @@
 			children = (
 				E185436592635B1DD59E4225 /* Snap */,
 				3F9CE1FDC9CF8DDA75B90DD4 /* SnapTests */,
+				ADF10F82D140D30B1D77E4AC /* SnapUITests */,
 				22F4CBFDE4552B74F35AC155 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -180,6 +192,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		ADF10F82D140D30B1D77E4AC /* SnapUITests */ = {
+			isa = PBXGroup;
+			children = (
+				3DA1965BA7AD17E7E52BCEFD /* SnapUITests.swift */,
+			);
+			path = SnapUITests;
+			sourceTree = "<group>";
+		};
 		B554D50974B7F6434DD43E69 /* Annotation */ = {
 			isa = PBXGroup;
 			children = (
@@ -234,6 +254,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		7F6CC3D4B8AC6CC0900846A3 /* SnapUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 42DDC6F311BF77848D051BAD /* Build configuration list for PBXNativeTarget "SnapUITests" */;
+			buildPhases = (
+				FE9D2AAB571C39671D4E84D9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A4E32A9BEBC7F5E2221DE2B2 /* PBXTargetDependency */,
+			);
+			name = SnapUITests;
+			packageProductDependencies = (
+			);
+			productName = SnapUITests;
+			productReference = 9045B17A8C7B9F9A6E782A3E /* SnapUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		C242E9E1176C872683855893 /* Snap */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 64BE66C045DC003C9BAF073A /* Build configuration list for PBXNativeTarget "Snap" */;
@@ -278,6 +316,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					7F6CC3D4B8AC6CC0900846A3 = {
+						TestTargetID = C242E9E1176C872683855893;
+					};
+				};
 			};
 			buildConfigurationList = E594C201BD05FC224CF387FF /* Build configuration list for PBXProject "Snap" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -295,6 +338,7 @@
 			targets = (
 				C242E9E1176C872683855893 /* Snap */,
 				EE48C72F1ADF6562DB8CE96B /* SnapTests */,
+				7F6CC3D4B8AC6CC0900846A3 /* SnapUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -362,6 +406,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FE9D2AAB571C39671D4E84D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0B3D802D6814785592F7BE /* SnapUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -370,9 +422,31 @@
 			target = C242E9E1176C872683855893 /* Snap */;
 			targetProxy = 455E1829D147477ED5B83F60 /* PBXContainerItemProxy */;
 		};
+		A4E32A9BEBC7F5E2221DE2B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C242E9E1176C872683855893 /* Snap */;
+			targetProxy = CEE2D221126F471CD8D40151 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		6F22AFE8AC50F5A23230BBE4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.snap.uitests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Snap;
+			};
+			name = Debug;
+		};
 		7358700D584CD5647F9BCFAB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -471,6 +545,23 @@
 			};
 			name = Debug;
 		};
+		976545568B507448A0E16D99 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.snap.uitests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Snap;
+			};
+			name = Release;
+		};
 		ABD21DD271CFFB0DC76E89B7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -565,6 +656,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		42DDC6F311BF77848D051BAD /* Build configuration list for PBXNativeTarget "SnapUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6F22AFE8AC50F5A23230BBE4 /* Debug */,
+				976545568B507448A0E16D99 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		64BE66C045DC003C9BAF073A /* Build configuration list for PBXNativeTarget "Snap" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -15,8 +15,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var pendingScrollingCapture = false
     private var delayedCaptureWorkItem: DispatchWorkItem?
     private var isPresentingWindowPicker = false
+    private var uiTestingPreferencesWindow: PreferencesWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if launchUITestingSurfaceIfRequested() {
+            return
+        }
         // App-hosted unit tests launch Snap before loading the test bundle.
         // Keep that host inert: tests must not install a global event tap,
         // prompt for Screen Recording permission, or create menu-bar UI.
@@ -63,6 +67,49 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if !ScreenCapture.hasScreenRecordingPermission() {
             ScreenCapture.requestScreenRecordingPermission()
         }
+    }
+
+    /// UI tests launch real production views without installing global event
+    /// taps or prompting for Screen Recording / Accessibility permission.
+    private func launchUITestingSurfaceIfRequested() -> Bool {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let mode = arguments.first(where: { $0.hasPrefix("--ui-testing-") }) else {
+            return false
+        }
+        switch mode {
+        case "--ui-testing-preferences":
+            let controller = PreferencesWindow()
+            uiTestingPreferencesWindow = controller
+            controller.showWindow(nil)
+        case "--ui-testing-editor":
+            let image = Self.uiTestingImage()
+            showAnnotationWindow(image: image, scaleFactor: 1)
+        case "--ui-testing-hud":
+            showCaptureHUD(image: Self.uiTestingImage(), scaleFactor: 1, selectionRect: nil)
+        case "--ui-testing-overlay":
+            captureEngine.startAreaSelection()
+        default:
+            return false
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        return true
+    }
+
+    private static func uiTestingImage() -> CGImage {
+        let context = CGContext(
+            data: nil,
+            width: 640,
+            height: 400,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        )!
+        context.setFillColor(NSColor.windowBackgroundColor.cgColor)
+        context.fill(CGRect(x: 0, y: 0, width: 640, height: 400))
+        context.setFillColor(NSColor.controlAccentColor.cgColor)
+        context.fill(CGRect(x: 80, y: 80, width: 220, height: 140))
+        return context.makeImage()!
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {

@@ -62,6 +62,7 @@ final class PreferencesWindow: NSWindowController {
     private func makeCaptureSection() -> NSView {
         let stack = makeSection(title: "Capture")
         areaShortcutRecorder = ShortcutRecorder(shortcut: prefs.areaCaptureShortcut)
+        areaShortcutRecorder.setAccessibilityIdentifier("area-capture-shortcut")
         areaShortcutRecorder.onShortcutRecorded = { [weak self] shortcut in
             self?.saveShortcut(shortcut, forAreaCapture: true)
         }
@@ -70,6 +71,7 @@ final class PreferencesWindow: NSWindowController {
         )
 
         fullScreenShortcutRecorder = ShortcutRecorder(shortcut: prefs.fullScreenCaptureShortcut)
+        fullScreenShortcutRecorder.setAccessibilityIdentifier("full-screen-capture-shortcut")
         fullScreenShortcutRecorder.onShortcutRecorded = { [weak self] shortcut in
             self?.saveShortcut(shortcut, forAreaCapture: false)
         }
