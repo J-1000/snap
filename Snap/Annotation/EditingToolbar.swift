@@ -21,8 +21,8 @@ final class EditingToolbar: NSView {
     var onRedo: (() -> Void)?
 
     static let width: CGFloat = 72
-    /// Eight tools, color controls, and both option popups without clipping.
-    static let minimumHeight: CGFloat = 480
+    /// Selection, eight tools, color controls, and both option popups without clipping.
+    static let minimumHeight: CGFloat = 520
 
     private var toolButtons: [AnnotationType: NSButton] = [:]
     private let colorWell = NSColorWell()
@@ -30,6 +30,7 @@ final class EditingToolbar: NSView {
     private let fontSizePopup = NSPopUpButton()
     private let undoButton = NSButton()
     private let redoButton = NSButton()
+    private let selectionButton = NSButton()
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -51,6 +52,23 @@ final class EditingToolbar: NSView {
         stack.spacing = 4
         stack.alignment = .centerX
         stack.translatesAutoresizingMaskIntoConstraints = false
+
+        selectionButton.bezelStyle = .recessed
+        selectionButton.setButtonType(.pushOnPushOff)
+        selectionButton.isBordered = true
+        selectionButton.image = NSImage(
+            systemSymbolName: "cursorarrow",
+            accessibilityDescription: "Select and edit annotations"
+        )
+        selectionButton.toolTip = "Select / Move Annotations"
+        selectionButton.target = self
+        selectionButton.action = #selector(selectionTapped)
+        selectionButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            selectionButton.widthAnchor.constraint(equalToConstant: 32),
+            selectionButton.heightAnchor.constraint(equalToConstant: 32),
+        ])
+        stack.addArrangedSubview(selectionButton)
 
         // Tool buttons — one per annotation type, in declaration order.
         for tool in AnnotationType.allCases {
@@ -156,7 +174,7 @@ final class EditingToolbar: NSView {
         button.toolTip = tool.tooltip
         button.target = self
         button.action = #selector(toolTapped(_:))
-        button.tag = AnnotationType.allCases.firstIndex(of: tool)!
+        button.tag = AnnotationType.allCases.firstIndex(of: tool) ?? 0
         button.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             button.widthAnchor.constraint(equalToConstant: 32),
@@ -246,6 +264,11 @@ final class EditingToolbar: NSView {
         onToolChanged?(selectedTool)
     }
 
+    @objc private func selectionTapped() {
+        selectedTool = nil
+        onToolChanged?(nil)
+    }
+
     @objc private func swatchTapped(_ sender: NSButton) {
         if let color = swatchColorMap[ObjectIdentifier(sender)] {
             selectedColor = color
@@ -281,6 +304,7 @@ final class EditingToolbar: NSView {
     @objc private func redoTapped() { onRedo?() }
 
     private func updateSelection() {
+        selectionButton.state = selectedTool == nil ? .on : .off
         for (tool, button) in toolButtons {
             button.state = (tool == selectedTool) ? .on : .off
         }

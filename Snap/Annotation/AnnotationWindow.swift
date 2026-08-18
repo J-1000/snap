@@ -120,6 +120,7 @@ final class AnnotationWindow: NSWindow {
         }
         editingToolbar.onColorChanged = { [weak self] color in
             self?.annotationView.currentColor = color
+            self?.annotationView.recolorSelectedAnnotation(color)
             PreferencesManager.shared.lastAnnotationColorHex = color.hexString
         }
         editingToolbar.onLineWidthChanged = { [weak self] lineWidth in
@@ -141,6 +142,10 @@ final class AnnotationWindow: NSWindow {
                 canUndo: canUndo,
                 canRedo: canRedo
             )
+        }
+        annotationView.onSelectionChanged = { [weak self] annotation in
+            guard let annotation else { return }
+            self?.editingToolbar.selectedColor = annotation.color
         }
 
         seedAnnotationStyle()

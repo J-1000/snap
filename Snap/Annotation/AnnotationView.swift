@@ -4,16 +4,32 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     private let image: CGImage
     private let captureScaleFactor: CGFloat
     let annotationManager = AnnotationManager()
-    var currentTool: AnnotationType?
+    var currentTool: AnnotationType? {
+        didSet {
+            if currentTool != nil {
+                selectAnnotation(nil)
+            }
+        }
+    }
     var currentColor: NSColor = .systemRed
     var currentLineWidth: CGFloat = 2
     var currentFontSize: CGFloat = 16
     var onHistoryChanged: ((Bool, Bool) -> Void)?
+    var onSelectionChanged: ((Annotation?) -> Void)?
+
+    private(set) var selectedAnnotationID: UUID?
+
+    private enum SelectionInteraction {
+        case moving(id: UUID, start: NSPoint, original: Annotation)
+        case resizing(id: UUID, handle: ResizeHandle, anchor: NSPoint, original: Annotation)
+    }
 
     private var dragOrigin: NSPoint?
     private var dragRect: NSRect?
     private var dragEndPoint: NSPoint?
     private var dragPoints: [NSPoint] = []
+    private var selectionInteraction: SelectionInteraction?
+    private var selectionDidChange = false
 
     private var activeTextField: NSTextField?
     private var textInsertionPoint: NSPoint? // image coords (top-left origin)
@@ -25,6 +41,10 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         annotationManager.onChanged = { [weak self] in
             guard let self else { return }
             self.needsDisplay = true
+            if let selectedID = self.selectedAnnotationID,
+               self.annotationManager.annotation(withID: selectedID) == nil {
+                self.selectAnnotation(nil)
+            }
             self.onHistoryChanged?(
                 self.annotationManager.canUndo,
                 self.annotationManager.canRedo
@@ -59,7 +79,32 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
         if let preview = previewAnnotation() {
             annotationManager.render(preview, in: context, size: bounds.size, sourceImage: image)
         }
+        drawSelection(in: context)
         context.restoreGState()
+    }
+
+    private var selectionHandleSize: CGFloat { 8 * captureScaleFactor }
+
+    private var selectionGeometry: SelectionGeometry {
+        SelectionGeometry(bounds: bounds, handleSize: selectionHandleSize)
+    }
+
+    private func drawSelection(in context: CGContext) {
+        guard let selectedAnnotationID,
+              let annotation = annotationManager.annotation(withID: selectedAnnotationID) else {
+            return
+        }
+        let rect = annotation.rect.insetBy(dx: -3 * captureScaleFactor, dy: -3 * captureScaleFactor)
+        context.setStrokeColor(NSColor.controlAccentColor.cgColor)
+        context.setLineWidth(max(captureScaleFactor, 1))
+        context.setLineDash(phase: 0, lengths: [5 * captureScaleFactor, 3 * captureScaleFactor])
+        context.stroke(rect)
+        context.setLineDash(phase: 0, lengths: [])
+        context.setFillColor(NSColor.white.cgColor)
+        for handle in selectionGeometry.handleRects(for: rect).values {
+            context.fill(handle)
+            context.stroke(handle)
+        }
     }
 
     private func applyTopLeftFlip(_ context: CGContext) {
@@ -108,10 +153,14 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
             commitActiveText()
         }
 
-        guard currentTool != nil else { return }
         let point = convert(event.locationInWindow, from: nil)
         // Convert from AppKit (bottom-left origin) to image coords (top-left origin)
         let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+
+        guard currentTool != nil else {
+            beginSelectionInteraction(at: imagePoint)
+            return
+        }
 
         if currentTool == .text {
             showTextField(at: point, imagePoint: imagePoint)
@@ -132,9 +181,14 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     }
 
     override func mouseDragged(with event: NSEvent) {
-        guard let origin = dragOrigin else { return }
         let point = convert(event.locationInWindow, from: nil)
         var imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+
+        if updateSelectionInteraction(to: imagePoint) {
+            return
+        }
+
+        guard let origin = dragOrigin else { return }
 
         let shift = event.modifierFlags.contains(.shift)
         if shift, currentTool == .line || currentTool == .arrow {
@@ -177,6 +231,17 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
     }
 
     override func mouseUp(with event: NSEvent) {
+        if selectionInteraction != nil {
+            if selectionDidChange {
+                annotationManager.commitTransaction()
+            } else {
+                annotationManager.cancelTransaction()
+            }
+            selectionInteraction = nil
+            selectionDidChange = false
+            return
+        }
+
         guard let tool = currentTool else {
             dragOrigin = nil
             dragRect = nil
@@ -246,16 +311,164 @@ final class AnnotationView: NSView, NSTextFieldDelegate {
                     annotationManager.undo()
                 }
                 return
+            case "d":
+                duplicateSelectedAnnotation()
+                return
+            case "]":
+                bringSelectedAnnotationForward()
+                return
+            case "[":
+                sendSelectedAnnotationBackward()
+                return
             default:
                 break
             }
         }
-        // Delete / forward-delete removes the most recent annotation.
+        if event.keyCode == 53, selectedAnnotationID != nil {
+            selectAnnotation(nil)
+            return
+        }
+        if let selectedAnnotationID, [123, 124, 125, 126].contains(event.keyCode) {
+            let distance: CGFloat = event.modifierFlags.contains(.shift) ? 10 : 1
+            let offset: NSPoint = switch event.keyCode {
+            case 123: NSPoint(x: -distance, y: 0)
+            case 124: NSPoint(x: distance, y: 0)
+            case 125: NSPoint(x: 0, y: distance)
+            default: NSPoint(x: 0, y: -distance)
+            }
+            if let annotation = annotationManager.annotation(withID: selectedAnnotationID) {
+                _ = annotationManager.replace(clampedTranslation(of: annotation, x: offset.x, y: offset.y))
+            }
+            return
+        }
+        // Delete / forward-delete removes the selection, or the most recent annotation.
         if event.keyCode == 51 || event.keyCode == 117 {
-            annotationManager.removeLast()
+            if let selectedAnnotationID {
+                annotationManager.remove(id: selectedAnnotationID)
+                selectAnnotation(nil)
+            } else {
+                annotationManager.removeLast()
+            }
             return
         }
         super.keyDown(with: event)
+    }
+
+    func recolorSelectedAnnotation(_ color: NSColor) {
+        guard let selectedAnnotationID else { return }
+        annotationManager.recolor(id: selectedAnnotationID, color: color)
+    }
+
+    @objc func duplicateSelectedAnnotation() {
+        guard let selectedAnnotationID,
+              let newID = annotationManager.duplicate(
+                id: selectedAnnotationID,
+                offset: 12 * captureScaleFactor
+              ) else { return }
+        selectAnnotation(newID)
+    }
+
+    @objc func bringSelectedAnnotationForward() {
+        guard let selectedAnnotationID else { return }
+        annotationManager.bringForward(id: selectedAnnotationID)
+    }
+
+    @objc func sendSelectedAnnotationBackward() {
+        guard let selectedAnnotationID else { return }
+        annotationManager.sendBackward(id: selectedAnnotationID)
+    }
+
+    @objc func deleteSelectedAnnotation() {
+        guard let selectedAnnotationID else { return }
+        annotationManager.remove(id: selectedAnnotationID)
+        selectAnnotation(nil)
+    }
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let point = convert(event.locationInWindow, from: nil)
+        let imagePoint = NSPoint(x: point.x, y: bounds.height - point.y)
+        if let annotation = annotationManager.annotation(
+            at: imagePoint,
+            tolerance: 8 * captureScaleFactor
+        ) {
+            selectAnnotation(annotation.id)
+        }
+        guard selectedAnnotationID != nil else { return nil }
+        let menu = NSMenu()
+        menu.addItem(withTitle: "Duplicate", action: #selector(duplicateSelectedAnnotation), keyEquivalent: "")
+        menu.addItem(withTitle: "Bring Forward", action: #selector(bringSelectedAnnotationForward), keyEquivalent: "")
+        menu.addItem(withTitle: "Send Backward", action: #selector(sendSelectedAnnotationBackward), keyEquivalent: "")
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(withTitle: "Delete", action: #selector(deleteSelectedAnnotation), keyEquivalent: "")
+        for item in menu.items { item.target = self }
+        return menu
+    }
+
+    private func beginSelectionInteraction(at point: NSPoint) {
+        if let selectedAnnotationID,
+           let selected = annotationManager.annotation(withID: selectedAnnotationID) {
+            let selectionRect = selected.rect.insetBy(dx: -3 * captureScaleFactor, dy: -3 * captureScaleFactor)
+            if let handle = selectionGeometry.resizeHandle(at: point, in: selectionRect) {
+                annotationManager.beginTransaction()
+                selectionInteraction = .resizing(
+                    id: selectedAnnotationID,
+                    handle: handle,
+                    anchor: selectionGeometry.anchorPoint(for: handle, in: selected.rect),
+                    original: selected
+                )
+                selectionDidChange = false
+                return
+            }
+        }
+
+        guard let hit = annotationManager.annotation(at: point, tolerance: 8 * captureScaleFactor) else {
+            selectAnnotation(nil)
+            return
+        }
+        selectAnnotation(hit.id)
+        annotationManager.beginTransaction()
+        selectionInteraction = .moving(id: hit.id, start: point, original: hit)
+        selectionDidChange = false
+    }
+
+    private func updateSelectionInteraction(to point: NSPoint) -> Bool {
+        guard let selectionInteraction else { return false }
+        let updated: Annotation
+        switch selectionInteraction {
+        case .moving(_, let start, let original):
+            updated = clampedTranslation(
+                of: original,
+                x: point.x - start.x,
+                y: point.y - start.y
+            )
+        case .resizing(_, let handle, let anchor, let original):
+            let resizedRect = selectionGeometry.resizedRect(
+                handle: handle,
+                original: original.rect,
+                anchor: anchor,
+                current: point
+            )
+            updated = original.resized(to: selectionGeometry.clamped(resizedRect))
+        }
+        selectionDidChange = true
+        annotationManager.replace(updated)
+        return true
+    }
+
+    private func clampedTranslation(of annotation: Annotation, x: CGFloat, y: CGFloat) -> Annotation {
+        let proposed = annotation.translatedBy(x: x, y: y)
+        let clampedRect = selectionGeometry.clamped(proposed.rect)
+        return annotation.translatedBy(
+            x: clampedRect.minX - annotation.rect.minX,
+            y: clampedRect.minY - annotation.rect.minY
+        )
+    }
+
+    private func selectAnnotation(_ id: UUID?) {
+        selectedAnnotationID = id
+        let annotation = id.flatMap(annotationManager.annotation(withID:))
+        onSelectionChanged?(annotation)
+        needsDisplay = true
     }
 
     // MARK: - Text input
